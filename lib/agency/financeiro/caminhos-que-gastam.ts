@@ -235,6 +235,16 @@ export const CAMINHOS_QUE_GASTAM: Record<string, CaminhoQueGasta> = {
       "SUGERE ao time uma resposta para a mensagem do cliente — a sugestão aparece para o operador, e " +
       "nada é enviado sem alguém apertar enviar. Não é produção: é ajuda de redação para quem atende. " +
       "Protegido por sessão de agência." },
+  "lib/marketplaces/99freelas/redator.ts": {
+    porque:
+      "prospecção da PRÓPRIA agência em marketplace de freelancer: redige a proposta candidata a " +
+      "partir de um projeto PÚBLICO lido no 99Freelas, e julga o texto pelo juiz editorial. Roda " +
+      "ANTES de existir pedido — não há clientRequestId a que ligar pagamento, e inventar um seria " +
+      "fabricar a prova que o portão existe para exigir. Mesma família de `radar-agent.ts`: o " +
+      "cliente aqui é a casa, e a casa não cobra de si mesma. O gasto é limitado pelo `--limite` " +
+      "da rodada e pela cota de conexões da plataforma, nunca por cliente. Nada é enviado: o " +
+      "resultado para como `Oportunidade` com `status: \"nova\"`, esperando o clique do CEO.",
+  },
   "lib/agency/radar/radar-agent.ts": { porque: 
       "prospecção da PRÓPRIA agência: lê oportunidades de mercado para a Dioli vender. O cliente aqui " +
       "é a casa, e a casa não cobra de si mesma. Sem pedido, não há pagamento a exigir; o gasto é limi" +
