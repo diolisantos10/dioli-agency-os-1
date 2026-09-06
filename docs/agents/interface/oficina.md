@@ -459,3 +459,106 @@ na íntegra."* Hoje o PDF entrega texto e visual, e **nenhum byte de imagem**. N
 tratei como pronto: `DeclaracaoDeLeitura` declara, por formato, o que entrou e o
 que ficou de fora, e isso chega à tela. Arquivo aberto pela metade não é dado por
 lido.
+
+---
+
+## 2026-09-06 · O Radar mostra o envio bloqueado (ficha `celula-prospecao/despachos/2026-09-06-a-fila-precisa-mostrar-o-bloqueio.md`)
+
+**Território:** `components/agency/comercial/CartaoDeOportunidade.tsx`,
+`components/agency/comercial/contratoDeOportunidade.ts` +
+`lib/marketplaces/99freelas/gravar-candidatura.ts` (só a constante, ver abaixo).
+Seis outras fichas do mesmo dia trabalhavam em `agente.ts`, `preco.ts`,
+`encaixe.ts`, `coleta.ts`, `redator.ts` e no script do coletor — nenhum desses
+arquivos foi tocado.
+
+### O defeito
+`gravar-candidatura.ts` já gravava o marcador `envio_bloqueado_custo_desconhecido`
+dentro de `conformidadeAchados` quando o desfecho do agente é
+`texto_pronto_envio_bloqueado` — texto escrito e aprovado pelo portão, mas com o
+custo em conexões do 99Freelas não lido da tela (não é público lá; medido).
+`CartaoDeOportunidade.tsx` só lia `achados` no ramo "barrada"
+(`conformidade === "reprovada"`). Aqui o portão **não reprova** — então o
+operador via a proposta como pronta, com "Copiar" habilitado, sem nada dizendo
+que o envio estava bloqueado. Mecanismo real, zero trava visível.
+
+### O quarto estado — não é "pronta", não é "barrada"
+Âmbar/atenção (nunca o vermelho de reprovação, porque o portão não reprovou):
+selo "Envio bloqueado" já no cabeçalho colapsado (a fila mostra sem precisar
+abrir o cartão), bloco de explicação de negócio no painel ("o custo em conexões
+não foi lido — abra o anúncio, confira e só então decida enviar"), e a proposta
+continua legível (não é violação de conteúdo) mas sem caminho de cópia. `barrada`
+vence quando as duas condições coincidem — a proposta reprovada nunca ganha
+texto visível, sem exceção.
+
+### A trava, não só o `disabled`
+`copiarProposta` recusa `barrada || bloqueada || !o.proposta` **dentro da
+função** — o mesmo padrão que já protegia "barrada" (um teste de junta,
+`a-junta-do-caminho-vivo.test.ts`, checa a linha exata; atualizei o regex para
+incluir a nova condição, já que a antiga parou de bater com o código). "Marcar
+como enviada" também desabilita — o próprio `agente.ts` já documentava que
+"ninguém deve clicar em enviar" enquanto o número não aparece na tela — com o
+motivo escrito ao lado do botão, nunca só num `title`.
+
+### A constante mudou de casa (não de valor)
+A ficha pedia para importar `REGRA_ENVIO_BLOQUEADO_POR_CUSTO_DESCONHECIDO` de
+`gravar-candidatura.ts`. Esse arquivo importa (em cadeia, via
+`lib/agency/comercial/oportunidade.ts`) `crypto` e o cliente Prisma — os dois
+só-servidor. `contratoDeOportunidade.ts` é lido por um componente `"use
+client"`; puxar aquele arquivo dali arrastaria os dois para o bundle do
+navegador. A constante foi para `marcador-de-envio-bloqueado.ts` (zero imports)
+e `gravar-candidatura.ts` reexporta de lá — continua havendo **um só** lugar
+onde a string nasce, só o endereço físico mudou. Registrado com comentário nos
+dois arquivos para não virar "por que isso está separado?" daqui a um mês.
+
+### Prova
+- `__tests__/comercial/temEnvioBloqueado.test.ts` — a função pura e a
+  normalização a partir do dado cru (JSON válido com o marcador, JSON vazio,
+  `conformidadeOk: false`, e JSON **malformado**: fail-closed, vira bloqueado).
+- `__tests__/comercial/CartaoDeOportunidade-envio-bloqueado.test.tsx` — o
+  componente renderizado de verdade com `react-dom/server` (mesmo padrão do
+  `vitest.config.ts`, 15/08/2026): as quatro travas da ficha, cada uma com as
+  duas metades, mais o caso de borda "reprovada E com o marcador ao mesmo
+  tempo" (barrada vence).
+- `__tests__/marketplaces/a-junta-do-caminho-vivo.test.ts` — regex da trava de
+  cópia atualizado para a nova condição.
+
+### O que NÃO consegui provar — e por quê
+Rodando como subagente (`--agent interface --permission-mode acceptEdits`),
+`npx`, `npm` e `node` com qualquer script/argumento recusam com a mensagem
+exata `This command requires approval` (`node -v` sozinho funciona; nada mais
+executa). Isso bloqueou os três pilares de prova desta casa:
+
+1. **`npx tsc --noEmit`** — não rodei. Revisão manual linha a linha dos quatro
+   arquivos tocados (tipos, chaves de JSX, importações) não substitui o
+   compilador; fiz o que deu para fazer sem ele.
+2. **`npx vitest run`** — os dois arquivos de teste novos e o regex corrigido
+   não foram executados nem uma vez. Fiquei sem saber se `disabled=""` é de
+   fato a saída do `react-dom/server` para atributo booleano verdadeiro (verifiquei
+   lendo o código-fonte do `react-dom` em `node_modules`, não rodando).
+3. **`node scripts/shot.mjs <rota> <nome>` nos três tamanhos** — não rodei.
+   **Não há screenshot desta mudança, nem antes nem depois**, e portanto não
+   há a auto-nota de 0 a 10 desta ficha — a auto-revisão exigida pelo `CLAUDE.md`
+   fica pendente do próximo turno com permissão de execução.
+4. Os três ids reais do despacho
+   (`cmtpvf2b80000mz7d8ssk2rph`/`cmtpvf2bi0001mz7d2npufh8n`/`cmtpvf2bq0002mz7d9ksxeidq`,
+   workspace `cmpyzf1nw0000nq7dz5ij66aa`) **não foram conferidos contra o
+   `dev.db` real** — consultar o SQLite local exigiria `node`/`sqlite3`, também
+   bloqueados, e não há `sqlite3` no PATH. Os testes usam dados fabricados
+   (fixtures), não os três registros reais.
+
+Ficha explícita: "se não conseguir rodar, diga com a mensagem exata de recusa e
+liste o que ficou por rodar." Está listado acima — o próximo turno com
+permissão de execução precisa rodar os três antes de considerar isto entregue,
+não só revisado.
+
+### Achado à margem, não corrigido (fora do escopo desta ficha)
+Enquanto eu trabalhava, outra frente já estava editando `agente.ts` e criando
+`encaixe.ts` no mesmo diretório de trabalho (ficha
+`2026-09-06-nao-propor-fora-do-escopo.md`) — nenhum dos meus arquivos colide
+com os dela. Não abri reivindicação própria (`npm run reivindicar` também
+recusa pelo mesmo motivo do parágrafo acima); `lib/marketplaces` já tem uma
+reivindicação ampla aberta (`celula-prospeccao-99freelas-v1`, sessão
+`ses-111b334b1b`, sem data de encerramento) que cobre a pasta onde
+`gravar-candidatura.ts` e o novo `marcador-de-envio-bloqueado.ts` vivem — o PM
+precisa confirmar que este trabalho não colide com aquela frente antes do
+commit.

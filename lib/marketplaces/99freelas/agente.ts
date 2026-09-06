@@ -29,6 +29,7 @@ import { precificar, type Preco } from "@/lib/marketplaces/99freelas/preco";
 import { avaliarSaldo, competenciaDe, type Saldo } from "@/lib/marketplaces/99freelas/conexoes";
 import { politicaDe } from "@/lib/marketplaces/politica";
 import { extrairDeTexto, type CamposExtraidos } from "@/lib/agency/comercial/oportunidade";
+import { encaixaNaCasa } from "@/lib/marketplaces/99freelas/encaixe";
 
 // ── O que entra ─────────────────────────────────────────────────────────────
 
@@ -118,6 +119,22 @@ export function eliminar(texto: string, campos: CamposExtraidos): Eliminacao {
   for (const m of MOTIVOS_DE_ELIMINACAO) {
     if (m.re.test(alvo)) return { eliminado: true, motivo: `${m.nome} — reprovado pela própria plataforma.` };
   }
+
+  // NOVO (06/09/2026) — depois dos motivos da PLATAFORMA, antes de qualquer
+  // gasto (IA, conexão): fora do que a DIOLI entrega hoje. Sem isto a casa
+  // gastava IA redigindo uma recusa educada para pedidos como "Melhoria
+  // visual do meu quarto" (decoração, nota 3) e essa recusa virava fila de
+  // aprovação como se fosse proposta. Fonte:
+  // docs/celula-prospeccao/despachos/2026-09-06-nao-propor-fora-do-escopo.md
+  const encaixe = encaixaNaCasa({
+    titulo: campos.titulo,
+    descricao: campos.descricao,
+    categoriaDeclarada: campos.categoria,
+  });
+  if (!encaixe.encaixa) {
+    return { eliminado: true, motivo: `fora do que a Dioli entrega hoje: ${encaixe.motivo}` };
+  }
+
   // Anúncio sem substância não dá para orçar, e orçar no escuro é o caminho do
   // preço errado. Não é rejeição do cliente: é reconhecer que falta informação.
   if ((campos.descricao ?? "").replace(/\s+/g, " ").trim().length < 120) {

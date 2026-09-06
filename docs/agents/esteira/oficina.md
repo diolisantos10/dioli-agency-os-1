@@ -5,6 +5,88 @@
 
 ---
 
+## 2026-09-06 · A esteira precisa saber o que a Dioli faz — `encaixaNaCasa`
+
+Ficha: `docs/celula-prospeccao/despachos/2026-09-06-nao-propor-fora-do-escopo.md`
+
+**O buraco, medido numa rodada real:** `npx tsx scripts/coletar-99freelas.mts
+--limite 3 --gravar` gravou na fila do CEO uma proposta para "Melhoria visual
+do meu quarto" (decoração, nota 3). `eliminar()` só conhecia o que a
+PLATAFORMA proíbe (acadêmico, teste grátis, comissionado, vaga CLT) — nunca o
+que a DIOLI faz. A casa gastou IA redigindo uma recusa educada, e essa recusa
+foi parar na fila como se fosse proposta pronta para o clique.
+
+**O que entrou**
+
+- `lib/marketplaces/99freelas/encaixe.ts` (novo) — `encaixaNaCasa`,
+  `encaixarContra`, `derivarVocabularioDeEncaixe`. Determinístico, sem IA.
+- `lib/marketplaces/99freelas/agente.ts:117-144` (`eliminar()`) — novo motivo
+  de eliminação, depois dos motivos da plataforma e antes de qualquer gasto:
+  `fora do que a Dioli entrega hoje: <motivo do encaixe>`.
+- `__tests__/marketplaces/encaixe-na-casa.test.ts` — as 5 travas obrigatórias
+  da ficha (quarto não encaixa · social media encaixa e nomeia o serviço ·
+  ambíguo/vazio é fail-closed com motivo PRÓPRIO · capacidade fechada nunca
+  aparece em `servicosPossiveis` · prova anti-lista) + 1 teste extra provando
+  que `eliminar()` de fato CONSULTA o encaixe (não só que a função existe).
+
+**A decisão que vale mais que o código: vocabulário DERIVADO, não lista**
+
+A tentação óbvia era `const TERMOS_FORA_DE_ESCOPO = [...]`. Seria o mesmo erro
+que a Decisão 5 do CEO já reprovou em `catalogo-ofertavel.ts`: lista escrita à
+mão congela um diagnóstico. Em vez disso, `derivarVocabularioDeEncaixe` tira as
+palavras de `nome`+`textos` de cada serviço que `avaliarServico(id,
+{ modoAutomatico: false })` já declara ofertável — a mesma régua de promessa
+por escrito da Decisão 5. Ligou um motor novo, o vocabulário cresce sozinho.
+
+**Como a genericidade foi PROVADA sem tocar em `catalogo-ofertavel.ts`** (a
+ficha proíbe editar aquele arquivo): `encaixarContra`/
+`derivarVocabularioDeEncaixe` recebem qualquer lista de serviços, não só a
+real. O teste da prova anti-lista passa um catálogo FABRICADO com um serviço
+que não existe na casa (`edicao-de-podcast`) e prova que ele entra no encaixe
+sem editar `encaixe.ts` — o seam é o parâmetro, não o import fixo.
+
+**Um achado que a ficha não previu, registrado por transparência:** o fixture
+`DESCRICAO_LONGA` já existente em `99freelas.test.ts` e
+`custo-desconhecido.test.ts` ("identidade visual completa para... padaria...
+redes sociais") pede um serviço FECHADO (`branding-identidade`, que depende de
+`logotipo-de-cliente`, sem ponto de produção) — mas também menciona "redes
+sociais" e "marca", que são termos de `social-media-pecas` (ofertável). Por
+isso ele **continua não-eliminado** depois deste conserto, sem eu precisar
+tocar nesses dois arquivos de teste: o projeto pede uma coisa que a casa não
+faz e outra que faz, e o encaixe reconhece a parte que a casa entrega. Achei
+que valia registrar o raciocínio em vez de só reportar "os testes continuam
+verdes" — a régua de aceite pede exatamente essa transparência quando um teste
+pré-existente cruza com a mudança.
+
+**O que eu NÃO consegui provar**
+
+- **A régua de aceite fim-a-fim da ficha** (`--limite 3 --dry-run` contra o
+  99Freelas real) não rodou: este ambiente recusa `npx`/`node -e`/execução de
+  scripts com `"This command requires approval"` — a mesma recusa que a ficha
+  já previa como resposta aceitável. `npx tsc --noEmit` e `npx vitest run`
+  também não rodaram por este motivo; a leitura linha a linha do código e dos
+  testes (types, ordem de chamada, fixtures existentes) foi o substituto
+  disponível, mas não é a mesma prova que rodar o portão de verdade.
+- O texto ORIGINAL do anúncio "Melhoria visual do meu quarto" não está
+  capturado em fixture nenhum deste repositório — o texto usado no teste é uma
+  reconstrução fiel à descrição da ficha (decoração, móveis, boho), não uma
+  cópia do HTML/nota real. Registrado no cabeçalho do teste para quem for
+  auditar depois.
+
+### Proposta de vitrine (o PM decide se promove)
+
+**Quando uma nova trava de negócio precisa consultar "o que a casa sabe
+fazer", a fonte já existe e é `catalogo-ofertavel.ts` +
+`avaliarServico(id, { modoAutomatico })` — não escreva uma segunda lista.**
+Este é o segundo lugar (depois do próprio catálogo e do simulador) que precisa
+responder "isto é vendável hoje?", e o padrão que funcionou foi: derivar
+vocabulário/decisão a partir de `nome`+`textos` do serviço ofertável, nunca
+hardcodar. Quem for construir a PRÓXIMA trava desse tipo (ex.: um roteador de
+qual departamento atende um pedido) devia começar por aqui, não por uma lista
+nova.
+
+---
+
 ## 2026-08-06 · A régua de recompra (30/60/90)
 
 **O buraco:** cliente compra no balcão, recebe a peça e some. Não havia segundo

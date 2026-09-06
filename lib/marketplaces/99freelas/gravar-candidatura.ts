@@ -54,6 +54,7 @@ import type { Prisma, PrismaClient } from "@/lib/generated/prisma/client";
 import { impressaoDeTexto } from "@/lib/agency/comercial/oportunidade";
 import type { Candidatura, Desfecho } from "@/lib/marketplaces/99freelas/agente";
 import { paraProjetoBruto, type ProjetoColetado } from "@/lib/marketplaces/99freelas/coleta";
+import { REGRA_ENVIO_BLOQUEADO_POR_CUSTO_DESCONHECIDO } from "@/lib/marketplaces/99freelas/marcador-de-envio-bloqueado";
 
 /** Transação ou cliente Prisma — mesma convenção de `cliente-vinculos.ts`. */
 type Db = PrismaClient | Prisma.TransactionClient;
@@ -91,7 +92,16 @@ type Db = PrismaClient | Prisma.TransactionClient;
 // verdade pede tocar `contratoDeOportunidade.ts`/`CartaoDeOportunidade.tsx`
 // (fora do escopo desta ficha) ou a coluna nova que a ficha pede para só
 // recomendar. Ver relato do despacho de 06/09/2026.
-export const REGRA_ENVIO_BLOQUEADO_POR_CUSTO_DESCONHECIDO = "envio_bloqueado_custo_desconhecido";
+//
+// ATUALIZAÇÃO — 06/09/2026, ficha "a fila precisa mostrar o bloqueio": a
+// LACUNA acima está FECHADA (ver `CartaoDeOportunidade.tsx` e
+// `contratoDeOportunidade.ts`). A constante também mudou de endereço: agora
+// mora sozinha em `marcador-de-envio-bloqueado.ts` (zero imports) porque a
+// leitura acontece num componente `"use client"`, e importar este arquivo
+// dali arrastaria `crypto` e o cliente Prisma para o bundle do navegador.
+// Reimportada e reexportada acima/abaixo — continua sendo UM SÓ lugar onde a
+// string nasce, só o endereço físico mudou.
+export { REGRA_ENVIO_BLOQUEADO_POR_CUSTO_DESCONHECIDO };
 
 /** Mesma forma de `AchadoDeConformidade`
  *  (`lib/agency/comercial/oportunidade.ts`) — `regra: string`, não a união

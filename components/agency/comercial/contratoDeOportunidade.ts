@@ -15,6 +15,8 @@
 //    lugar é a tela, com texto honesto.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { REGRA_ENVIO_BLOQUEADO_POR_CUSTO_DESCONHECIDO } from "@/lib/marketplaces/99freelas/marcador-de-envio-bloqueado";
+
 export type StatusDaOportunidade = "nova" | "aprovada" | "recusada" | "enviada";
 
 /** Um motivo de reprovação do Compliance Validator, pronto para a tela. */
@@ -229,6 +231,12 @@ function normalizarConformidade(bruto: unknown): EstadoDaConformidade {
   return "nao_julgada";
 }
 
+/** Regra sintética — nunca gravada pelo agente, só produzida AQUI, na leitura,
+ *  quando `conformidadeAchados` não é JSON válido. `temEnvioBloqueado` (abaixo)
+ *  trata a presença dela como bloqueio: um parse que falhou não prova que o
+ *  marcador de envio não estava lá dentro. Fail-closed, não "sem problema". */
+const REGRA_REGISTRO_ILEGIVEL = "registro_ilegivel";
+
 /** Os achados chegam como TEXTO JSON do banco. JSON quebrado não pode derrubar a
  *  tela nem, pior, virar "nenhum problema encontrado": vira uma linha honesta. */
 function normalizarAchados(bruto: unknown): AchadoDeConformidade[] {
@@ -240,12 +248,31 @@ function normalizarAchados(bruto: unknown): AchadoDeConformidade[] {
   } catch {
     return [
       {
-        regra: "registro_ilegivel",
+        regra: REGRA_REGISTRO_ILEGIVEL,
         trecho: "não consegui ler o registro da reprovação",
         fonte: "banco de dados desta casa",
       },
     ];
   }
+}
+
+// ── O MARCADOR DE ENVIO BLOQUEADO, LIDO — ficha 06/09/2026 ──────────────────
+//
+// A pergunta que faltava: "esta oportunidade tem o envio bloqueado?". O
+// portão NÃO reprovou (`conformidade` não é `"reprovada"`) — o texto foi
+// escrito e aprovado — mas o custo em conexões desta interação não foi lido
+// da tela do 99Freelas, e a régua desta casa é "trava, não aviso".
+//
+// Fail-closed: se `conformidadeAchados` veio malformado, `normalizarAchados`
+// já devolveu `REGRA_REGISTRO_ILEGIVEL` em vez de lista vazia — e aqui isso
+// TAMBÉM conta como bloqueado. Um JSON quebrado não é prova de que o marcador
+// de custo desconhecido não estava lá; tratá-lo como "liberado" seria o
+// oposto de fail-closed.
+export function temEnvioBloqueado(achados: AchadoDeConformidade[]): boolean {
+  return achados.some(
+    (a) =>
+      a.regra === REGRA_ENVIO_BLOQUEADO_POR_CUSTO_DESCONHECIDO || a.regra === REGRA_REGISTRO_ILEGIVEL,
+  );
 }
 
 function lerAchados(lista: unknown[]): AchadoDeConformidade[] {
@@ -295,7 +322,8 @@ export const NOME_DA_REGRA: Record<string, string> = {
   pagamento_comissionado: "Pagamento comissionado ou participação nos lucros",
   permuta_ou_teste_gratis: "Permuta, teste grátis ou trabalho sem custo",
   spam_por_repeticao: "Parecida demais com uma proposta já enviada (spam)",
-  registro_ilegivel: "Registro da reprovação ilegível",
+  [REGRA_REGISTRO_ILEGIVEL]: "Registro da reprovação ilegível",
+  [REGRA_ENVIO_BLOQUEADO_POR_CUSTO_DESCONHECIDO]: "Custo em conexões não lido da tela",
 };
 
 export function nomeDaRegra(regra: string): string {

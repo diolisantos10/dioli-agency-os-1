@@ -159,7 +159,12 @@ describe("a proposta REPROVADA não fica copiável", () => {
     const fonte = ler(CARTAO);
     // `disabled` é aparência: atalho de teclado, teste e `click()` de console
     // passam por cima. A recusa mora dentro de `copiarProposta`.
-    expect(fonte).toMatch(/if\s*\(barrada\s*\|\|\s*!o\.proposta\)\s*return false;/);
+    //
+    // Ficha 06/09/2026 ("a fila precisa mostrar o bloqueio") acrescentou uma
+    // TERCEIRA condição — `bloqueada` (envio bloqueado por custo em conexões
+    // desconhecido) — à mesma trava. Continua sendo a MESMA junta: a recusa de
+    // copiar mora na função, nunca só no atributo `disabled`.
+    expect(fonte).toMatch(/if\s*\(barrada\s*\|\|\s*bloqueada\s*\|\|\s*!o\.proposta\)\s*return false;/);
     // E o motivo aparece na tela — "não conforme" sem o porquê faz o operador
     // adivinhar, e ele adivinha para o lado de mandar assim mesmo.
     expect(fonte).toContain("nomeDaRegra");

@@ -19,6 +19,7 @@ import {
   faixaDaNota,
   nomeDaRegra,
   rotuloDaPlataforma,
+  temEnvioBloqueado,
   type Oportunidade,
   type StatusDaOportunidade,
 } from "./contratoDeOportunidade";
@@ -126,14 +127,20 @@ export default function CartaoDeOportunidade({
   // pede reanálise. Se a tela tratasse as duas igual, o operador pediria
   // reanálise de uma violação — e receberia a mesma violação de volta.
   const barrada = o.conformidade === "reprovada";
-  const temProposta = Boolean(o.proposta) && !barrada;
+  // ── O QUARTO ESTADO — ficha 06/09/2026: pronta, mas o ENVIO está bloqueado.
+  // O portão não reprovou (por isso `barrada` não cobre este caso): o texto
+  // está certo, só falta um número que ninguém leu ainda (custo em conexões
+  // do 99Freelas). `barrada` vence se as duas acontecerem juntas — a proposta
+  // reprovada continua sem texto nenhum, sem exceção.
+  const bloqueada = !barrada && temEnvioBloqueado(o.achados);
+  const temProposta = Boolean(o.proposta) && !barrada && !bloqueada;
 
   async function copiarProposta(origem: "painel" | "aprovar"): Promise<boolean> {
     // ⚠️ A TRAVA, e ela é aqui e não no `disabled` do botão: `disabled` é
     // aparência, e um atalho de teclado, um teste ou um `click()` de console
-    // passam por cima dele. Proposta barrada não vai para a área de
-    // transferência por caminho nenhum.
-    if (barrada || !o.proposta) return false;
+    // passam por cima dele. Proposta barrada OU com envio bloqueado não vai
+    // para a área de transferência por caminho nenhum.
+    if (barrada || bloqueada || !o.proposta) return false;
     try {
       await navigator.clipboard.writeText(o.proposta);
       setFalhouAoCopiar(false);
@@ -184,6 +191,24 @@ export default function CartaoDeOportunidade({
                 className={`inline-flex h-5 px-2 items-center rounded-full text-[12px] font-semibold ${ESTILO_DO_STATUS[o.status]}`}
               >
                 {ROTULO_DO_STATUS[o.status]}
+              </span>
+            )}
+            {/* Selo visível SEM abrir o cartão — a fila inteira precisa mostrar
+                o bloqueio, não só o painel expandido (ficha 06/09/2026). Cor de
+                atenção (âmbar), nunca a de reprovação: o portão não reprovou. */}
+            {bloqueada && (
+              <span className="inline-flex h-5 px-2 items-center gap-1 rounded-full bg-[var(--warning-bg)] text-[12px] font-semibold text-[var(--warning)]">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M8 1.5 1 14h14L8 1.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M8 6v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                  <circle cx="8" cy="11.5" r="0.9" fill="currentColor" />
+                </svg>
+                Envio bloqueado
               </span>
             )}
             {o.criadaEm && (
@@ -296,6 +321,7 @@ export default function CartaoDeOportunidade({
                   type="button"
                   onClick={() => void copiarProposta("painel")}
                   disabled={!temProposta}
+                  aria-describedby={bloqueada ? `${painelId}-bloqueio` : undefined}
                   className="shrink-0 h-8 px-3 rounded-[7px] border border-[var(--border-strong)] bg-white text-[12px] font-semibold text-[var(--text-primary)] hover:bg-[var(--bg)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   {copiado === "painel" ? "Copiado ✓" : "Copiar"}
@@ -345,6 +371,58 @@ export default function CartaoDeOportunidade({
                       ))
                     )}
                   </ul>
+                </div>
+              ) : bloqueada ? (
+                // ── PRONTA, MAS O ENVIO ESTÁ BLOQUEADO ─────────────────────
+                // Estado PRÓPRIO, distinto de "pronta" (não some o botão sem
+                // dizer por quê) e de "barrada" (não é vermelho — o portão de
+                // conformidade não reprovou; dizer que reprovou seria a tela
+                // afirmando algo falso). Âmbar/atenção, nunca dano.
+                <div
+                  id={`${painelId}-bloqueio`}
+                  role="status"
+                  className="rounded-[8px] border border-[#FDE68A] bg-[var(--warning-bg)] px-3 py-3"
+                >
+                  <p className="text-[13px] font-semibold text-[var(--warning)]">
+                    Escrita e aprovada — mas o envio está bloqueado
+                  </p>
+                  <p className="text-[12px] text-[var(--warning)]/80 mt-1 leading-relaxed">
+                    O 99Freelas não mostra em nenhum lugar público quantas conexões esta interação
+                    vai custar, e ninguém leu esse número na tela do projeto ainda. Abra o anúncio
+                    na plataforma, confira o custo e só então decida enviar.
+                  </p>
+                  {o.achados.filter((a) => a.trecho || a.fonte).length > 0 && (
+                    <ul className="mt-2.5 space-y-1.5 list-none p-0 m-0">
+                      {o.achados
+                        .filter((a) => a.trecho || a.fonte)
+                        .map((a, i) => (
+                          <li key={`${a.regra}-${i}`} className="text-[12px] text-[var(--warning)]">
+                            <span className="font-semibold">{nomeDaRegra(a.regra)}</span>
+                            {a.trecho && (
+                              <>
+                                {" — "}
+                                <span className="font-mono break-words">“{a.trecho}”</span>
+                              </>
+                            )}
+                            {a.fonte && (
+                              <span className="block text-[var(--warning)]/70">Fonte: {a.fonte}</span>
+                            )}
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                  {/* O texto continua legível — não é o compliance que barrou —
+                      mas some do fluxo de cópia: `temProposta` é `false` aqui,
+                      então o botão "Copiar" e o "Aprovar e copiar" já chegam
+                      desabilitados (ver acima e a barra de ações abaixo). */}
+                  {o.proposta && (
+                    <CaixaRolavel
+                      classe="mt-2.5 bg-white border-[#FDE68A] text-[var(--text-primary)]"
+                      classeDoFade="from-white"
+                    >
+                      {o.proposta}
+                    </CaixaRolavel>
+                  )}
                 </div>
               ) : (
                 <CaixaRolavel
@@ -496,11 +574,22 @@ export default function CartaoDeOportunidade({
             <button
               type="button"
               onClick={() => (cobraConexao ? setPedindoCusto(true) : onDecidir("enviada"))}
-              disabled={decidindo || o.status === "enviada"}
+              disabled={decidindo || o.status === "enviada" || bloqueada}
+              aria-describedby={bloqueada ? `${painelId}-motivo-envio` : undefined}
               className="h-9 px-4 rounded-[7px] border border-[var(--border-strong)] bg-white text-[13px] font-medium text-[var(--text-primary)] hover:bg-[var(--bg)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Marcar como enviada
             </button>
+            {/* Motivo AO LADO do controle desabilitado — não uma frase solta em
+                outro canto da tela (DESIGN.md §4.3 / a régua desta casa). */}
+            {bloqueada && (
+              <span
+                id={`${painelId}-motivo-envio`}
+                className="text-[12px] text-[var(--warning)] basis-full sm:basis-auto"
+              >
+                Envio desabilitado até alguém ler o custo em conexões na tela do 99Freelas.
+              </span>
+            )}
             <button
               type="button"
               onClick={() => onDecidir("recusada")}
