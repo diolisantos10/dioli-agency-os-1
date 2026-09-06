@@ -95,6 +95,13 @@ export interface Candidatura {
   /** Uma frase para a tela do CEO. Conclusão primeiro. */
   motivo: string;
   competencia: string;
+  /**
+   * Os ids de `SERVICOS_DA_CELULA` que o encaixe (`eliminar()` →
+   * `encaixaNaCasa`) achou compatíveis com este projeto. Vazio quando não
+   * houver nenhum. Calculado UMA vez, em `eliminar()` — nunca recalculado
+   * aqui nem em `gravarCandidatura`. Ficha 06/09/2026.
+   */
+  servicosPossiveis: string[];
 }
 
 // ── A eliminação, antes de gastar ───────────────────────────────────────────
@@ -108,7 +115,19 @@ const MOTIVOS_DE_ELIMINACAO: Array<{ nome: string; re: RegExp }> = [
   { nome: "vaga de emprego", re: /\b(?:vaga\s+(?:de\s+emprego|clt|efetiva)|contrata[çc][ãa]o\s+clt|regime\s+clt|carteira\s+assinada|per[íi]odo\s+de\s+experi[êe]ncia\s+de\s+90)\b/i },
 ];
 
-export interface Eliminacao { eliminado: boolean; motivo: string | null }
+export interface Eliminacao {
+  eliminado: boolean;
+  motivo: string | null;
+  /**
+   * Os ids de `SERVICOS_DA_CELULA` que `encaixaNaCasa` achou compatíveis —
+   * ficha 06/09/2026 ("a fila diz 'a definir' três vezes"). Vazio quando o
+   * encaixe nunca chegou a rodar (eliminado antes por motivo da PLATAFORMA)
+   * ou quando rodou e não achou nada. Esta é a ÚNICA chamada a
+   * `encaixaNaCasa` do arquivo — `processarProjeto` lê este campo, nunca
+   * calcula de novo.
+   */
+  servicosPossiveis: string[];
+}
 
 /**
  * Elimina antes de qualquer gasto. Determinística e sem IA de propósito: é a
@@ -118,7 +137,7 @@ export interface Eliminacao { eliminado: boolean; motivo: string | null }
 export function eliminar(texto: string, campos: CamposExtraidos): Eliminacao {
   const alvo = `${campos.titulo}\n${texto ?? ""}`;
   for (const m of MOTIVOS_DE_ELIMINACAO) {
-    if (m.re.test(alvo)) return { eliminado: true, motivo: `${m.nome} — reprovado pela própria plataforma.` };
+    if (m.re.test(alvo)) return { eliminado: true, motivo: `${m.nome} — reprovado pela própria plataforma.`, servicosPossiveis: [] };
   }
 
   // NOVO (06/09/2026) — depois dos motivos da PLATAFORMA, antes de qualquer
@@ -133,15 +152,23 @@ export function eliminar(texto: string, campos: CamposExtraidos): Eliminacao {
     categoriaDeclarada: campos.categoria,
   });
   if (!encaixe.encaixa) {
-    return { eliminado: true, motivo: `fora do que a Dioli entrega hoje: ${encaixe.motivo}` };
+    return { eliminado: true, motivo: `fora do que a Dioli entrega hoje: ${encaixe.motivo}`, servicosPossiveis: [] };
   }
 
   // Anúncio sem substância não dá para orçar, e orçar no escuro é o caminho do
   // preço errado. Não é rejeição do cliente: é reconhecer que falta informação.
   if ((campos.descricao ?? "").replace(/\s+/g, " ").trim().length < 120) {
-    return { eliminado: true, motivo: "projeto indefinido ou incompleto — descrição curta demais para orçar sem inventar." };
+    return {
+      eliminado: true,
+      motivo: "projeto indefinido ou incompleto — descrição curta demais para orçar sem inventar.",
+      // O encaixe RODOU e achou serviço, mas a candidatura foi eliminada por
+      // outro motivo antes de virar proposta — o dado fica registrado do
+      // mesmo jeito (não é usado no cartão porque `propostaTexto` é nulo em
+      // "eliminado", mas não há razão para descartar o que já foi calculado).
+      servicosPossiveis: encaixe.servicosPossiveis,
+    };
   }
-  return { eliminado: false, motivo: null };
+  return { eliminado: false, motivo: null, servicosPossiveis: encaixe.servicosPossiveis };
 }
 
 /**
@@ -184,15 +211,18 @@ export async function processarProjeto(projeto: ProjetoBruto, ctx: ContextoDaRod
   const texto = projeto.conteudoDeTerceiro ?? "";
   const campos = extrairDeTexto(texto);
 
+  // 1. ELIMINAR — antes de gastar IA, antes de gastar conexão. Também é aqui
+  //    que o encaixe roda: `base` carrega `servicosPossiveis` para TODOS os
+  //    retornos que a espalham (`...base`), então nenhum caminho de saída
+  //    precisa recalcular nem esquecer o campo.
+  const corte = eliminar(texto, campos);
   const base: Candidatura = {
     desfecho: "parado", url: projeto.url, titulo: campos.titulo,
     categoriaDeclarada: campos.categoria, texto: null, ofertaADigitar: null,
     preco: null, nota: null, saldo: null, decisao: null, achados: [],
-    motivo: "", competencia,
+    motivo: "", competencia, servicosPossiveis: corte.servicosPossiveis,
   };
 
-  // 1. ELIMINAR — antes de gastar IA, antes de gastar conexão.
-  const corte = eliminar(texto, campos);
   if (corte.eliminado) {
     return { ...base, desfecho: "eliminado", motivo: `Eliminado sem gastar nada: ${corte.motivo}` };
   }
@@ -310,6 +340,7 @@ export async function processarProjeto(projeto: ProjetoBruto, ctx: ContextoDaRod
       decisao,
       achados: [],
       competencia,
+      servicosPossiveis: corte.servicosPossiveis,
       motivo: `Texto pronto, mas o ENVIO está bloqueado: o custo em conexões desta interação não foi lido da tela (o 99Freelas não publica a tabela). "Não sei se cabe" não é "não cabe" — o texto não foi descartado — mas sem o número não se pode confirmar a cota, e por isso ninguém deve clicar em enviar. Leia o custo na tela do projeto antes de decidir.`,
     };
   }
@@ -328,6 +359,7 @@ export async function processarProjeto(projeto: ProjetoBruto, ctx: ContextoDaRod
     decisao,
     achados: [],
     competencia,
+    servicosPossiveis: corte.servicosPossiveis,
     motivo: `Candidatura pronta para o clique: R$ ${preco.ofertaADigitar} em "Sua oferta" (o cliente verá R$ ${preco.ofertaFinalQueOClienteVe.toFixed(2)}), custo ${saldo.custo} conexão(ões), restam ${saldo.restantes} de ${saldo.cota.cota} em ${competencia}. O sistema não clica — o clique é do CEO.`,
   };
 }

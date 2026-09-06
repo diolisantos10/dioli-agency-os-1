@@ -55,6 +55,7 @@ import { impressaoDeTexto } from "@/lib/agency/comercial/oportunidade";
 import type { Candidatura, Desfecho } from "@/lib/marketplaces/99freelas/agente";
 import { paraProjetoBruto, type ProjetoColetado } from "@/lib/marketplaces/99freelas/coleta";
 import { REGRA_ENVIO_BLOQUEADO_POR_CUSTO_DESCONHECIDO } from "@/lib/marketplaces/99freelas/marcador-de-envio-bloqueado";
+import { SERVICOS_DA_CELULA } from "@/lib/agency/celula/catalogo-ofertavel";
 
 /** Transação ou cliente Prisma — mesma convenção de `cliente-vinculos.ts`. */
 type Db = PrismaClient | Prisma.TransactionClient;
@@ -111,6 +112,40 @@ interface MarcadorDeGravacao {
   regra: string;
   trecho: string;
   fonte: string;
+}
+
+// ── O SERVIÇO SUGERIDO — ficha 06/09/2026, "a fila diz 'a definir' três vezes" ─
+//
+// O DEFEITO: `encaixaNaCasa()` (chamado de dentro de `eliminar()`, em
+// `agente.ts`) já calcula `servicosPossiveis: string[]` — os ids de
+// `SERVICOS_DA_CELULA` que o projeto alcança. Este arquivo nunca lia esse
+// campo, então a coluna `servicoSugerido` do model `Oportunidade` ficava
+// sempre vazia e o cartão (`CartaoDeOportunidade.tsx`) sempre mostrava
+// "a definir" — mesmo quando a casa já sabia a resposta.
+//
+// A CORREÇÃO NÃO RECALCULA NADA: lê `candidatura.servicosPossiveis` (que
+// `eliminar()` já produziu, uma vez) e traduz cada id para o `nome` LEGÍVEL
+// de `SERVICOS_DA_CELULA` — quem lê o cartão é o CEO, não um programador, e
+// gravar o id técnico seria trocar um "a definir" por um enigma.
+//
+// `null` quando a lista vier vazia: a tela volta a dizer "a definir", e aí é
+// verdade — nenhum serviço bateu. Mais de um id não é colapsado num
+// "principal": a casa não tem regra de desempate entre serviços possíveis, e
+// inventar uma aqui dentro de um módulo de persistência seria decidir
+// negócio no lugar errado. Os nomes saem na ORDEM declarada em
+// `SERVICOS_DA_CELULA` (a ordem de `servicosPossiveis` já vem dessa mesma
+// ordem, por construção de `encaixarContra`), unidos por " · " — o mesmo
+// separador que outras listas desta casa usam para "vários itens, nenhum em
+// destaque" (ex.: `lib/agency/despertador.ts`, `lib/agency/esteira/levas.ts`).
+//
+// Um id que não bate com nenhum serviço do catálogo é DESCARTADO em silêncio,
+// nunca gravado ao pé da letra: um texto solto que não existe em
+// `SERVICOS_DA_CELULA` seria a casa prometendo um serviço que ela não vende.
+function servicoSugeridoDeCandidatura(servicosPossiveis: readonly string[] | undefined): string | null {
+  const nomes = (servicosPossiveis ?? [])
+    .map((id) => SERVICOS_DA_CELULA.find((s) => s.id === id)?.nome)
+    .filter((nome): nome is string => Boolean(nome));
+  return nomes.length > 0 ? nomes.join(" · ") : null;
 }
 
 export interface ParametrosDeGravacao {
@@ -214,6 +249,10 @@ export async function gravarCandidatura(
     // se fosse o preço do pacote inteiro. Ler `preco.ofertaADigitar` direto
     // aqui reintroduziria o número errado por baixo dessa trava.
     valorSugerido: candidatura.ofertaADigitar ?? null,
+    // O nome LEGÍVEL do catálogo, nunca o id técnico. `null` quando
+    // `servicosPossiveis` vier vazio — a tela volta a dizer "a definir", e aí
+    // é verdade. Ficha 06/09/2026.
+    servicoSugerido: servicoSugeridoDeCandidatura(candidatura.servicosPossiveis),
     conformidadeOk,
     // Sempre serializado, mesmo vazio (`"[]"`) — nunca `undefined`/`null` que
     // obrigaria a tela a tratar dois formatos.

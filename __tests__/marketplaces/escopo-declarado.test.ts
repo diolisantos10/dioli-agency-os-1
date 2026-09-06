@@ -249,6 +249,7 @@ function candidaturaDeEscopoDeVolume(): Candidatura {
     achados: [],
     motivo: 'Não há oferta a digitar: o anúncio pede volume ("400 vídeos"), e a casa só sabe precificar a unidade.',
     competencia: "2026-09",
+    servicosPossiveis: [],
   };
 }
 

@@ -29,6 +29,7 @@ import {
 import type { Candidatura } from "@/lib/marketplaces/99freelas/agente";
 import type { ProjetoColetado } from "@/lib/marketplaces/99freelas/coleta";
 import type { Achado } from "@/lib/marketplaces/99freelas/conformidade";
+import { SERVICOS_DA_CELULA } from "@/lib/agency/celula/catalogo-ofertavel";
 
 vi.mock("@/lib/marketplaces/99freelas/coleta", () => ({
   paraProjetoBruto: (p: { titulo: string; descricao: string; categoria: string | null }) => ({
@@ -120,6 +121,10 @@ function candidaturaBase(overrides: Partial<Candidatura> = {}): Candidatura {
     achados: [],
     motivo: "Candidatura pronta para o clique.",
     competencia: "2026-09",
+    // Default coerente com o texto de exemplo acima ("social media para
+    // clínica odontológica"): um serviço real do catálogo, não um id
+    // inventado. Testes que precisam de outro cenário passam `overrides`.
+    servicosPossiveis: ["social-media-pecas"],
     ...overrides,
   } as Candidatura;
 }
@@ -287,5 +292,60 @@ describe("gravarCandidatura", () => {
     const preco = JSON.parse(linha.precoDetalhe ?? "null");
     expect(preco.ofertaADigitar).toBe(800);
     expect(preco.ofertaFinalQueOClienteVe).toBe(1000);
+  });
+
+  // ── servicoSugerido — ficha 06/09/2026, "a fila diz 'a definir' três vezes" ──
+  describe("servicoSugerido", () => {
+    it("candidatura com UM serviço grava o NOME LEGÍVEL do catálogo, nunca o id técnico", async () => {
+      const cand = candidaturaBase({ servicosPossiveis: ["social-media-pecas"] });
+      const r = await gravarCandidatura(
+        { workspaceId: `${W}-servico-um`, coletado: coletado(), candidatura: cand },
+        db,
+      );
+      const linha = await db.oportunidade.findUniqueOrThrow({ where: { id: r.id } });
+
+      expect(linha.servicoSugerido).toBe("pacote de peças para redes sociais");
+      expect(linha.servicoSugerido).not.toBe("social-media-pecas");
+    });
+
+    it("candidatura com ZERO serviços grava servicoSugerido NULO — a metade que prova que não carimbou todo mundo", async () => {
+      const cand = candidaturaBase({ servicosPossiveis: [] });
+      const r = await gravarCandidatura(
+        { workspaceId: `${W}-servico-zero`, coletado: coletado(), candidatura: cand },
+        db,
+      );
+      const linha = await db.oportunidade.findUniqueOrThrow({ where: { id: r.id } });
+
+      expect(linha.servicoSugerido).toBeNull();
+    });
+
+    it("candidatura com DOIS serviços lista os DOIS — nenhum é escolhido como 'principal'", async () => {
+      const cand = candidaturaBase({ servicosPossiveis: ["social-media-pecas", "trafego-meta"] });
+      const r = await gravarCandidatura(
+        { workspaceId: `${W}-servico-dois`, coletado: coletado(), candidatura: cand },
+        db,
+      );
+      const linha = await db.oportunidade.findUniqueOrThrow({ where: { id: r.id } });
+
+      expect(linha.servicoSugerido).toContain("pacote de peças para redes sociais");
+      expect(linha.servicoSugerido).toContain("campanha de tráfego pago na Meta");
+    });
+
+    it("o valor gravado EXISTE DE FATO em SERVICOS_DA_CELULA — nunca um nome digitado à mão", async () => {
+      const cand = candidaturaBase({
+        servicosPossiveis: ["social-media-com-publicacao", "trafego-meta"],
+      });
+      const r = await gravarCandidatura(
+        { workspaceId: `${W}-servico-catalogo`, coletado: coletado(), candidatura: cand },
+        db,
+      );
+      const linha = await db.oportunidade.findUniqueOrThrow({ where: { id: r.id } });
+
+      const nomesDoCatalogo = SERVICOS_DA_CELULA.map((s) => s.nome);
+      expect(linha.servicoSugerido).not.toBeNull();
+      for (const nome of (linha.servicoSugerido ?? "").split(" · ")) {
+        expect(nomesDoCatalogo).toContain(nome);
+      }
+    });
   });
 });
