@@ -1,7 +1,7 @@
 ---
 titulo: "Google Drive API — escopos de OAuth (drive.file, sensíveis, restritos)"
 url: https://developers.google.com/workspace/drive/api/guides/api-specific-auth
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: d30c1c0920f7ac45
 ---
 

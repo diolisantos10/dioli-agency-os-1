@@ -1,7 +1,7 @@
 ---
 titulo: "Display API — Overview (/v2/user/info/, /v2/video/list/, /v2/video/query/)"
 url: https://developers.tiktok.com/doc/display-api-overview
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: 16e80f7453d077eb
 ---
 

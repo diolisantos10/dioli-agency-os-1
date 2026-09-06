@@ -1,7 +1,7 @@
 ---
 titulo: "Padrões de Publicidade — Violação de PI de terceiros"
 url: https://transparency.meta.com/pt-br/policies/ad-standards/intellectual-property-infringement/third-party-infringement/
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: a9a4839e93bb9411
 ---
 

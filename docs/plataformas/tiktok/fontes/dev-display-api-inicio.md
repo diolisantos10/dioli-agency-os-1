@@ -1,7 +1,7 @@
 ---
 titulo: "Display API — Get Started (leitura de perfil e de vídeos do usuário autorizado)"
 url: https://developers.tiktok.com/doc/display-api-get-started
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: ad9c00171d0fd087
 ---
 

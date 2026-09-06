@@ -1,7 +1,7 @@
 ---
 titulo: "Business Profile APIs — avaliações e respostas (review data)"
 url: https://developers.google.com/my-business/content/review-data?hl=pt-br
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: 58ba6834238f9f90
 ---
 

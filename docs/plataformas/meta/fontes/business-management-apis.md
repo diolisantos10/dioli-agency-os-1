@@ -1,7 +1,7 @@
 ---
 titulo: "Business Management APIs — visão geral"
 url: https://developers.facebook.com/docs/business-management-apis
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: 400babb9087a2442
 ---
 

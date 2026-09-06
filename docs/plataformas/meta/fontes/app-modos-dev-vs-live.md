@@ -1,7 +1,7 @@
 ---
 titulo: "App Modes — modo de desenvolvimento vs. modo Ativo (o que cada um permite)"
 url: https://developers.facebook.com/documentation/development/build-and-test/app-modes
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: 42d53f927d0d2068
 ---
 

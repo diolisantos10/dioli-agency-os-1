@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — upload de imagens de anúncio (adimages)"
 url: https://developers.facebook.com/documentation/ads-commerce/marketing-api/reference/ad-account/adimages
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: be4e49b8267579c5
 ---
 

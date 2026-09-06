@@ -1,14 +1,17 @@
 ---
 titulo: "Central de Ajuda — Solicitar análise de restrição de publicidade"
 url: https://www.facebook.com/business/help/530209463124901
-capturado_em: 2026-09-05
-hash: b8536746aa221ffa
+capturado_em: 2026-09-06
+hash: 72ae1d5d14e60ce8
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
 > este arquivo é a cópia de trabalho da biblioteca. Não edite à mão.
 
 Como pedir uma análise para uma conta de anúncios restrita
+Chat with Meta AI business assistant for support around the clock
+Still need help? Your business assistant can help resolve account issues and unblock your business.
+Start chat
 
 Se você acredita que seu portfólio empresarial, conta de anúncios, Página ou conta de usuário foi restringida para publicidade de forma incorreta, talvez possa pedir uma análise da decisão na Página Inicial do Suporte para Empresas.
 

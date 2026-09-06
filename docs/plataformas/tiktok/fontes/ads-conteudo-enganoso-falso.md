@@ -1,7 +1,7 @@
 ---
 titulo: "TikTok Advertising Policies — Misleading and False Content"
 url: https://ads.tiktok.com/help/article/tiktok-ads-policy-misleading-and-false-content?lang=en
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: ad73eec68becb976
 ---
 

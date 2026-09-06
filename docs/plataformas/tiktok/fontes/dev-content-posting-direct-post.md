@@ -1,7 +1,7 @@
 ---
 titulo: "Content Posting API — Direct Post (creator_info, init, privacidade, disclosure comercial)"
 url: https://developers.tiktok.com/doc/content-posting-api-reference-direct-post
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: 8309cf5d3c50a474
 ---
 

@@ -1,7 +1,7 @@
 ---
 titulo: "TikTok Developer Terms of Service (contrato que rege qualquer integração)"
 url: https://www.tiktok.com/legal/page/global/tik-tok-developer-terms-of-service/en
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: d748a0e2b2cb5c59
 ---
 

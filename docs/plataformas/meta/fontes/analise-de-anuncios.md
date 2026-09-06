@@ -1,14 +1,17 @@
 ---
 titulo: "Central de Ajuda — processo de análise de anúncios"
 url: https://www.facebook.com/business/help/204798856225114
-capturado_em: 2026-09-05
-hash: a901214d8e729593
+capturado_em: 2026-09-06
+hash: f1324575b63def22
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
 > este arquivo é a cópia de trabalho da biblioteca. Não edite à mão.
 
 Sobre anúncios "Em análise"
+Chat with Meta AI business assistant for support around the clock
+Still need help? Your business assistant can help resolve account issues and unblock your business.
+Start chat
 Consulte a Central de Transparência da Meta para obter mais orientações sobre políticas.
 
 Antes de serem veiculados no Facebook ou no Instagram, os anúncios são analisados para verificarmos se estão de acordo com os Padrões de Publicidade da Meta. O processo de análise é iniciado automaticamente após a criação ou edição de um anúncio. Você pode ver o status de um anúncio na coluna Veiculação do Gerenciador de Anúncios da Meta.

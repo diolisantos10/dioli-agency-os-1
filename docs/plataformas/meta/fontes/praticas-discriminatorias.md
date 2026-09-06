@@ -1,8 +1,8 @@
 ---
 titulo: "Padrões de Publicidade — Práticas discriminatórias"
 url: https://transparency.meta.com/pt-br/policies/ad-standards/unacceptable-content/discriminatory-practices/
-capturado_em: 2026-09-05
-hash: ab13e6c523e9391d
+capturado_em: 2026-09-06
+hash: 1ad6e69251935f07
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -12,7 +12,7 @@ Práticas discriminatórias
 Detalhes da política
 REGISTRO DE ALTERAÇÕES
 Hoje
-20 de dez de 2024
+21 de dez de 2024
 Práticas discriminatórias
 Os anúncios não devem discriminar ou incentivar a discriminação contra pessoas com base em atributos pessoais como raça, etnia, cor, nacionalidade, religião, idade, sexo, orientação sexual, identidade de gênero, situação familiar, deficiência, condição genética ou de saúde.
 A Meta proíbe que os anunciantes usem nossos produtos de anúncios para discriminar pessoas. Isso significa que os anunciantes não podem (1) usar nossas ferramentas de seleção do público para (a) segmentar erroneamente grupos específicos de pessoas para publicidade (consulte a Política de Publicidade sobre Direcionamento), ou (b) excluir erroneamente grupos específicos de pessoas, não os deixando ver seus anúncios; ou (2) incluir conteúdo discriminatório em seus anúncios. Os anunciantes também são obrigados a cumprir as leis aplicáveis​ que proíbem a discriminação (consulte a Política de Publicidade sobre Serviços ou Produtos Ilegais). Isso inclui leis que proíbem a discriminação contra grupos de pessoas, por exemplo, em ofertas de moradia, emprego e produtos e serviços financeiros.

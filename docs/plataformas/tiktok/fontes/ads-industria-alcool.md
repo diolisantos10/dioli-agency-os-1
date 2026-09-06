@@ -1,7 +1,7 @@
 ---
 titulo: "TikTok Advertising Policies — Alcohol"
 url: https://ads.tiktok.com/help/article/tiktok-ads-policy-alcohol?lang=en
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: 0a550fe47e9ad7e7
 ---
 

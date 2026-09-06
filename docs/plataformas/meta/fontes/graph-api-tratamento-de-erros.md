@@ -1,7 +1,7 @@
 ---
 titulo: "Graph API — tratamento de erros e códigos"
 url: https://developers.facebook.com/docs/graph-api/guides/error-handling
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: 291c6b66bc7d73c6
 ---
 

@@ -1,7 +1,7 @@
 ---
 titulo: "WhatsApp — modelo de cobrança por conversa/mensagem"
 url: https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing
-capturado_em: 2026-09-05
+capturado_em: 2026-09-06
 hash: 4e553fd8b3cfde90
 ---
 
