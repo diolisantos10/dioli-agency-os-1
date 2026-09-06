@@ -206,7 +206,14 @@ export async function gravarCandidatura(
     nota: candidatura.nota ?? null,
     raciocinio: candidatura.motivo || null,
     propostaTexto,
-    valorSugerido: candidatura.preco?.ofertaADigitar ?? null,
+    // NUNCA `candidatura.preco?.ofertaADigitar` — ficha 06/09/2026 ("o preço
+    // não pode chutar"): quando o escopo declarado é volume/recorrência
+    // (`agente.ts`, passo 5.5), `preco` continua no retorno para o CEO ler o
+    // diagnóstico, mas `ofertaADigitar` da CANDIDATURA fica `null` de
+    // propósito — o preço unitário não pode ir para o campo "Sua oferta" como
+    // se fosse o preço do pacote inteiro. Ler `preco.ofertaADigitar` direto
+    // aqui reintroduziria o número errado por baixo dessa trava.
+    valorSugerido: candidatura.ofertaADigitar ?? null,
     conformidadeOk,
     // Sempre serializado, mesmo vazio (`"[]"`) — nunca `undefined`/`null` que
     // obrigaria a tela a tratar dois formatos.

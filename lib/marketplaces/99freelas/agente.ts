@@ -30,6 +30,7 @@ import { avaliarSaldo, competenciaDe, type Saldo } from "@/lib/marketplaces/99fr
 import { politicaDe } from "@/lib/marketplaces/politica";
 import { extrairDeTexto, type CamposExtraidos } from "@/lib/agency/comercial/oportunidade";
 import { encaixaNaCasa } from "@/lib/marketplaces/99freelas/encaixe";
+import { lerEscopoDeclarado } from "@/lib/marketplaces/99freelas/escopo-declarado";
 
 // ── O que entra ─────────────────────────────────────────────────────────────
 
@@ -233,6 +234,37 @@ export async function processarProjeto(projeto: ProjetoBruto, ctx: ContextoDaRod
   const preco = precificar({ item: redacao.item, categoriaDaPlataforma: campos.categoria });
   if (!preco.ok) {
     return { ...base, desfecho: "parado", saldo, nota: redacao.nota, motivo: `Sem preço: ${preco.motivo}` };
+  }
+
+  // 5.5. ESCOPO DECLARADO — ficha 06/09/2026 "o preço não pode chutar".
+  //
+  // `preco` acima cobra o ITEM DO CATÁLOGO DA CASA (uma peça, um vídeo). Ele
+  // não sabe, e não é dele saber, se o ANÚNCIO pede uma unidade ou um pacote
+  // inteiro. Um anúncio de volume ou recorrência com preço de item unitário
+  // é um número errado com cara de cálculo — pior que número ausente. Por
+  // isso PARA aqui: nenhuma multiplicação é inventada (a casa não tem tabela
+  // de desconto por volume; isso é decisão comercial do CEO, não deste
+  // módulo), e `ofertaADigitar` fica `null` (herdado de `base`, não
+  // sobrescrito) porque ninguém deve digitar um número que a casa não sabe
+  // defender. O texto e o preço unitário SÃO mantidos no retorno — não para
+  // envio, mas para o CEO ler o diagnóstico completo.
+  const escopo = lerEscopoDeclarado(texto);
+  if (escopo.tipo === "volume" || escopo.tipo === "recorrente") {
+    const quantidade = escopo.tipo === "volume" && escopo.quantidade !== null ? ` (quantidade lida: ${escopo.quantidade})` : "";
+    return {
+      ...base,
+      desfecho: "parado",
+      saldo,
+      nota: redacao.nota,
+      preco,
+      texto: redacao.texto,
+      motivo:
+        `Não há oferta a digitar: ${escopo.porQue}${quantidade} A casa só sabe precificar a unidade ` +
+        `"${redacao.item}" (R$ ${preco.ofertaADigitar}, o piso do item do catálogo) — oferecer esse número ` +
+        `no campo "Sua oferta" de um pedido de volume/recorrência seria dizer ao cliente que é o preço do ` +
+        `pacote inteiro. Multiplicar por conta própria (ex.: ${preco.ofertaADigitar} × quantidade) inventaria ` +
+        `uma política de desconto por volume que a casa não tem. Preço de volume é decisão do CEO.`,
+    };
   }
 
   // 6. HIGIENIZAR o rascunho e então JULGAR o que sai. Nesta ordem: limpa-se o
