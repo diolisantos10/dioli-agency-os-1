@@ -135,11 +135,15 @@ function lerFlags(argv: string[]): Flags {
 
 // ── HTTP, sempre em ritmo de gente ───────────────────────────────────────────
 
-function esperar(ms: number): Promise<void> {
+// `export` nas três abaixo — ficha 06/09/2026 ("medir o encaixe"):
+// `scripts/medir-encaixe-99freelas.mts` reusa exatamente estas três, em vez
+// de escrever um segundo cliente HTTP para o mesmo site. Nenhuma das três
+// mudou de comportamento; só ganharam visibilidade fora deste arquivo.
+export function esperar(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function buscarHtml(url: string): Promise<string> {
+export async function buscarHtml(url: string): Promise<string> {
   const res = await fetch(url, {
     headers: {
       "User-Agent": USER_AGENT,
@@ -151,7 +155,7 @@ async function buscarHtml(url: string): Promise<string> {
   return await res.text();
 }
 
-function resolverUrl(link: string): string {
+export function resolverUrl(link: string): string {
   try {
     return new URL(link, BASE_URL).toString();
   } catch {

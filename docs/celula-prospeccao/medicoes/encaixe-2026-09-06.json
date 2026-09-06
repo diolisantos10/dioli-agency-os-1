@@ -1,0 +1,346 @@
+{
+  "medidoEm": "2026-09-06T15:30:58.638Z",
+  "paginas": 3,
+  "resumo": {
+    "total": 30,
+    "encaixaram": 18,
+    "naoEncaixaram": 12,
+    "eliminadosPorPlataforma": 0,
+    "percentualQueEncaixou": 60,
+    "porCategoriaDeclarada": {
+      "Escrita": 2,
+      "Fotografia & AudioVisual": 6,
+      "Design & Criação": 4,
+      "Outra Categoria": 1,
+      "Vendas & Marketing": 6,
+      "Atendimento ao Consumidor": 1,
+      "Web, Mobile & Software": 3,
+      "Engenharia & Arquitetura": 4,
+      "Educação & Consultoria": 2,
+      "Advogados & Leis": 1
+    }
+  },
+  "itens": [
+    {
+      "url": "https://www.99freelas.com.br/project/criacao-de-roteiros-para-videos-de-viagens-no-youtube-781909",
+      "titulo": "Criação de roteiros para vídeos de viagens no YouTube",
+      "categoriaDeclarada": "Escrita",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/edicao-de-videos-curtos-para-tiktok-shop-781493",
+      "titulo": "Edição de vídeos curtos para TikTok Shop",
+      "categoriaDeclarada": "Fotografia & AudioVisual",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/desenhar-guarda-sol-no-sketchup-782186",
+      "titulo": "Desenho de guarda-sol no SketchUp",
+      "categoriaDeclarada": "Design & Criação",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/voz-humana-para-guia-sertaneja-782183",
+      "titulo": "Voz humana para guia sertaneja",
+      "categoriaDeclarada": "Fotografia & AudioVisual",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/gestao-de-estoque-de-combustiveis-782182",
+      "titulo": "Gestão de Estoque de Combustíveis",
+      "categoriaDeclarada": "Outra Categoria",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/analise-de-anuncios-mercado-livre-782181",
+      "titulo": "Análise de anúncios no Mercado Livre",
+      "categoriaDeclarada": "Vendas & Marketing",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/sou-sonhadora-trabalho-muito-pelo-meu-sonho-cnh-um-dia-ah-de-chegar-amem-782180",
+      "titulo": "Sou sonhadora trabalho muito pelo meu sonho CNH um dia ah de chegar Amém ?",
+      "categoriaDeclarada": "Atendimento ao Consumidor",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/criacao-de-site-profissional-para-psicologa-782177",
+      "titulo": "Criação de site profissional para psicóloga",
+      "categoriaDeclarada": "Web, Mobile & Software",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-com-publicacao"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/editor-de-videos-para-projeto-no-tiktok-e-reels-782176",
+      "titulo": "Editor de vídeos para projeto no TikTok e Reels",
+      "categoriaDeclarada": "Fotografia & AudioVisual",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/landing-pages-para-dois-cursos-782175",
+      "titulo": "Landing pages para dois cursos",
+      "categoriaDeclarada": "Web, Mobile & Software",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/imagens-de-capa-e-carrossel-para-e-commerce-781340",
+      "titulo": "Imagens de capa e carrossel para e-commerce",
+      "categoriaDeclarada": "Design & Criação",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/projeto-3d-detalhamento-tecnico-e-plano-de-corte-de-moveis-planejados-781054",
+      "titulo": "Projeto 3D, detalhamento técnico e plano de corte de móveis planejados",
+      "categoriaDeclarada": "Engenharia & Arquitetura",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "social-media-com-publicacao"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/melhoria-visual-do-meu-quarto-782174",
+      "titulo": "Melhoria visual do meu quarto",
+      "categoriaDeclarada": "Engenharia & Arquitetura",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/gestao-de-trafego-em-meta-ads-para-e-commerce-de-servicos-782166",
+      "titulo": "Gestão de tráfego em Meta Ads para e-commerce de serviços",
+      "categoriaDeclarada": "Vendas & Marketing",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "social-media-com-publicacao",
+        "trafego-meta"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/vistoria-e-auditoria-de-acessos-a-sites-apps-e-videos-no-android-782172",
+      "titulo": "Vistoria e auditoria de acessos a sites, apps e vídeos no Android",
+      "categoriaDeclarada": "Web, Mobile & Software",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/criar-curso-completo-de-excel-avancado-em-ingles-782165",
+      "titulo": "Criar curso completo de Excel avançado em inglês",
+      "categoriaDeclarada": "Educação & Consultoria",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/criar-curso-completo-de-power-bi-em-ingles-782164",
+      "titulo": "Criar curso completo de Power BI em inglês",
+      "categoriaDeclarada": "Educação & Consultoria",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/criacao-de-conteudo-com-ideias-e-inteligencia-artificial-782163",
+      "titulo": "Criacao de conteudo com ideias e inteligencia artificial",
+      "categoriaDeclarada": "Vendas & Marketing",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/contrato-para-contratacao-de-prospector-pj-782162",
+      "titulo": "Contrato para contratação de prospector PJ",
+      "categoriaDeclarada": "Advogados & Leis",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/modelagem-3d-de-8-garrafas-copos-termicos-mockups-reutilizaveis-782155",
+      "titulo": "Modelagem 3D de 8 garrafas/copos térmicos - mockups reutilizáveis",
+      "categoriaDeclarada": "Design & Criação",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "social-media-com-publicacao",
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/atriz-apresentadora-para-video-promocional-de-sorteio-sao-paulo-sp-780897",
+      "titulo": "Atriz/apresentadora para vídeo promocional de sorteio - São Paulo/SP",
+      "categoriaDeclarada": "Fotografia & AudioVisual",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "social-media-com-publicacao",
+        "trafego-meta",
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/vetorizacao-e-elaboracao-de-plantas-e-memoriais-para-reurb-780839",
+      "titulo": "Vetorização e elaboração de plantas e memoriais para REURB",
+      "categoriaDeclarada": "Engenharia & Arquitetura",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/motion-design-para-identidade-visual-animada-de-canal-782171",
+      "titulo": "Motion Design para identidade visual animada de canal",
+      "categoriaDeclarada": "Design & Criação",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/construcao-colaborativa-de-um-livro-sobre-historia-de-vida-782169",
+      "titulo": "Construção colaborativa de um livro sobre história de vida",
+      "categoriaDeclarada": "Escrita",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/criacao-de-videos-com-inteligencia-artificial-para-pets-782167",
+      "titulo": "Criação de vídeos com inteligência artificial para pets",
+      "categoriaDeclarada": "Fotografia & AudioVisual",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/videomaker-para-captacao-no-d2c-summit-sao-paulo-sp-782161",
+      "titulo": "Videomaker para captação no D2C Summit - São Paulo/SP",
+      "categoriaDeclarada": "Fotografia & AudioVisual",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "social-media-com-publicacao",
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/criacao-de-plantas-no-archicad-a-partir-de-nuvens-de-pontos-782136",
+      "titulo": "Criação de plantas no Archicad a partir de nuvens de pontos",
+      "categoriaDeclarada": "Engenharia & Arquitetura",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "video-edicao-de-bruto"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/growth-e-vendas-para-saas-voltado-a-psicologos-782132",
+      "titulo": "Growth e vendas para SaaS voltado a psicólogos",
+      "categoriaDeclarada": "Vendas & Marketing",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/trafego-pago-e-social-media-para-lancamento-de-aplicativo-782147",
+      "titulo": "Tráfego pago e social media para lançamento de aplicativo",
+      "categoriaDeclarada": "Vendas & Marketing",
+      "veredito": "encaixa",
+      "servicosPossiveis": [
+        "social-media-pecas",
+        "trafego-meta"
+      ],
+      "motivoDeEliminacao": null,
+      "encaixariaIndependenteDaPlataforma": true
+    },
+    {
+      "url": "https://www.99freelas.com.br/project/gestao-de-google-ads-para-plataforma-de-streaming-782145",
+      "titulo": "Gestão de Google Ads para plataforma de streaming",
+      "categoriaDeclarada": "Vendas & Marketing",
+      "veredito": "nao_encaixa",
+      "servicosPossiveis": [],
+      "motivoDeEliminacao": "fora do que a Dioli entrega hoje: nenhuma palavra deste projeto corresponde a um serviço que a Dioli entrega hoje — fora do que a casa produz.",
+      "encaixariaIndependenteDaPlataforma": false
+    }
+  ]
+}

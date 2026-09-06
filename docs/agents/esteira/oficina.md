@@ -5,6 +5,91 @@
 
 ---
 
+## 2026-09-06 · Medir o encaixe antes de mexer nele — `medicao-de-encaixe.ts`
+
+Ficha: `docs/celula-prospeccao/despachos/2026-09-06-medir-o-encaixe.md`
+
+**Por que medir em vez de consertar:** `encaixe.ts` (entrada do mesmo dia,
+registrada no bloco abaixo) já erra por palavra solta — "Criação de roteiros
+para vídeos de viagens no YouTube" casou em "vídeo" e sugeriu edição, não
+roteiro. O erro caro é o FALSO-NEGATIVO (projeto bom eliminado): é invisível
+por construção, porque projeto eliminado não deixa proposta para ninguém
+conferir. A ficha proíbe trocar o critério nesta rodada — só mede.
+
+**O que entrou**
+
+- `lib/marketplaces/99freelas/medicao-de-encaixe.ts` (novo) — a lógica PURA e
+  testável: `medirProjeto` (um `ProjetoColetado` → um veredito de três baldes
+  mutuamente exclusivos: `encaixa` / `nao_encaixa` / `eliminado_por_plataforma`,
+  na MESMA ordem que `eliminar()` já aplica em produção — plataforma primeiro,
+  encaixe depois) e `resumirMedicao` (as contagens). Chama `eliminar()` (que já
+  invoca `encaixaNaCasa()` por dentro) e chama `encaixaNaCasa()` de novo, à
+  parte, para saber o que o encaixe diria mesmo dos projetos que a plataforma
+  reprova por outro motivo — dado de auditoria, não usado no veredito
+  (`encaixariaIndependenteDaPlataforma`). Sem IA, sem rede.
+- `scripts/medir-encaixe-99freelas.mts` (novo) — o chamador fino: percorre a
+  busca paginada do 99Freelas (`--paginas N`, padrão 3), lê cada projeto,
+  chama `medirProjeto`, grava `docs/celula-prospeccao/medicoes/encaixe-<data>.json`
+  e `.md`. Sequencial, pausa mínima de 3s entre QUALQUER requisição ao
+  99Freelas (busca ou detalhe, um relógio só — `requisitarComRitmo`), só GET,
+  nunca login. Reusa `esperar`/`buscarHtml`/`resolverUrl` de
+  `scripts/coletar-99freelas.mts` (só ganharam `export` — nenhuma mudança de
+  comportamento) em vez de escrever um segundo cliente HTTP.
+- `__tests__/marketplaces/medir-encaixe.test.ts` — `resumirMedicao` com
+  amostra fabricada mista (as três contagens somam o total) e amostra vazia
+  (zeros, sem `NaN`); `categorizarMotivoDeEliminacao` nos quatro casos
+  (plataforma / fora do escopo / descrição incompleta / motivo desconhecido —
+  fail-closed); `medirProjeto` nos quatro cenários que os três baldes
+  precisam distinguir, incluindo o caso fino em que o encaixe já disse "sim"
+  mas a descrição é curta demais para orçar (continua `encaixa`, com o motivo
+  de eliminação registrado à parte).
+
+**Uma decisão que vale registrar: o veredito não reimplementa a lista de
+motivos de plataforma.** `MOTIVOS_DE_ELIMINACAO` é privada a `agente.ts`, e a
+ficha proíbe editar aquele arquivo. `categorizarMotivoDeEliminacao` lê o TEXTO
+que `eliminar()` já produz (as três frases fixas que ele escreve) — o único
+contrato público disponível sem duplicar a lógica de lá. Se a redação mudar,
+a função para de reconhecer e devolve "desconhecida", que o veredito trata
+como `nao_encaixa` por fail-closed — nunca "encaixa" por omissão.
+
+**A paginação do 99Freelas NÃO foi confirmada ao vivo.** O único fixture
+capturado mostra a paginação como componente client-side (`data-page`,
+alimentado por um payload JSON, não por `href` navegável) — não há URL de
+página 2 capturada. O script tenta `?page=<N>` (a mesma chave do payload da
+própria página) para páginas além da primeira, mas isto é INFERÊNCIA, não
+fato observado, e está documentado assim no cabeçalho do script. Ele imprime
+quantos links são NOVOS por página, para quem rodar ao vivo perceber na hora
+se a inferência está errada (página repetindo conteúdo).
+
+**O que eu NÃO consegui provar**
+
+- **`npx tsc --noEmit` e `npx vitest run __tests__/marketplaces/` não
+  rodaram**: este ambiente recusa `npx`/`node`/`tsc`/`vitest` com a mensagem
+  exata `"This command requires approval"` — a mesma recusa documentada em
+  `AGENTS.md`/`CLAUDE.md` para especialista despachado ("o especialista
+  ESCREVE; o portão é do PM"). Fiz revisão manual linha a linha (tipos,
+  assinaturas de `eliminar`/`encaixaNaCasa`/`extrairProjeto`/`paraProjetoBruto`,
+  contagem de caracteres do fixture de teste contra o limite de 120 de
+  `eliminar()`) no lugar de rodar o portão, mas isto não é a mesma prova.
+- **O padrão de URL da página 2+ do 99Freelas** (ver acima) — nunca visto ao
+  vivo neste ambiente (rede bloqueada: `curl` também pede aprovação e não
+  recebi). Quem rodar o script contra o site real deve conferir antes de
+  confiar na contagem de páginas > 1.
+- **A rotulagem humana do que era certo** — a ficha proíbe fazer isso aqui de
+  propósito; o script só produz o material para quem for rotular.
+
+### Proposta de vitrine (o PM decide se promove)
+
+**Quando um script de medição precisa do mesmo HTTP que um chamador já
+tem, exporte as três funções em vez de duplicar o cliente.** Foi o padrão já
+usado por `redator.ts` (extrair lógica de `scripts/` para `lib/`, ficha
+"tirar a lógica do script") — aqui o caminho inverso funcionou igual: manter
+`esperar`/`buscarHtml`/`resolverUrl` onde já estavam, só com `export`, e
+importar de um segundo script (`@/scripts/<nome>`), em vez de reescrever.
+Barato, e evita duas implementações do mesmo GET divergindo com o tempo.
+
+---
+
 ## 2026-09-06 · A esteira precisa saber o que a Dioli faz — `encaixaNaCasa`
 
 Ficha: `docs/celula-prospeccao/despachos/2026-09-06-nao-propor-fora-do-escopo.md`
