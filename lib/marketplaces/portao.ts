@@ -257,11 +257,31 @@ export function portaoDeConformidade(pedido: PedidoDeAcao): Decisao {
     }
 
     // 7d. A COTA. Conexão gasta não volta.
+    //
+    // `avaliarSaldo` devolve `pode: false` em DOIS casos que NÃO são o mesmo
+    // problema — ver docs/celula-prospeccao/despachos/2026-09-06-custo-desconhecido.md:
+    //   A — custo FINITO maior que o restante: a cota REALMENTE está estourada.
+    //   B — custo `Infinity`: a tela não disse o número. "Não sei se cabe" não
+    //       é "não cabe".
+    // Tratar os dois como BLOCK aqui recriaria, dentro do portão, a MESMA
+    // confusão que `lib/marketplaces/99freelas/agente.ts` foi corrigido para
+    // não cometer mais — um texto limpo, escrito e precificado, seria
+    // descartado (`texto: null`) só porque o custo é desconhecido, e o
+    // chamador nunca teria como distinguir os dois casos pelo resultado.
+    //
+    // O caso A continua BLOCK: gastar IA e preencher uma candidatura que não
+    // cabe de verdade é o desperdício que este passo sempre existiu para
+    // evitar. O caso B NÃO força BLOCK aqui — e isso não afrouxa nenhuma trava
+    // de envio: `enviarProposta`/`mensagem` já são HUMAN_GATE no mínimo (7a
+    // acima), então nada aqui autoriza envio automático. Quem decide o
+    // desfecho final do caso B é quem chama o portão (o novo
+    // `"texto_pronto_envio_bloqueado"` em `agente.ts`), nunca este portão
+    // sozinho.
     saldo = avaliarSaldo({
       gastasNoMes: pedido.conexoesGastasNoMes ?? 0,
       custoLidoDaTela: pedido.custoEmConexoesLidoDaTela,
     });
-    if (!saldo.pode) {
+    if (!saldo.pode && Number.isFinite(saldo.custo)) {
       veredito = "BLOCK";
       razoes.push({
         regra: "cota_de_conexoes",
@@ -270,7 +290,7 @@ export function portaoDeConformidade(pedido: PedidoDeAcao): Decisao {
       });
     } else {
       razoes.push({
-        regra: "cota_de_conexoes",
+        regra: saldo.pode ? "cota_de_conexoes" : "cota_de_conexoes_desconhecida",
         detalhe: saldo.motivo,
         fonte: "policy.json · limites_da_plataforma",
       });

@@ -65,6 +65,14 @@ export type Desfecho =
   | "eliminado"
   /** A casa não conseguiu escrever/precificar — nada saiu, e o motivo é dito. */
   | "parado"
+  /**
+   * O texto foi escrito, precificado e passou pelo portão — mas o custo em
+   * conexões desta interação NÃO foi lido da tela, então não se sabe se cabe
+   * na cota. "Não sei se cabe" não é "não cabe": por isso o texto não é
+   * jogado fora. Mas por isso mesmo o envio fica bloqueado até alguém ler o
+   * número na tela — NUNCA confundir com `aguardando_clique_humano`.
+   */
+  | "texto_pronto_envio_bloqueado"
   /** PRONTO PARA O CLIQUE. É o desfecho normal e bom. */
   | "aguardando_clique_humano";
 
@@ -177,14 +185,24 @@ export async function processarProjeto(projeto: ProjetoBruto, ctx: ContextoDaRod
     return { ...base, desfecho: "parado", motivo: `Ainda não dá para propor: ${janela.motivo}` };
   }
 
-  // 3. A COTA, antes de escrever. Escrever uma proposta que não cabe na cota é
-  //    gastar IA para produzir algo que ninguém vai poder enviar.
+  // 3. A COTA, antes de escrever. `avaliarSaldo` devolve `pode: false` em DOIS
+  //    casos diferentes, e eles NÃO são o mesmo problema:
+  //      A — não cabe: custo é um número finito, maior que o que resta.
+  //      B — não sei se cabe: custo é `Infinity` porque a tela não disse.
+  //    Escrever uma proposta que REALMENTE não cabe (A) é gastar IA para
+  //    produzir algo que ninguém vai poder enviar — isso continua parando
+  //    aqui, sem mudança. Mas "não sei" (B) não é "não cabe": o caso B segue
+  //    para escrever, precificar, higienizar e passar pelo portão como um
+  //    projeto normal. O envio dele fica bloqueado no FIM do fluxo (passo 8),
+  //    não aqui.
   const saldo = avaliarSaldo({
     gastasNoMes: ctx.conexoesGastasNoMes,
     custoLidoDaTela: projeto.custoEmConexoesLidoDaTela,
     competencia,
   });
-  if (!saldo.pode) {
+  const custoDesconhecido = !Number.isFinite(saldo.custo);
+  if (!saldo.pode && !custoDesconhecido) {
+    // Caso A — cota realmente estourada. Para antes de gastar IA, como hoje.
     return { ...base, desfecho: "parado", saldo, motivo: `Não dá para enviar: ${saldo.motivo}` };
   }
 
@@ -224,7 +242,30 @@ export async function processarProjeto(projeto: ProjetoBruto, ctx: ContextoDaRod
     };
   }
 
-  // 8. A CANDIDATURA PREENCHIDA. Aqui o agente para, por desenho.
+  // 8. Caso B chegou até aqui com o portão NÃO dando BLOCK: o texto existe,
+  //    o preço existe, mas o custo em conexões não foi lido da tela — não se
+  //    sabe se cabe, então o envio fica bloqueado. Isto é DIFERENTE de
+  //    `aguardando_clique_humano`: aqui NINGUÉM deve clicar em "Enviar", nem
+  //    o CEO, até o número aparecer na tela.
+  if (custoDesconhecido) {
+    return {
+      desfecho: "texto_pronto_envio_bloqueado",
+      url: projeto.url,
+      titulo: campos.titulo,
+      categoriaDeclarada: campos.categoria,
+      texto: limpo,
+      ofertaADigitar: preco.ofertaADigitar,
+      preco,
+      nota: redacao.nota,
+      saldo,
+      decisao,
+      achados: [],
+      competencia,
+      motivo: `Texto pronto, mas o ENVIO está bloqueado: o custo em conexões desta interação não foi lido da tela (o 99Freelas não publica a tabela). "Não sei se cabe" não é "não cabe" — o texto não foi descartado — mas sem o número não se pode confirmar a cota, e por isso ninguém deve clicar em enviar. Leia o custo na tela do projeto antes de decidir.`,
+    };
+  }
+
+  // 9. A CANDIDATURA PREENCHIDA. Aqui o agente para, por desenho.
   return {
     desfecho: "aguardando_clique_humano",
     url: projeto.url,
@@ -256,7 +297,14 @@ export async function rodada(projetos: ProjetoBruto[], ctx: ContextoDaRodada): P
     // conta fecha; se não clicar, a reserva é devolvida quando a candidatura
     // for descartada. Reservar depois do clique deixaria 30 candidaturas
     // prontas para 5 conexões restantes.
-    if (c.desfecho === "aguardando_clique_humano" && c.saldo) gastasProjetadas += c.saldo.custo;
+    //
+    // `Number.isFinite` aqui não é redundante: `texto_pronto_envio_bloqueado`
+    // já não cai neste `if` (o desfecho é outro), mas o custo desconhecido é
+    // `Infinity`, e somar `Infinity` a uma projeção contaminaria toda conta
+    // seguinte — a trava fica no NÚMERO, não só no nome do desfecho.
+    if (c.desfecho === "aguardando_clique_humano" && c.saldo && Number.isFinite(c.saldo.custo)) {
+      gastasProjetadas += c.saldo.custo;
+    }
     // Os textos já produzidos entram na comparação de similaridade da próxima:
     // duas propostas gêmeas na MESMA rodada é o caso mais provável de spam.
     if (c.texto) ctx = { ...ctx, textosJaEnviados: [...(ctx.textosJaEnviados ?? []), c.texto] };

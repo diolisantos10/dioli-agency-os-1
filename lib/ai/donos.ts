@@ -87,6 +87,15 @@ const OPERACIONAIS: DonoDeChamada[] = [
   { id: "comercial-proposta",     label: "Reescrita de proposta",          departmentId: "client-service-sdr", natureza: "operacao" },
   { id: "portal-sugestao",        label: "Sugestão de resposta no portal", departmentId: "client-service-sdr", natureza: "operacao" },
 
+  // ── Prospecção em marketplace de freelancer (06/09/2026) ──────────────────
+  // Redige a proposta candidata a partir do texto de um projeto PÚBLICO lido
+  // no 99Freelas (`scripts/coletar-99freelas.mts` →
+  // `lib/marketplaces/99freelas/agente.ts`). É gasto da CASA saindo atrás de
+  // trabalho — não de um cliente já fechado —, mesma família dos radares
+  // acima; dono próprio para "quanto custa prospectar em marketplace" ter
+  // resposta em vez de cair em "desconhecido".
+  { id: "prospeccao-marketplace", label: "Prospecção em marketplace (99Freelas)", departmentId: "client-service-sdr", natureza: "operacao" },
+
   // ── Gestão, inteligência e qualidade ──────────────────────────────────────
   { id: "pm-orquestrador",        label: "Orquestrador do PM",             departmentId: "project-management", natureza: "operacao" },
   { id: "pm-cronograma",          label: "Cronograma do projeto",          departmentId: "project-management", natureza: "operacao" },

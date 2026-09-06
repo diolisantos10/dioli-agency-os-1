@@ -289,13 +289,42 @@ describe("COMPLIANCE GATE — ALLOW · HUMAN_GATE · BLOCK", () => {
     expect(d.motivo).toMatch(/vazio|não chegou/i);
   });
 
-  it("ENVIAR PROPOSTA sem o custo lido da tela: BLOCK — desconhecido não vale 1", () => {
+  // ── ESTE TESTE FOI REESCRITO EM 06/09/2026, E O MOTIVO IMPORTA ───────────
+  //
+  // Despacho: docs/celula-prospeccao/despachos/2026-09-06-custo-desconhecido.md
+  //
+  // Ele dizia "ENVIAR PROPOSTA sem o custo lido da tela: BLOCK — desconhecido
+  // não vale 1" e cobrava BLOCK do PORTÃO sempre que o custo em conexões
+  // fosse desconhecido. Isso conflava, dentro do portão, os dois casos em que
+  // `avaliarSaldo` devolve `pode: false`: custo FINITO que não cabe (cota
+  // REALMENTE estourada) e custo `Infinity` (a tela não disse o número —
+  // "não sei se cabe" não é "não cabe"). Com essa trava, TODO projeto
+  // coletado publicamente (o 99Freelas não publica a tabela de custo) tinha
+  // seu texto descartado (`texto: null`) mesmo estando limpo — exatamente o
+  // defeito que o despacho corrigiu, só que na camada de baixo
+  // (`lib/marketplaces/99freelas/agente.ts` já fazia essa distinção; o
+  // portão, chamado por dentro dele, desfazia a distinção sozinho).
+  //
+  // "Desconhecido não vale 1" continua verdade e continua travado — é
+  // `avaliarSaldo`, que este despacho NÃO tocou, quem garante isso (ver "o
+  // contador sabe o que já foi gasto..." acima). O que mudou é que o custo
+  // desconhecido, sozinho, não é mais motivo do PORTÃO barrar um texto limpo.
+  it("ENVIAR PROPOSTA com custo REALMENTE estourado (finito): BLOCK", () => {
+    const d = portaoDeConformidade({
+      plataforma: "99freelas", acao: "enviarProposta", texto: PROPOSTA_LIMPA,
+      custoEmConexoesLidoDaTela: 2, conexoesGastasNoMes: 239,
+    });
+    expect(d.veredito).toBe("BLOCK");
+    expect(d.razoes.map((r) => r.regra)).toContain("cota_de_conexoes");
+  });
+
+  it("ENVIAR PROPOSTA com custo DESCONHECIDO e texto limpo: o portão NÃO bloqueia por cota sozinho — quem decide o desfecho é quem chama", () => {
     const d = portaoDeConformidade({
       plataforma: "99freelas", acao: "enviarProposta", texto: PROPOSTA_LIMPA,
       custoEmConexoesLidoDaTela: null, conexoesGastasNoMes: 0,
     });
-    expect(d.veredito).toBe("BLOCK");
-    expect(d.razoes.map((r) => r.regra)).toContain("cota_de_conexoes");
+    expect(d.veredito).not.toBe("BLOCK");
+    expect(d.razoes.map((r) => r.regra)).toContain("cota_de_conexoes_desconhecida");
   });
 
   it("ENVIAR PROPOSTA repetida: BLOCK por spam", () => {
