@@ -125,7 +125,8 @@ export const ModelName = {
   ConviteDeParceria: 'ConviteDeParceria',
   IsencaoDeParceria: 'IsencaoDeParceria',
   AssinaturaRecorrente: 'AssinaturaRecorrente',
-  CobrancaRecorrente: 'CobrancaRecorrente'
+  CobrancaRecorrente: 'CobrancaRecorrente',
+  PendenciaDeConsulta: 'PendenciaDeConsulta'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1510,6 +1511,23 @@ export const CobrancaRecorrenteScalarFieldEnum = {
 } as const
 
 export type CobrancaRecorrenteScalarFieldEnum = (typeof CobrancaRecorrenteScalarFieldEnum)[keyof typeof CobrancaRecorrenteScalarFieldEnum]
+
+
+export const PendenciaDeConsultaScalarFieldEnum = {
+  protocolo: 'protocolo',
+  produto: 'produto',
+  conversa: 'conversa',
+  canal: 'canal',
+  agente: 'agente',
+  fio: 'fio',
+  assunto: 'assunto',
+  estado: 'estado',
+  avisadoEm: 'avisadoEm',
+  respondidaEm: 'respondidaEm',
+  criadaEm: 'criadaEm'
+} as const
+
+export type PendenciaDeConsultaScalarFieldEnum = (typeof PendenciaDeConsultaScalarFieldEnum)[keyof typeof PendenciaDeConsultaScalarFieldEnum]
 
 
 export const SortOrder = {

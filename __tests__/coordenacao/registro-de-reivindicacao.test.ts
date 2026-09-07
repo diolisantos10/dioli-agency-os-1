@@ -154,6 +154,32 @@ describe("✅ o sentinela NÃO INVENTA problema no caso limpo", () => {
 
   it("O REGISTRO REAL deste repositório — o que roda de verdade em `npm test` — está limpo", () => {
     const r = conferirRegistroNoDisco(REGISTRO_REAL, new Date());
-    expect(r.ok, `reivindicacoes/ tem colisão viva: ${r.problemas.join(" | ")}`).toBe(true);
+
+    // ── O AVISO ALTO SAI AQUI (30/08/2026) ────────────────────────────────
+    //
+    // Colisão FORÇADA não reprova mais (ver `conferirRegistro`), mas aviso que
+    // ninguém vê é o mesmo que aviso nenhum — e "não reprova" viraria "passou
+    // batido". Este é o ponto da casa em que o registro REAL é lido em
+    // `npm test`, então é aqui que o aviso tem que APARECER, na saída da
+    // suíte, com os dois donos e o motivo escrito de cada um.
+    for (const aviso of r.avisos) console.warn(`\n${aviso}\n`);
+
+    // E ele tem que ser LEGÍVEL, não um marcador vazio: quem lê julga a
+    // justificativa pelo texto, então todo aviso nomeia os dois donos e
+    // carrega o motivo de cada lado que forçou. Asserção ESTRUTURAL de
+    // propósito — cravar aqui o `quem` das frentes vivas de hoje viraria a
+    // trava eterna que este mesmo arquivo já documenta mais acima: o teste
+    // ficaria vermelho no dia em que o dono legítimo encerrasse a frente.
+    for (const aviso of r.avisos) {
+      expect(aviso).toMatch(/COLISÃO FORÇADA/);
+      expect(aviso).toMatch(/arquivo\(s\) em comum:/);
+      expect(aviso.split("\n").filter((l) => l.includes("FORÇADA por")).length).toBeGreaterThanOrEqual(1);
+      expect(aviso).toMatch(/motivo \.+:/);
+    }
+
+    expect(
+      r.ok,
+      `reivindicacoes/ tem colisão viva NÃO forçada: ${r.problemas.join(" | ")}`,
+    ).toBe(true);
   });
 });

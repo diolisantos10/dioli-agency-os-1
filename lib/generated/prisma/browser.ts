@@ -734,3 +734,8 @@ export type AssinaturaRecorrente = Prisma.AssinaturaRecorrenteModel
  * em reenvio de webhook.
  */
 export type CobrancaRecorrente = Prisma.CobrancaRecorrenteModel
+/**
+ * Model PendenciaDeConsulta
+ * 
+ */
+export type PendenciaDeConsulta = Prisma.PendenciaDeConsultaModel

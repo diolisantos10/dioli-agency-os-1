@@ -458,7 +458,8 @@ export const ModelName = {
   ConviteDeParceria: 'ConviteDeParceria',
   IsencaoDeParceria: 'IsencaoDeParceria',
   AssinaturaRecorrente: 'AssinaturaRecorrente',
-  CobrancaRecorrente: 'CobrancaRecorrente'
+  CobrancaRecorrente: 'CobrancaRecorrente',
+  PendenciaDeConsulta: 'PendenciaDeConsulta'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -474,7 +475,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "agencyWorkspace" | "user" | "client" | "project" | "adCampaign" | "googleConnection" | "googleReview" | "googleDriveConnection" | "driveMaterial" | "cycle" | "clientNotice" | "deliverable" | "deliverableVersion" | "materialRequest" | "contentRequest" | "brandBrain" | "strategyRoom" | "briefing" | "brandUpdate" | "brainUpdate" | "dbIntegrationConfig" | "clientAiProvider" | "task" | "timelineEvent" | "activityEvent" | "aIRunLog" | "lancamentoFinanceiro" | "trainingBatch" | "dbSimulationRun" | "dbAgentSuggestion" | "trainingAlert" | "brainChangeRequest" | "brainVersion" | "clientRequestDb" | "portalMessage" | "socialPost" | "brainArtifact" | "approvalRequest" | "approvalComment" | "evidenceItem" | "metaConnection" | "metaAdCota" | "medicaoDeEventos" | "metaAdFreio" | "metaRitmoJanela" | "metaRitmoFreio" | "metaLeituraCache" | "metaAtivoAutorizado" | "whatsAppMessage" | "whatsAppOutbox" | "portalAccess" | "marketInsight" | "mediaAsset" | "oportunidade" | "rateLimitBucket" | "departmentLadder" | "departmentLadderRecord" | "conexaoGasta" | "emailDoRadar" | "metricaDePost" | "execucaoV2" | "recusaV2" | "transicaoDeEstado" | "bloqueioV2" | "outboxV2" | "flagV2" | "reconciliacaoV2" | "heartbeatDoRelogio" | "handoffV2" | "pagamentoConfirmado" | "parceriaDoCliente" | "conviteDeParceria" | "isencaoDeParceria" | "assinaturaRecorrente" | "cobrancaRecorrente"
+    modelProps: "agencyWorkspace" | "user" | "client" | "project" | "adCampaign" | "googleConnection" | "googleReview" | "googleDriveConnection" | "driveMaterial" | "cycle" | "clientNotice" | "deliverable" | "deliverableVersion" | "materialRequest" | "contentRequest" | "brandBrain" | "strategyRoom" | "briefing" | "brandUpdate" | "brainUpdate" | "dbIntegrationConfig" | "clientAiProvider" | "task" | "timelineEvent" | "activityEvent" | "aIRunLog" | "lancamentoFinanceiro" | "trainingBatch" | "dbSimulationRun" | "dbAgentSuggestion" | "trainingAlert" | "brainChangeRequest" | "brainVersion" | "clientRequestDb" | "portalMessage" | "socialPost" | "brainArtifact" | "approvalRequest" | "approvalComment" | "evidenceItem" | "metaConnection" | "metaAdCota" | "medicaoDeEventos" | "metaAdFreio" | "metaRitmoJanela" | "metaRitmoFreio" | "metaLeituraCache" | "metaAtivoAutorizado" | "whatsAppMessage" | "whatsAppOutbox" | "portalAccess" | "marketInsight" | "mediaAsset" | "oportunidade" | "rateLimitBucket" | "departmentLadder" | "departmentLadderRecord" | "conexaoGasta" | "emailDoRadar" | "metricaDePost" | "execucaoV2" | "recusaV2" | "transicaoDeEstado" | "bloqueioV2" | "outboxV2" | "flagV2" | "reconciliacaoV2" | "heartbeatDoRelogio" | "handoffV2" | "pagamentoConfirmado" | "parceriaDoCliente" | "conviteDeParceria" | "isencaoDeParceria" | "assinaturaRecorrente" | "cobrancaRecorrente" | "pendenciaDeConsulta"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -6028,6 +6029,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PendenciaDeConsulta: {
+      payload: Prisma.$PendenciaDeConsultaPayload<ExtArgs>
+      fields: Prisma.PendenciaDeConsultaFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PendenciaDeConsultaFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PendenciaDeConsultaFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload>
+        }
+        findFirst: {
+          args: Prisma.PendenciaDeConsultaFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PendenciaDeConsultaFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload>
+        }
+        findMany: {
+          args: Prisma.PendenciaDeConsultaFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload>[]
+        }
+        create: {
+          args: Prisma.PendenciaDeConsultaCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload>
+        }
+        createMany: {
+          args: Prisma.PendenciaDeConsultaCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PendenciaDeConsultaCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload>[]
+        }
+        delete: {
+          args: Prisma.PendenciaDeConsultaDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload>
+        }
+        update: {
+          args: Prisma.PendenciaDeConsultaUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload>
+        }
+        deleteMany: {
+          args: Prisma.PendenciaDeConsultaDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PendenciaDeConsultaUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PendenciaDeConsultaUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload>[]
+        }
+        upsert: {
+          args: Prisma.PendenciaDeConsultaUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PendenciaDeConsultaPayload>
+        }
+        aggregate: {
+          args: Prisma.PendenciaDeConsultaAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePendenciaDeConsulta>
+        }
+        groupBy: {
+          args: Prisma.PendenciaDeConsultaGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PendenciaDeConsultaGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PendenciaDeConsultaCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PendenciaDeConsultaCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -7435,6 +7510,23 @@ export const CobrancaRecorrenteScalarFieldEnum = {
 export type CobrancaRecorrenteScalarFieldEnum = (typeof CobrancaRecorrenteScalarFieldEnum)[keyof typeof CobrancaRecorrenteScalarFieldEnum]
 
 
+export const PendenciaDeConsultaScalarFieldEnum = {
+  protocolo: 'protocolo',
+  produto: 'produto',
+  conversa: 'conversa',
+  canal: 'canal',
+  agente: 'agente',
+  fio: 'fio',
+  assunto: 'assunto',
+  estado: 'estado',
+  avisadoEm: 'avisadoEm',
+  respondidaEm: 'respondidaEm',
+  criadaEm: 'criadaEm'
+} as const
+
+export type PendenciaDeConsultaScalarFieldEnum = (typeof PendenciaDeConsultaScalarFieldEnum)[keyof typeof PendenciaDeConsultaScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -7676,6 +7768,7 @@ export type GlobalOmitConfig = {
   isencaoDeParceria?: Prisma.IsencaoDeParceriaOmit
   assinaturaRecorrente?: Prisma.AssinaturaRecorrenteOmit
   cobrancaRecorrente?: Prisma.CobrancaRecorrenteOmit
+  pendenciaDeConsulta?: Prisma.PendenciaDeConsultaOmit
 }
 
 /* Types for Logging */

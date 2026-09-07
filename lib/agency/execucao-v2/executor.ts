@@ -102,6 +102,32 @@ export interface AtorDaExecucao {
   versaoModelo?: string;
 }
 
+/**
+ * ⭐ QUE TIPO DE ESCALADA É ESTA — declarado, nunca adivinhado pela prosa.
+ *
+ * Auditoria independente de 30/08/2026, defeito A-5. `escalado` sempre serviu a
+ * situações muito diferentes, e quem lia tinha que descobrir qual pela FRASE
+ * (`/^falha técnica/i`) e pela lista de gatilhos vazia. As duas pistas falham
+ * juntas exatamente no caso que importa: o estouro de teto DEPOIS de a execução
+ * ter concluído e sido gravada também vem sem gatilho, e por isso era lido como
+ * falha técnica. O chamador então respondia
+ *
+ *   502 "o acionamento não se completou: custo real ($999) estourou o teto"
+ *
+ * para uma execução que SE COMPLETOU e está gravada em `ExecucaoV2`. A retenção
+ * era certa (fail-closed); a explicação era falsa — e explicação falsa em cima
+ * de rastro é exatamente o que este motor existe para não produzir.
+ *
+ *   `regra`                  — "não sem aprovação": gatilho humano da ficha, ou
+ *                              autonomia B diante de efeito externo. Nada rodou.
+ *   `falha_tecnica`          — o trabalho não se completou depois de esgotadas
+ *                              as tentativas. Nada foi gravado.
+ *   `estouro_apos_execucao`  — o trabalho SE COMPLETOU, o registro está gravado,
+ *                              e o custo ou a duração real estourou o teto da
+ *                              ficha. Retém — mas não minta sobre o que houve.
+ */
+export type NaturezaDaEscalada = "regra" | "falha_tecnica" | "estouro_apos_execucao";
+
 export interface PacoteDeEscalada {
   funcaoId: string;
   departamentoId: string;
@@ -109,6 +135,10 @@ export interface PacoteDeEscalada {
   gatilhos: string[];
   entradas: Record<string, string>;
   correlationId: string;
+  /** O que esta escalada É. Campo, e não regex sobre `motivo`: prosa não é contrato. */
+  natureza: NaturezaDaEscalada;
+  /** Já existe linha em `ExecucaoV2` para este trabalho? Só `estouro_apos_execucao` traz `true`. */
+  registroGravado: boolean;
 }
 
 export type ResultadoDaExecucao =
@@ -180,15 +210,20 @@ export async function executarFuncao(
     });
     return { decisao: "recusado", motivo };
   };
-  const escalar = (motivo: string, gatilhos: string[] = []): ResultadoDaExecucao => ({
+  const escalar = (
+    motivo: string,
+    opcoes: { natureza: NaturezaDaEscalada; gatilhos?: string[]; registroGravado?: boolean },
+  ): ResultadoDaExecucao => ({
     decisao: "escalado",
     pacote: {
       funcaoId,
       departamentoId: departamento,
       motivo,
-      gatilhos,
+      gatilhos: opcoes.gatilhos ?? [],
       entradas: contexto.entradas,
       correlationId: contexto.correlationId,
+      natureza: opcoes.natureza,
+      registroGravado: opcoes.registroGravado ?? false,
     },
   });
   let departamento = "";
@@ -237,7 +272,10 @@ export async function executarFuncao(
   // 6. Gatilho humano da ficha presente → escala com pacote completo, não executa.
   const gatilhos = (contexto.gatilhosDetectados ?? []).filter((g) => spec.gatilhos_humanos.includes(g));
   if (gatilhos.length > 0) {
-    return escalar("gatilho humano da ficha detectado — decisão sobe, não se executa", gatilhos);
+    return escalar("gatilho humano da ficha detectado — decisão sobe, não se executa", {
+      natureza: "regra",
+      gatilhos,
+    });
   }
 
   // 6b. A autonomia da ficha — a letra que existia sem valer nada até 16/08/2026.
@@ -247,10 +285,10 @@ export async function executarFuncao(
     // B diante de efeito externo não é "não": é "não sem aprovação" — e o
     // pacote de escalada É o pedido de aprovação.
     if (spec.autonomia === "B" && efeito === "externo") {
-      return escalar(
-        `autonomia B: passo externo exige aprovação — "${funcaoId}" prepara, não publica`,
-        ["qualquer ação irreversível, gasto ou risco legal"],
-      );
+      return escalar(`autonomia B: passo externo exige aprovação — "${funcaoId}" prepara, não publica`, {
+        natureza: "regra",
+        gatilhos: ["qualquer ação irreversível, gasto ou risco legal"],
+      });
     }
     return recusar(
       `autonomia ${spec.autonomia} da ficha não permite efeito "${efeito}" (permitido: ${permitidos.join(", ") || "nada"})`,
@@ -320,7 +358,10 @@ export async function executarFuncao(
   }
   if (!executou) {
     // Falha técnica persistente não se re-tenta pra sempre nem se esconde: sobe.
-    return escalar(`falha técnica após ${tentativas} tentativa(s): ${ultimaFalha}`);
+    // Nada foi gravado — o `gravarExecucao` só acontece depois deste ponto.
+    return escalar(`falha técnica após ${tentativas} tentativa(s): ${ultimaFalha}`, {
+      natureza: "falha_tecnica",
+    });
   }
 
   const fim = deps.agora();
@@ -330,12 +371,19 @@ export async function executarFuncao(
   await deps.gravarExecucao(registro);
 
   // 10. Estouro DEPOIS do fato não se esconde: registra e escala.
+  //
+  // ⭐ E o que ele NÃO é: uma falha de acionamento. O trabalho se completou, e o
+  // `await deps.gravarExecucao(registro)` logo acima já pousou a linha no banco
+  // com fim e resultado. Por isso `registroGravado: true` e a natureza própria:
+  // a retenção é a mesma (ninguém dá isto por bom), o que muda é que quem lê
+  // passa a receber a verdade em vez de "o acionamento não se completou".
   const duracaoMin = (fim.getTime() - inicio.getTime()) / 60_000;
   if (custoUsd > spec.teto_custo_usd_execucao || duracaoMin > spec.timeout_min) {
     return escalar(
       custoUsd > spec.teto_custo_usd_execucao
         ? `custo real ($${custoUsd}) estourou o teto da ficha ($${spec.teto_custo_usd_execucao})`
         : `duração (${Math.round(duracaoMin)}min) estourou o timeout da ficha (${spec.timeout_min}min)`,
+      { natureza: "estouro_apos_execucao", registroGravado: true },
     );
   }
 

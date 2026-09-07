@@ -104,6 +104,18 @@ export type ResultadoDaResposta = {
   respondidas: number;
   semIA: number;
   /**
+   * ⭐ Quantas foram atendidas pelo Dioli Connect — assunto fora da alçada do
+   * agente, respondido por política já decidida ou escalado ao gerente com o
+   * cliente avisado.
+   *
+   * ⚠️ Contador SEPARADO de propósito. Somá-las a `respondidas` esconderia
+   * justamente o número que diz se o conector está funcionando; somá-las a
+   * `semIA` faria o despertador gritar "aguardando gente" sobre mensagens que
+   * foram atendidas. São três resultados diferentes, e o pulso da casa merece
+   * saber qual foi qual.
+   */
+  peloConector: number;
+  /**
    * Quantas dessas mensagens são NOVAS na fila — as que chegaram na última
    * janela. É a TRANSIÇÃO; `semIA` é o estado de pé.
    *
@@ -153,7 +165,7 @@ export type ResultadoDaResposta = {
 const JANELA_DE_NOVIDADE_MS = 15 * 60_000;
 
 export async function responderMensagensDeClientes(): Promise<ResultadoDaResposta> {
-  const resultado: ResultadoDaResposta = { respondidas: 0, semIA: 0, novasSemIA: 0, falhas: [] };
+  const resultado: ResultadoDaResposta = { respondidas: 0, semIA: 0, peloConector: 0, novasSemIA: 0, falhas: [] };
 
   const pendentes = await prisma.portalMessage.findMany({
     where: { authorRole: "client", readByTeam: false },
@@ -166,6 +178,7 @@ export async function responderMensagensDeClientes(): Promise<ResultadoDaRespost
     try {
       const feito = await responderUma(mensagem);
       if (feito === "respondida") resultado.respondidas += 1;
+      else if (feito === "conector") resultado.peloConector += 1;
       else {
         resultado.semIA += 1;
         if (Date.now() - mensagem.createdAt.getTime() <= JANELA_DE_NOVIDADE_MS) {
@@ -182,7 +195,45 @@ export async function responderMensagensDeClientes(): Promise<ResultadoDaRespost
 
 type Mensagem = { id: string; clientId: string | null; clientRequestId: string | null; body: string };
 
-async function responderUma(mensagem: Mensagem): Promise<"respondida" | "sem-ia"> {
+async function responderUma(mensagem: Mensagem): Promise<"respondida" | "sem-ia" | "conector"> {
+  // ── ⭐ O GATILHO, ANTES DO MODELO (Dioli Connect, 30/08/2026) ─────────────
+  //
+  // O `SISTEMA` acima diz "nunca prometa prazo, preço, desconto ou escopo
+  // novo". Isso é prompt, e prompt é aviso — guardrail 4 da casa.
+  //
+  // ⚠️ E repare no defeito que o aviso produzia MESMO QUANDO OBEDECIDO: a
+  // instrução manda o PM dizer "vou confirmar com a equipe e te falo". Ele
+  // dizia — e não confirmava com ninguém, porque não existia caminho nenhum. A
+  // mensagem era marcada como lida na mesma transação da resposta e a pergunta
+  // morria ali. O cliente recebia uma promessa que o sistema não podia cumprir.
+  //
+  // Agora existe caminho. `atenderForaDaAlcada` classifica em CÓDIGO, e quando
+  // dispara o modelo nem chega a ser chamado — não há prompt para contornar,
+  // porque não há prompt. Ou existe política já decidida e o cliente é
+  // respondido AGORA, ou a consulta sobe ao gerente e o cliente é avisado; a
+  // resposta volta depois por `POST /api/connect/retorno`.
+  //
+  // ⚠️ E o chão não sai do lugar: sem política e sem escalada, isto cai em
+  // `sem-ia` — a mensagem fica NÃO LIDA na caixa de entrada da agência,
+  // exatamente onde ela ficava antes deste bloco existir.
+  if (mensagem.clientId) {
+    const { atenderForaDaAlcada } = await import("@/lib/agency/connect/atender-fora-da-alcada");
+    const fora = await atenderForaDaAlcada(mensagem.clientId, mensagem.body);
+    if (fora.acionou) {
+      console.log("[pm-responde] fora da alçada:", fora.paraORastro);
+      if (!fora.respondido) return "sem-ia";
+      // O cliente já leu algo (a política, ou o aviso de pendência). Marcar
+      // como lida é o que impede o relógio de abrir a MESMA consulta de novo na
+      // próxima passada, cinco minutos depois — e o cliente de receber o mesmo
+      // aviso a cada cinco minutos até alguém decidir.
+      await prisma.portalMessage.update({
+        where: { id: mensagem.id },
+        data: { readByTeam: true },
+      });
+      return "conector";
+    }
+  }
+
   // A conversa é ÚNICA por cliente: as duas chaves (clientId e clientRequestId)
   // apontam para o mesmo fio, e ler só uma perderia metade do histórico.
   const filtro = mensagem.clientId

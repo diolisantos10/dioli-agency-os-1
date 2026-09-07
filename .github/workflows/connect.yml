@@ -1,0 +1,162 @@
+name: Dioli Connect — as travas da porta corporativa
+
+# ─── POR QUE ESTE ARQUIVO EXISTE, SE JÁ EXISTE `ci.yml` ─────────────────────
+#
+# Determinação do CEO (30/08/2026), literal: **"nenhum resultado local é
+# suficiente para homologação"**. E até aqui as travas do Dioli Connect só
+# tinham sido medidas na máquina de quem as escreveu.
+#
+# `ci.yml` roda `npm test`, que roda a suíte inteira — e sim, `__tests__/connect`
+# entra nela. Este arquivo NÃO substitui aquele e não repete o que ele faz: ele
+# ACRESCENTA um portão com nome próprio, e a diferença entre os dois é o que
+# justifica a existência deste:
+#
+#   • `ci.yml` reprova por qualquer coisa da casa. Quando ele fica vermelho,
+#     ninguém sabe olhando o nome se foi o Connect ou o vizinho.
+#   • aqui as travas desta porta rodam num PASSO com nome próprio, antes de
+#     tudo o mais: quando a culpa é da porta, o passo vermelho diz isso sem
+#     ninguém precisar ler 7.600 testes.
+#
+# ─── O QUE MUDOU EM 30/08/2026, POR ORDEM DO CEO ───────────────────────────
+#
+# Este portão nasceu curto — só `__tests__/connect/`, sem build. Duas coisas
+# estavam erradas nisso, e as duas eram a mesma doença:
+#
+#   1. Sem build, os testes que medem o ARTEFATO DE PRODUÇÃO pulavam. A prova de
+#      que as 93 fichas dos agentes chegam ao contêiner nunca rodou em CI
+#      nenhum — e o portão ficava verde.
+#   2. Sem a suíte inteira, este workflow ficava VERDE com a casa VERMELHA. Quem
+#      lesse o check com o nome desta porta leria aprovação do repositório.
+#
+# Ordem do CEO, literal: *"o CI deste PR só passa se a suíte inteira passar"* e
+# *"termine com ZERO testes pulados"*. Agora este arquivo constrói antes de
+# testar, roda a suíte completa depois do portão da porta, e REPROVA se sobrar
+# um pulado. Ele deixou de ser um portão de ~2 min; o que ele ganhou foi deixar
+# de mentir. Verde sem prova é pior que vermelho.
+#
+# Os dois workflows rodam. Este é o que responde pela porta — e, desde hoje,
+# também se recusa a dizer "ok" enquanto o resto da casa estiver quebrado.
+
+on:
+  push:
+    branches:
+      - arquitetura/dioli-connect-gateway
+      - claude/dioli-agency-os-architecture-kk7kp
+      - "**"
+  pull_request:
+    branches: ["**"]
+
+# Mesmo raciocínio de `ci.yml`, e pelo mesmo incidente: o grupo é por COMMIT, e
+# não por branch. Um re-push do MESMO commit cancela o run anterior (o ruído
+# vermelho de run supersedido fica apagado); um commit NOVO nunca cancela o run
+# de um commit DIFERENTE, para cada commit ter o seu próprio veredito. Ver o
+# comentário longo em `ci.yml` — a regra por branch congelou a entrega em
+# 16/08/2026 e não se repete aqui.
+concurrency:
+  group: connect-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  travas:
+    name: As travas da porta do Connect
+    runs-on: ubuntu-latest
+    # O teto subiu de 15 para 30 min junto com o build e a suíte inteira — é o
+    # mesmo teto de `ci.yml`, que faz o mesmo trabalho. Passou de 30, o problema
+    # não é o código: é a rodada, e ela morre rápido em vez de apodrecer
+    # segurando runner (lição de 06/08/2026, registrada em `ci.yml`).
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install deps
+        run: npm ci
+
+      # `__tests__/connect/execucao-carimbada.test.ts` NÃO usa banco de mentira:
+      # ele sobe um SQLite descartável e roda `npx prisma migrate deploy` com as
+      # migrations de verdade. Sem o cliente gerado, ele nem importa.
+      - name: Prisma generate
+        run: npx prisma generate
+
+      # O molde de marca prova NO PIXEL que o texto pedido saiu escrito na arte,
+      # e a suíte inteira (abaixo) contém essa prova. Sem Chromium ela REPROVA
+      # de propósito (`__tests__/design/molde-render`) — verde sem prova é pior
+      # que vermelho. Mesmo passo, mesma razão e mesma ordem de `ci.yml`.
+      - name: Chromium para a prova do pixel
+        run: npx playwright install --with-deps chromium
+
+      # Typecheck da árvore inteira. É barato perto do que custa descobrir em
+      # produção que o contrato da porta não fecha com quem a chama.
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # ─── O BUILD, E POR QUE ELE VEM ANTES DOS TESTES ───────────────────────
+      #
+      # `__tests__/connect/a-ficha-chega-em-producao.test.ts` mede o ARTEFATO DE
+      # PRODUÇÃO: as 93 fichas dos agentes dentro de `.next/standalone`, sem as
+      # quais o motor recusa TODAS as funções em produção com "sem ficha não se
+      # executa". Enquanto este portão não construía, os dois testes daquela
+      # metade eram `it.skipIf(!construido)` e PULAVAM — a prova mais importante
+      # do arquivo nunca rodou em CI nenhum, e o verde dizia o contrário.
+      #
+      # O `skipIf` foi removido (a ausência do artefato agora REPROVA) e o build
+      # entrou aqui, ANTES dos testes. Custa minutos; descobrir em produção que
+      # o motor não acha as fichas custa a operação inteira.
+      - name: Build de produção (ANTES dos testes — quem mede artefato precisa do artefato)
+        run: npm run build
+        env:
+          DATABASE_URL: "file:./ci.db"
+
+      # ─── O PORTÃO PROPRIAMENTE DITO ────────────────────────────────────────
+      #
+      # `--reporter=verbose` continua deliberado: com o relatório resumido, um
+      # teste pulado sumiria dentro de um verde. Aqui são poucas dezenas de
+      # linhas, e elas dizem nome por nome o que foi medido nesta porta.
+      - name: As travas do Dioli Connect
+        run: npx vitest run __tests__/connect/ --reporter=verbose
+
+      # ─── E A SUÍTE INTEIRA, PORQUE PORTÃO ESTREITO VERDE NÃO É CASA VERDE ──
+      #
+      # Ordem do CEO em 30/08/2026, literal: *"exija a suíte completa verde,
+      # além do portão específico do Connect"* — e a razão estava na tela:
+      # neste PR o fluxo do Connect ficava VERDE enquanto a suíte geral tinha
+      # falha, e quem lesse só o check com o nome desta porta leria aprovação da
+      # casa inteira. Relatório contraditório é o defeito que esta rodada
+      # existe para eliminar.
+      #
+      # O passo acima continua existindo e continua vindo primeiro: quando esta
+      # porta é a culpada, o nome do passo que ficou vermelho diz isso sem
+      # ninguém precisar ler 7.600 testes. Este passo responde pela outra
+      # metade — este workflow NÃO fica verde com a casa vermelha.
+      #
+      # `NO_COLOR`: a trava abaixo é FAIL-CLOSED e procura a linha de resumo no
+      # log gravado. Código ANSI no meio de "  Tests  …" faria o `grep` não achar
+      # a linha e reprovar uma rodada sã. Mesma razão e mesma linha em `ci.yml`.
+      - name: A suíte inteira (este portão não fica verde com a casa vermelha)
+        run: |
+          set -o pipefail
+          npx vitest run 2>&1 | tee vitest-saida.log
+        env:
+          NO_COLOR: "1"
+
+      # ⛔ ZERO PULADOS — a mesma trava de `ci.yml`, e pela mesma razão: teste
+      # pulado sai com "ok" e código de saída zero, e qualquer leitor lê
+      # aprovação. FAIL-CLOSED: sem a linha de resumo, REPROVA.
+      - name: Nenhum teste pulado (pulado passa por aprovado para quem lê o verde)
+        run: |
+          # Tira qualquer código ANSI que tenha escapado, e só então procura a linha.
+          sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g' vitest-saida.log > vitest-limpo.log
+          RESUMO=$(grep -E "^[[:space:]]*Tests[[:space:]]" vitest-limpo.log | tail -1)
+          echo "Resumo do vitest: ${RESUMO}"
+          if [ -z "${RESUMO}" ]; then
+            echo "::error::não achei a linha de resumo do vitest; não sei se houve teste pulado, e 'não sei' não vira 'então passou'."
+            exit 1
+          fi
+          if echo "${RESUMO}" | grep -qE "skipped|todo"; then
+            echo "::error::a suíte terminou com teste(s) PULADO(S). Ou vira teste de verdade, ou some, ou reprova."
+            exit 1
+          fi

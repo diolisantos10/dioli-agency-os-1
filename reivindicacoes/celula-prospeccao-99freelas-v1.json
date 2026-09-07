@@ -1,0 +1,20 @@
+{
+  "id": "celula-prospeccao-99freelas-v1",
+  "quem": "ses-111b334b1b",
+  "frente": "Celula de Prospeccao Multiplataforma V1 no 99Freelas: funil, motor conversacional, ponte de arquivos, fila de excecoes e simulador",
+  "responsabilidade": "celula-prospeccao-99freelas-v1",
+  "arquivos": [
+    "lib/marketplaces",
+    "lib/agency/celula",
+    "prisma/schema.prisma",
+    "app/agency/oportunidades"
+  ],
+  "abertaEm": "2026-08-30T13:26:45.486Z",
+  "encerradaEm": null,
+  "rotulo": "diretor-celula-99f",
+  "forcadaPor": {
+    "quem": "ses-111b334b1b",
+    "motivo": "Terceira do mesmo padrao ja auditado nesta casa (ses-b8ee2d70ad e ses-0f653c553f): colisao de ARQUIVO, nao de responsabilidade, e SO em prisma/schema.prisma. Os outros tres caminhos (lib/marketplaces, lib/agency/celula, app/agency/oportunidades) nao aparecem em nenhuma reivindicacao viva. Esta frente APENAS ACRESCENTA model ao schema (funil, modelos de mensagem, ponte de arquivos, fila de excecoes) e nao altera uma linha de Diretriz nem de RastroDoDiretorGeral. Perguntas disjuntas: la, que orientacao o SDR le e quem e o Diretor Geral; aqui, como uma oportunidade do 99Freelas percorre o funil ate a entrega. Alem disso esta frente vive em BRANCH PROPRIA (claude/celula-prospeccao-99freelas-v1) e sai em PR de RASCUNHO sem merge, por ordem do CEO — nao ha caminho por onde ela atropele as outras duas na base.",
+    "em": "2026-08-30T13:26:45.486Z"
+  }
+}

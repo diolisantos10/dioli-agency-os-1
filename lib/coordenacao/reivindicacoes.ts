@@ -124,9 +124,89 @@ export type ResultadoDeColisao = {
 
 export type ResultadoDoRegistro = {
   ok: boolean;
-  /** Um problema por par de reivindicações vivas em conflito. */
+  /** Um problema por par de reivindicações vivas em conflito. REPROVA. */
   problemas: string[];
+  /**
+   * Um aviso ALTO por par de reivindicações vivas que colidem mas cuja colisão
+   * foi FORÇADA, com motivo de substância, pela saída de emergência sancionada
+   * (`--forcar --motivo "<por quê>"`). NÃO reprova — mas quem lê precisa poder
+   * julgar se a justificativa se sustenta, então cada aviso carrega os DOIS
+   * donos, os arquivos em comum e o motivo escrito de cada lado que forçou.
+   *
+   * Ver `conferirRegistro` para o porquê desta régua existir.
+   */
+  avisos: string[];
 };
+
+/**
+ * Piso de substância do motivo de uma forçada, em caracteres.
+ *
+ * Mesmo raciocínio (e mesma ordem de grandeza) do `MINIMO_DE_CONTEUDO` que
+ * `lib/agency/esteira/conteudo.ts` já usa para separar entrega de cartão
+ * vazio. Não se duplica a constante de lá porque `lib/coordenacao/` é puro e
+ * não importa a esteira — mas a régua é a mesma ideia: texto abaixo disto não
+ * é justificativa, é carimbo.
+ */
+export const MINIMO_DE_MOTIVO_FORCADO = 40;
+
+/** Quantas palavras DISTINTAS o motivo precisa ter. O piso de caracteres
+ *  sozinho é comprável com uma palavra repetida ("urgente urgente urgente…")
+ *  ou com uma fileira de pontuação; contar palavras distintas fecha isso. */
+export const MINIMO_DE_PALAVRAS_DO_MOTIVO = 6;
+
+/**
+ * O motivo de uma forçada tem substância suficiente para valer como
+ * justificativa auditável?
+ *
+ * Deliberadamente MAIS DURO que "não vazio": a forçada é a saída de
+ * emergência sancionada da casa, e o que a mantém honesta é o rastro que ela
+ * deixa. Um ponto final, uma palavra ("urgente"), ou a mesma palavra repetida
+ * até encher o piso de caracteres não podem COMPRAR uma forçada — quem lê o
+ * aviso depois precisa conseguir julgar a decisão pelo texto.
+ *
+ * Duas réguas, as duas obrigatórias:
+ *   • pelo menos `MINIMO_DE_MOTIVO_FORCADO` caracteres depois do trim;
+ *   • pelo menos `MINIMO_DE_PALAVRAS_DO_MOTIVO` palavras DISTINTAS (>= 2
+ *     letras/dígitos cada, comparadas sem acento e sem caixa — a mesma
+ *     canonização de `normalizarResponsabilidade`, para "ARQUIVO" e "arquivo"
+ *     contarem como uma palavra só).
+ */
+export function motivoDeForcadaTemSubstancia(motivo: string | null | undefined): boolean {
+  if (typeof motivo !== "string") return false;
+  const texto = motivo.trim();
+  if (texto.length < MINIMO_DE_MOTIVO_FORCADO) return false;
+
+  const distintas = new Set(
+    normalizarResponsabilidade(texto)
+      .split("/")
+      .map((p) => p.replace(/[^\p{L}\p{N}]/gu, ""))
+      .filter((p) => p.length >= 2),
+  );
+  return distintas.size >= MINIMO_DE_PALAVRAS_DO_MOTIVO;
+}
+
+/**
+ * A forçada SANCIONADA desta reivindicação, ou `null` se não há uma.
+ *
+ * Só conta como sancionada quando as três coisas valem juntas:
+ *   • existe `forcadaPor`;
+ *   • o motivo tem substância (`motivoDeForcadaTemSubstancia`);
+ *   • quem forçou é o PRÓPRIO dono da reivindicação (`forcadaPor.quem ===
+ *     r.quem`) — ninguém força em nome de outra sessão. É esse casamento que
+ *     faz `forcadaPor.quem` significar "quem assumiu o risco"; sem ele o
+ *     rastro de auditoria não aponta para ninguém em particular.
+ *
+ * Fail-closed de propósito: qualquer uma das três faltando, a colisão volta a
+ * REPROVAR como sempre reprovou. A saída de emergência não pode ser mais fácil
+ * de usar errado do que de usar certo.
+ */
+export function forcadaSancionada(r: Reivindicacao): { quem: string; motivo: string; em: string } | null {
+  const f = r.forcadaPor;
+  if (!f) return null;
+  if (f.quem !== r.quem) return null;
+  if (!motivoDeForcadaTemSubstancia(f.motivo)) return null;
+  return f;
+}
 
 /** 24h — o teto padrão da casa. Sessão que morre sem encerrar não pode travar
  *  a frente para sempre (guardrail 5: a proteção não pode ser mais destrutiva
@@ -385,9 +465,49 @@ export function conferirColisao(
  * propósito: duas réguas para a mesma pergunta divergem no dia em que alguém
  * "otimiza" uma delas — ver `porta-de-emergencia.ts` para o mesmo raciocínio
  * aplicado ao sentinela do deploy).
+ *
+ * ── O SENTINELA PASSA A LER `forcadaPor` (30/08/2026) ──────────────────────
+ *
+ * `--forcar --motivo "<por quê>"` é a saída de emergência SANCIONADA desta
+ * casa: ela existe, é oficial, `scripts/reivindicar.mts` a valida (recusa
+ * `--forcar` sem `--motivo`), grava `forcadaPor` com o texto e imprime o
+ * rastro em voz alta. Só que NENHUMA régua de colisão lia esse campo —
+ * `forcadaPor` era escrito, validado e impresso, e nada mais. Este laço era
+ * um dos que não o liam.
+ *
+ * O efeito, medido em disco em 30/08/2026: duas frentes colidiram em
+ * `prisma/schema.prisma`, as duas usaram a saída sancionada, as duas
+ * escreveram justificativas corretas e auditadas — e o sentinela reprovou
+ * assim mesmo, deixando a suíte da casa VERMELHA e travando TODOS os PRs do
+ * repositório. As duas justificativas diziam a mesma coisa, e ela estava
+ * certa: era colisão de ARQUIVO, não de responsabilidade — as duas frentes só
+ * ACRESCENTAVAM modelo ao schema, zero remoções, perguntas disjuntas, e o
+ * merge da base rodou sem um único conflito.
+ *
+ * A régua agora é esta, e as duas metades andam juntas:
+ *
+ *   • colisão FORÇADA, com motivo de substância (`forcadaSancionada`) → AVISO
+ *     ALTO, não reprovação;
+ *   • colisão NÃO forçada → REPROVA exatamente como antes, sem nenhum
+ *     afrouxamento.
+ *
+ * O RACIOCÍNIO, para quem for mexer nisto depois: um mecanismo que PUNE quem
+ * usa a saída sancionada ensina todo mundo a não usá-la — e aí a colisão volta
+ * a ser silenciosa, que é exatamente o que este sentinela existe para impedir.
+ * O defeito não era a regra; era o sentinela não ler o campo que a própria
+ * regra manda preencher.
+ *
+ * BASTA UM DOS DOIS LADOS ter forçado, e isso não é frouxidão: quem chega
+ * PRIMEIRO abre limpo, não tem contra o que forçar, e nunca vai ter
+ * `forcadaPor`. Exigir os dois lados deixaria a saída de emergência sem efeito
+ * justamente no par em que ela foi usada — o defeito de novo, com outra roupa.
+ * O que fecha o buraco é o piso de `forcadaSancionada` (motivo com substância,
+ * assinado pelo próprio dono) e o aviso alto, que põe os dois motivos na cara
+ * de quem lê para ele julgar se a justificativa se sustenta.
  */
 export function conferirRegistro(reivindicacoes: Reivindicacao[], agora: Date, tetoHoras: number = TETO_HORAS_PADRAO): ResultadoDoRegistro {
   const problemas: string[] = [];
+  const avisos: string[] = [];
 
   for (let i = 0; i < reivindicacoes.length; i++) {
     for (let j = i + 1; j < reivindicacoes.length; j++) {
@@ -423,13 +543,61 @@ export function conferirRegistro(reivindicacoes: Reivindicacao[], agora: Date, t
       if (estaViva(a, agora, tetoHoras) !== "viva" || estaViva(b, agora, tetoHoras) !== "viva") continue;
 
       const r = conferirColisao(a, [b], agora, tetoHoras);
-      if (r.colide) {
-        problemas.push(`"${a.id}" (${a.quem}) × "${b.id}" (${b.quem}): ${r.motivos.join("; ")}`);
+      if (!r.colide) continue;
+
+      const par = `"${a.id}" (${a.quem}) × "${b.id}" (${b.quem})`;
+      const forcadaA = forcadaSancionada(a);
+      const forcadaB = forcadaSancionada(b);
+
+      if (!forcadaA && !forcadaB) {
+        problemas.push(`${par}: ${r.motivos.join("; ")}`);
+        continue;
       }
+
+      avisos.push(avisoDeColisaoForcada(par, a, b, r.motivos, forcadaA, forcadaB));
     }
   }
 
-  return { ok: problemas.length === 0, problemas };
+  return { ok: problemas.length === 0, problemas, avisos };
+}
+
+/**
+ * O texto do AVISO ALTO de uma colisão forçada.
+ *
+ * Aviso invisível é o mesmo que aviso nenhum: quem lê precisa dos DOIS donos,
+ * dos arquivos em comum e do MOTIVO ESCRITO de cada lado que forçou — é com
+ * isso, e só com isso, que dá para julgar se a justificativa se sustenta. O
+ * lado que NÃO forçou é nomeado como tal, de propósito: normalmente é quem
+ * chegou primeiro e abriu limpo, e essa assimetria é informação, não lacuna.
+ */
+function avisoDeColisaoForcada(
+  par: string,
+  a: Reivindicacao,
+  b: Reivindicacao,
+  motivosDaColisao: string[],
+  forcadaA: { quem: string; motivo: string; em: string } | null,
+  forcadaB: { quem: string; motivo: string; em: string } | null,
+): string {
+  const arquivosDeB = b.arquivos.map(normalizarCaminho);
+  const arquivosEmComum = a.arquivos
+    .map(normalizarCaminho)
+    .filter((x) => arquivosDeB.some((y) => seTocam(x, y)));
+
+  const linhaDoLado = (r: Reivindicacao, f: { quem: string; motivo: string; em: string } | null): string =>
+    f
+      ? `   FORÇADA por ${f.quem} em ${f.em}\n      frente ..: "${r.frente}"\n      motivo ..: "${f.motivo}"`
+      : `   NÃO forçada: ${r.quem} — "${r.frente}" (abriu sem colidir com ninguém, ou não registrou forçada).`;
+
+  return [
+    `🚨 COLISÃO FORÇADA — AVISO ALTO, não reprova: ${par}`,
+    `   colisão ....: ${motivosDaColisao.join("; ")}`,
+    `   arquivo(s) em comum: ${arquivosEmComum.length > 0 ? arquivosEmComum.join(", ") : "(nenhum — a colisão é de RESPONSABILIDADE, não de arquivo)"}`,
+    linhaDoLado(a, forcadaA),
+    linhaDoLado(b, forcadaB),
+    `   ⚠️  Ninguém conferiu isto por você. Leia os motivos acima e julgue se as duas frentes`,
+    `      realmente não se pisam. Se pisam, a saída é conversa entre as duas sessões e`,
+    `      \`npm run reivindicar -- encerrar\` pelo DONO da frente — nunca conserto de arquivo alheio.`,
+  ].join("\n");
 }
 
 /**

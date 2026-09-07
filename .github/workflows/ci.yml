@@ -94,18 +94,73 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Tests
-        run: npm test
-
       # O BUILD DE PRODUÇÃO ENTRA NO PORTÃO.
       # Em 05/08/2026 um `import.meta.url` num arquivo novo passou por typecheck
       # e por 1715 testes, e derrubou TODOS os deploys por uma hora: o Railway
       # falhava no build e mantinha a versão antiga no ar, sem barulho nenhum.
       # CI que não roda o build não protege o deploy — protege o editor.
-      - name: Build de produção
+      #
+      # ── E ELE PASSOU A RODAR ANTES DOS TESTES (30/08/2026) ────────────────
+      #
+      # Enquanto o build vinha DEPOIS, todo teste que mede o ARTEFATO DE
+      # PRODUÇÃO era pulado aqui dentro — não havia `.next/standalone` na hora
+      # em que o `npm test` rodava. Eram exatamente as provas que respondem
+      # "isto chega ao contêiner?":
+      #
+      #   • `__tests__/connect/a-ficha-chega-em-producao.test.ts` — as 93 fichas
+      #     dos agentes, sem as quais o motor recusa TODAS as funções em
+      #     produção com "sem ficha não se executa";
+      #   • `__tests__/plataforma/o-navegador-chega-em-producao.test.ts` — o
+      #     `browsers.json` do playwright, cuja ausência parou a agência por
+      #     dias em 08/08/2026.
+      #
+      # As duas provas mais caras de descobrir em produção eram as duas que este
+      # portão nunca rodou, e o relatório dizia "ok" com código de saída zero.
+      # Pulado é aprovado para quem lê o verde. Construir antes custa os mesmos
+      # minutos e faz as duas medirem de verdade.
+      - name: Build de produção (ANTES dos testes — ver o comentário acima)
         run: npm run build
         env:
           DATABASE_URL: "file:./ci.db"
+
+      # `NO_COLOR` não é enfeite: a trava logo abaixo procura a linha de resumo do
+      # vitest no log gravado, e códigos ANSI no meio de "  Tests  …" fariam o
+      # `grep` não achar a linha. Como a trava é FAIL-CLOSED, isso reprovaria uma
+      # rodada sã — trava que erra para o lado barulhento treina todo mundo a
+      # ignorá-la. O repórter escreve texto puro, e a linha é sempre encontrável.
+      - name: Tests (a suíte inteira, com o artefato de produção já construído)
+        run: |
+          set -o pipefail
+          npx vitest run 2>&1 | tee vitest-saida.log
+        env:
+          NO_COLOR: "1"
+
+      # ⛔ ZERO PULADOS, E A TRAVA É CÓDIGO — NÃO RECOMENDAÇÃO ESCRITA.
+      #
+      # Teste pulado sai com a palavra do protocolo em "ok" e o código de saída
+      # em zero: qualquer leitor lê aprovação. Foi assim que as duas provas de
+      # artefato de produção passaram meses sem rodar em CI nenhum, com o
+      # relatório verde o tempo todo. Ordem do CEO em 30/08/2026: a rodada
+      # termina com ZERO pulados, e um pulado que sobra "não pode existir — ou
+      # vira teste de verdade, ou some, ou reprova".
+      #
+      # FAIL-CLOSED: se a linha de resumo do vitest não for encontrada, isto
+      # REPROVA. "Não sei se houve pulado" nunca vira "então passou" — mesma
+      # régua de `soLevaAReivindicacao` em `lib/coordenacao/`.
+      - name: Nenhum teste pulado (pulado passa por aprovado para quem lê o verde)
+        run: |
+          # Tira qualquer código ANSI que tenha escapado, e só então procura a linha.
+          sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g' vitest-saida.log > vitest-limpo.log
+          RESUMO=$(grep -E "^[[:space:]]*Tests[[:space:]]" vitest-limpo.log | tail -1)
+          echo "Resumo do vitest: ${RESUMO}"
+          if [ -z "${RESUMO}" ]; then
+            echo "::error::não achei a linha de resumo do vitest; não sei se houve teste pulado, e 'não sei' não vira 'então passou'."
+            exit 1
+          fi
+          if echo "${RESUMO}" | grep -qE "skipped|todo"; then
+            echo "::error::a suíte terminou com teste(s) PULADO(S). Ou vira teste de verdade, ou some, ou reprova."
+            exit 1
+          fi
 
       - name: Lint (informativo — não bloqueia ainda)
         run: npm run lint

@@ -24,7 +24,7 @@
 
 import { describe, it, expect } from "vitest";
 import { SOCIAL_PACKAGES } from "@/lib/agency/live-calculator";
-import { PLANOS } from "@/lib/agency/planos";
+import { PLANOS, PECAS_POR_MES } from "@/lib/agency/planos";
 import {
   MISTURA_DE_FORMATOS,
 } from "@/lib/agency/execution/especialistas";
@@ -126,12 +126,57 @@ describe("VÍDEO E REEL NÃO ENTRAM — promessa sem produtor é a dívida de D-
     }
   });
 
-  it("os planos públicos também cabem no teto do mês", () => {
+  it("os planos públicos também cabem no teto do mês, e a frase bate com pecasPorMes — não só <= teto", () => {
+    // Antes (29/08/2026), este teste só conferia `<= TETO_MENSAL` e, com
+    // `if (!m) continue`, PULAVA EM SILÊNCIO qualquer plano cuja frase tivesse
+    // perdido o número — o irmão do defeito do PR #396 (recompra redigitando
+    // "8" com a fonte em 12). Mude `pecasPorMes` do Ritmo para 10 sem tocar na
+    // frase de `inclui[]`: o teste antigo continuava verde e a vitrine mentia.
+    // Agora exige IGUALDADE com o campo estruturado, e falha — não pula — se a
+    // frase não trouxer nenhum número.
     for (const p of PLANOS) {
       const m = /(\d+)\s*peças por mês/.exec(p.inclui.join(" · "));
-      if (!m) continue;
-      expect(Number(m[1]), `o plano público "${p.id}" promete ${m[1]} peças/mês contra um teto de ${TETO_MENSAL}.`)
-        .toBeLessThanOrEqual(TETO_MENSAL);
+      if (p.pecasPorMes === 0) {
+        // O Pulso (pecasPorMes: 0) não promete peça — e diz isso em
+        // `naoInclui`, não em `inclui`. Fica de fora desta checagem de
+        // propósito, não por acaso.
+        expect(
+          p.naoInclui,
+          `"${p.id}" tem pecasPorMes 0 e devia declarar em naoInclui que não inclui peça de conteúdo.`,
+        ).toContain("Nenhuma peça de conteúdo");
+        continue;
+      }
+      expect(
+        m,
+        `o plano "${p.id}" tem pecasPorMes=${p.pecasPorMes} mas a frase de inclui[] não traz nenhum número de peças por mês — pulo silencioso proibido.`,
+      ).not.toBeNull();
+      expect(
+        Number(m![1]),
+        `o plano público "${p.id}" promete ${m![1]} peças/mês na frase, mas pecasPorMes é ${p.pecasPorMes} — os dois têm de bater.`,
+      ).toBe(p.pecasPorMes);
+      expect(
+        Number(m![1]),
+        `o plano público "${p.id}" promete ${m![1]} peças/mês contra um teto de ${TETO_MENSAL}.`,
+      ).toBeLessThanOrEqual(TETO_MENSAL);
+    }
+  });
+
+  it("a frase de inclui[] deriva de PECAS_POR_MES, não de um número redigitado no teste", () => {
+    // A metade que faltava: provar que a frase segue a MESMA constante que
+    // `pecasPorMes` usa, e não um número solto que por acaso bate hoje. Se
+    // planos.ts voltar a escrever "12 peças por mês" à mão em vez de
+    // interpolar `PECAS_POR_MES.ritmo`, este teste não tem como saber — por
+    // isso ele também confere que PECAS_POR_MES e pecasPorMes são o mesmo
+    // valor, para os dois lados da divergência ficarem cobertos.
+    for (const p of PLANOS) {
+      const volume = PECAS_POR_MES[p.id];
+      expect(volume, `PECAS_POR_MES não tem entrada para o plano "${p.id}".`).toBe(p.pecasPorMes);
+      if (volume === 0) continue;
+      const frase = p.inclui.join(" · ");
+      expect(
+        frase.includes(`${volume} peças por mês`),
+        `a frase de "${p.id}" não contém "${volume} peças por mês", montada a partir de PECAS_POR_MES.${p.id} — não de um número redigitado neste teste.`,
+      ).toBe(true);
     }
   });
 });

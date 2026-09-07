@@ -1,0 +1,19 @@
+{
+  "id": "mesa-de-comando-diretriz-do-sdr",
+  "quem": "ses-b8ee2d70ad",
+  "frente": "MESA DE COMANDO: diretriz operacional lida pelo agente em producao a cada turno, comecando pelo SDR (ordem do CEO 30/08)",
+  "responsabilidade": "mesa-de-comando-diretriz-do-sdr",
+  "arquivos": [
+    "lib/agency/comercial/mesa-de-comando.ts",
+    "app/api/sdr/chat/route.ts",
+    "prisma/schema.prisma"
+  ],
+  "abertaEm": "2026-08-30T01:04:36.499Z",
+  "encerradaEm": null,
+  "rotulo": "mesa-de-comando-3008",
+  "forcadaPor": {
+    "quem": "ses-b8ee2d70ad",
+    "motivo": "Colisao de ARQUIVO, nao de responsabilidade. ses-0f653c553f reivindicou prisma/schema.prisma para a conta de servico do Diretor Geral (modelos proprios de credencial e rastro append-only). Esta frente ACRESCENTA um modelo novo e independente (Diretriz, a mesa de comando) e nao altera nenhuma linha existente do schema nem nenhum modelo daquela frente. Perguntas respondidas sao disjuntas: la, quem e o Diretor Geral e como ele se autentica; aqui, que orientacao o agente em producao le antes de responder. Nenhum outro arquivo colide.",
+    "em": "2026-08-30T01:04:36.499Z"
+  }
+}

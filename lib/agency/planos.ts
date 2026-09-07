@@ -95,6 +95,26 @@ export const CAPACIDADE_MENSAL = 36;
  * que `avulso_post` (R$ 190) tentava cobrar. R$ 55 fica ACIMA do embutido (para
  * não punir quem compra pouco) e MUITO ABAIXO do mercado (para não ser dívida de
  * posicionamento) — a mesma régua que fixou as quatro mensalidades.
+ * Quantas peças cada degrau entrega por mês. UMA declaração, usada tanto no
+ * campo estruturado `pecasPorMes` quanto na frase de `inclui[]` que o cliente
+ * lê em /planos — era a divergência entre esses dois números que produzia o
+ * defeito medido em 29/08/2026: o toque de recompra redigitou "8 peças por
+ * mês" enquanto a fonte dizia 12, e a mensagem saiu errada ao cliente por cron
+ * diário (PR #396). Aqui os dois números vivem no mesmo objeto `Plano`, a três
+ * linhas de distância um do outro, e ainda assim eram duas declarações — que
+ * é exatamente como a divergência começa.
+ */
+export const PECAS_POR_MES = {
+  pulso: 0,
+  ritmo: 12,
+  presenca: 20,
+  conteudo: CAPACIDADE_MENSAL,
+} as const;
+
+/**
+ * A peça além do contratado. Mercado 2026: post avulso de agência ou freelancer
+ * fica entre R$ 120 e R$ 190 — este fica abaixo, pela mesma decisão de
+ * posicionamento de entrada que fixou as mensalidades.
  */
 export const PRECO_DA_PECA_AVULSA = 55;
 
@@ -184,7 +204,7 @@ export const PLANOS: Plano[] = [
     naoInclui: ["Nenhuma peça de conteúdo", "Nenhuma publicação", "Google, tráfego e vídeo"],
     permanencia: 0,
     pecaExtra: null,
-    pecasPorMes: 0,
+    pecasPorMes: PECAS_POR_MES.pulso,
   },
   {
     id: "ritmo",
@@ -201,7 +221,7 @@ export const PLANOS: Plano[] = [
     inclui: [
       "Tudo do Pulso",
       "Pauta do mês: quantos posts, de que tipo, sobre o quê e em que ordem",
-      "12 peças por mês — carrossel de até 6 telas ou post único, com a arte pronta",
+      `${PECAS_POR_MES.ritmo} peças por mês — carrossel de até 6 telas ou post único, com a arte pronta`,
       "Legenda de cada peça, no seu tom e ancorada no que você informou",
       "Calendário com data e hora, visível no portal",
       "Aprovação no portal vendo imagem e legenda, peça por peça",
@@ -215,7 +235,7 @@ export const PLANOS: Plano[] = [
     ],
     permanencia: 3,
     pecaExtra: PRECO_DA_PECA_AVULSA,
-    pecasPorMes: 12,
+    pecasPorMes: PECAS_POR_MES.ritmo,
   },
   {
     id: "presenca",
@@ -226,7 +246,7 @@ export const PLANOS: Plano[] = [
     paraQuem: "Para o negócio que precisa aparecer no Google e não tem ninguém cuidando disso.",
     salto: "É aqui que entra gente da nossa equipe.",
     inclui: [
-      "Tudo do Ritmo, com 20 peças por mês",
+      `Tudo do Ritmo, com ${PECAS_POR_MES.presenca} peças por mês`,
       "Nós publicamos no Instagram e no Facebook",
       "Gestão de avaliações: elogio respondido; reclamação vira rascunho e chama gente",
       "Atendimento humano por WhatsApp, em horário comercial",
@@ -248,7 +268,7 @@ export const PLANOS: Plano[] = [
     ],
     permanencia: 3,
     pecaExtra: PRECO_DA_PECA_AVULSA,
-    pecasPorMes: 20,
+    pecasPorMes: PECAS_POR_MES.presenca,
     destaque: true,
   },
   {
@@ -261,7 +281,7 @@ export const PLANOS: Plano[] = [
     paraQuem: "Para quem já vive do digital e precisa de volume e formato variado.",
     salto: "Mais peça, mais formato e alguém lendo os números todo mês com você.",
     inclui: [
-      "Tudo do Presença, com 36 peças por mês — a capacidade INTEIRA da casa",
+      `Tudo do Presença, com ${PECAS_POR_MES.conteudo} peças por mês — a capacidade INTEIRA da casa`,
       "4 sequências de stories por mês, no formato vertical protegido",
       "Plano de medição: o que vamos medir e qual número significa sucesso, combinado antes",
       "Pesquisa de concorrência atualizada a cada ciclo",
@@ -280,7 +300,7 @@ export const PLANOS: Plano[] = [
     ],
     permanencia: 6,
     pecaExtra: PRECO_DA_PECA_AVULSA,
-    pecasPorMes: CAPACIDADE_MENSAL,
+    pecasPorMes: PECAS_POR_MES.conteudo,
   },
   // ── O DEGRAU QUE SAIU: Crescimento, R$ 2.590 (26/08/2026) ─────────────────
   //

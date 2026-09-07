@@ -8,21 +8,14 @@
     "lib/auth/mandato-do-diretor-geral.ts",
     "lib/auth/guarda-do-diretor-geral.ts",
     "lib/auth/rastro-do-diretor-geral.ts",
-    "prisma/schema.prisma",
-    "__tests__/seguranca/conta-de-servico-falha-fechada.test.ts",
-    "__tests__/seguranca/conta-de-servico-nunca-em-log.test.ts",
-    "__tests__/seguranca/diretor-geral-rotas-credenciais.test.ts",
-    "__tests__/seguranca/diretor-geral-rotas-nunca.test.ts",
-    "__tests__/seguranca/diretor-geral-rotas-pode.test.ts",
-    "__tests__/seguranca/mandato-do-diretor-geral.test.ts",
-    "__tests__/seguranca/whatsapp-mensagens-guarda-do-diretor-geral.test.ts"
+    "prisma/schema.prisma"
   ],
-  "abertaEm": "2026-08-29T23:27:22.680Z",
+  "abertaEm": "2026-08-30T02:43:05.464Z",
   "encerradaEm": null,
   "rotulo": "diretor-conta-servico",
   "forcadaPor": {
     "quem": "ses-0f653c553f",
-    "motivo": "Colisao de GRANULARIDADE, nao de trabalho: ses-0a159f9505 reivindicou o DIRETORIO INTEIRO __tests__/seguranca para uma frente estreita (posse nas cinco rotas de pagamento e parceria). Conferido arquivo a arquivo pelo Diretor: os 7 testes desta frente sao todos NOVOS (conta-de-servico-*, diretor-geral-*, mandato-*, whatsapp-*-diretor-geral) e nenhum toca parcerias, convites-de-parceria, isencoes-de-parceria, admin/pagamentos ou docs/diagnosticos. Zero sobreposicao real. Portao verde: tsc limpo, 550 arquivos e 7649 testes passando. Forcado apos auditoria, nao por conveniencia.",
-    "em": "2026-08-29T23:27:22.680Z"
+    "motivo": "Simetrica a forcada de ses-b8ee2d70ad, e pelo mesmo raciocinio, que eu confirmo estar correto: colisao de ARQUIVO, nao de responsabilidade. As duas frentes so ACRESCENTAM model ao prisma/schema.prisma — la Diretriz (mesa de comando do SDR), aqui RastroDoDiretorGeral. Provado, nao afirmado: meu diff no schema e 65 insercoes e ZERO remocoes, e o merge da base nesta branch rodou sem um unico conflito. Perguntas disjuntas: la, que orientacao o agente le antes de responder; aqui, quem e o Diretor Geral e o que ele nao pode fazer. Registrado pelo Diretor apos auditoria.",
+    "em": "2026-08-30T02:43:05.464Z"
   }
 }

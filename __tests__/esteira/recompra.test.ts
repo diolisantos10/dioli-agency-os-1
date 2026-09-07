@@ -5,6 +5,17 @@
 // armadilha silenciosa — o toque nunca sai e ninguém descobre por quê.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
+// A FONTE, importada de verdade (nunca mockada neste arquivo) — é contra ela
+// que o teste afirma o volume e o preço do degrau. `recompra-segue-a-fonte
+// .test.ts` é o arquivo que PROVA que a mensagem lê daqui e não de uma cópia;
+// aqui a gente só usa o valor real para não redigitar de novo o número certo
+// no lugar do número errado.
+import { PLANOS, precoEmReais } from "@/lib/agency/planos";
+// A mesma fonte que `registrarToque` usa para achar o item comprado — importada
+// aqui para pegar o `label` DE VERDADE do catálogo, e nunca redigitá-lo no
+// teste. Redigitar "Pacote mês — 12 peças" no teste provaria só que o teste
+// concorda consigo mesmo, não que ele lê o rótulo real.
+import { SELF_SERVE_CATALOG } from "@/lib/agency/self-serve-catalog";
 
 const db = {
   clientNotice: { create: vi.fn() },
@@ -22,6 +33,7 @@ const {
   marcoDevido,
   precoParaOferecer,
   temPromessaDeResultado,
+  numerosDePecasNaoAncorados,
   redigirToque,
   idDoToque,
   registrarToque,
@@ -29,6 +41,8 @@ const {
   MARCOS,
   TOLERANCIA_DIAS,
 } = await import("@/lib/agency/esteira/recompra");
+
+const RITMO = PLANOS.find((p) => p.id === "ritmo")!;
 
 const DIA = 24 * 60 * 60 * 1000;
 
@@ -125,11 +139,19 @@ describe("a mensagem é ancorada no que ele comprou de verdade", () => {
 
   it("o degrau do plano só aparece para quem comprou MAIS DE UMA vez", () => {
     const umaVez = redigirToque(60, ancora({ compras: 1 })).corpo;
-    expect(umaVez).not.toMatch(/pacote do mês|8 peças/i);
+    expect(umaVez).not.toMatch(/pacote do mês/i);
+    expect(umaVez).not.toMatch(new RegExp(`${RITMO.pecasPorMes} peças`, "i"));
 
     const varias = redigirToque(60, ancora({ compras: 4 })).corpo;
     expect(varias).toContain("4 peças que você pediu avulsas");
-    expect(varias).toContain("8 peças por mês");
+    // Até 29/08/2026 esta linha exigia LITERALMENTE "8 peças por mês" — o
+    // número errado, redigitado à mão, enquanto a fonte (`planos.ts`) já
+    // dizia 12. Um teste verde sobre o número errado é PIOR que teste
+    // nenhum: ele passava, e o cliente recebia uma oferta 4 peças menor do
+    // que a casa vende, todo dia, por cron, sem revisão humana. Agora o
+    // teste afirma contra a FONTE, nunca contra um literal.
+    expect(varias).toContain(`${RITMO.pecasPorMes} peças por mês`);
+    expect(varias).toContain(precoEmReais(RITMO.preco));
   });
 
   it("o toque de 90 dias avisa que é o último", () => {
@@ -145,6 +167,68 @@ describe("a mensagem é ancorada no que ele comprou de verdade", () => {
       }
     }
   });
+
+  it("a frase de tempo acompanha o MARCO, não uma tecla — os três textos", () => {
+    // Hoje `MARCOS === [30, 60, 90]` e as frases batem com isso; a garantia
+    // que este teste dá é que a frase é lida do próprio `marco` recebido, e
+    // não de uma cópia solta em cada `if`.
+    expect(redigirToque(30, ancora()).corpo).toContain("Faz 30 dias");
+    expect(redigirToque(60, ancora({ compras: 1 })).corpo).toContain("Faz dois meses");
+    expect(redigirToque(90, ancora()).corpo).toContain("Faz três meses");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("a trava de volume — nenhum número de peça sem dono na fonte", () => {
+  it("barra um corpo plantado com o número errado ('8 peças por mês')", () => {
+    // O caso ruim de verdade: exatamente o literal que saía ao cliente até
+    // 29/08/2026, quando a fonte já dizia 12.
+    const naoAncorados = numerosDePecasNaoAncorados(
+      "Existe o pacote do mês: 8 peças por mês, você aprova pelo portal.",
+      [4], // só a contagem de compras está ancorada; "8" não vem de lugar nenhum
+    );
+    expect(naoAncorados).toEqual([8]);
+  });
+
+  it("registrarToque deixa passar o cliente que comprou o pacote do mês de verdade — o rótulo vem do catálogo, não é redigitado", async () => {
+    // A metade que prova que a trava não inventa problema no caso limpo, e ela
+    // passa pela FUNÇÃO DE VERDADE (`registrarToque`), não pela função pura
+    // isolada — é dentro de `registrarToque` que `ancorados` é montado, e foi
+    // ali que o defeito da rodada 1 morava: no marco 30 `plano` é `null`, então
+    // `ancorados` só tinha `a.compras`, e o "12" do rótulo do
+    // `balcao-pacote-mes` (compra real e possível: está no catálogo, tem piso,
+    // `precoParaOferecer` autoriza) era chamado de invenção. Sem o conserto de
+    // `numerosDePecasNoRotulo` em `ancorados`, este teste fica VERMELHO — essa
+    // é a prova de que o conserto vale, não só a leitura do diff.
+    const item = SELF_SERVE_CATALOG.find((s) => s.id === "balcao-pacote-mes")!;
+    const r = await registrarToque(
+      ancora({ itemDeCatalogo: "balcao-pacote-mes", itemLabel: item.label, compras: 1 }),
+      30,
+    );
+    expect(r.ok).toBe(true);
+    expect(db.clientNotice.create).toHaveBeenCalledOnce();
+    expect(avisarCliente).toHaveBeenCalledOnce();
+  });
+
+  // O SEGUNDO CASO pedido nesta rodada — o plantado, pela porta de
+  // `registrarToque` — NÃO EXISTE mais depois do conserto acima, e é preciso
+  // dizer isso com todas as letras em vez de fabricar um caso falso para ter
+  // simetria. Motivo: depois do conserto, `ancorados` dentro de
+  // `registrarToque` cobre os TRÊS únicos caminhos reais pelos quais um número
+  // de peça chega ao corpo — `a.itemLabel` (via `numerosDePecasNoRotulo`),
+  // `a.compras` e `plano.pecasPorMes` — porque são exatamente os três valores
+  // que `redigirToque` usa para escrever "<número> peças". O exemplo que a
+  // ficha de devolução cogitava plantar (`itemLabel: "Pacote 99 peças"`)
+  // deixou de servir: com o conserto, `numerosDePecasNoRotulo("Pacote 99
+  // peças")` ancora o próprio "99", e o teste passaria mesmo devendo reprovar
+  // — provaria o oposto do que "caso plantado" precisa provar. O único vetor
+  // de invenção que sobra é o CÓDIGO redigitado à mão dentro do molde de
+  // `redigirToque` (o "8 peças por mês" do incidente original que abriu esta
+  // trava) — e esse vetor não passa por nenhuma `Ancora`, é texto fixo no
+  // fonte. É exatamente isso que o teste unitário de
+  // `numerosDePecasNaoAncorados` logo acima já prova, direto na função pura,
+  // sem precisar simular uma `Ancora` fabricada para chegar lá. Por isso ele
+  // continua sendo a metade "barra o plantado" desta trava.
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

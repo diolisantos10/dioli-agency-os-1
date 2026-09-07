@@ -1,0 +1,15 @@
+{
+  "id": "gateway/consertos-da-auditoria-independente",
+  "quem": "wt-bc094e45dc",
+  "rotulo": "gateway-connect-auditoria",
+  "frente": "consertar os seis defeitos que a auditoria independente reproduziu contra banco real no gateway Connect (A-1 piso do segredo, A-2 fio sem dono, A-3 dossie como porta dos fundos, A-4 releitura sem identidade, A-5 motivo que mente, A-6 fio ilegivel mudo) e a variante vizinha de cada um",
+  "responsabilidade": "gateway/consertos-da-auditoria-independente",
+  "arquivos": [
+    "app/api/connect/despacho/route.ts",
+    "lib/agency/connect",
+    "lib/agency/execucao-v2/executor.ts",
+    "__tests__/connect"
+  ],
+  "abertaEm": "2026-08-30T13:15:00.000Z",
+  "encerradaEm": "2026-08-30T14:05:00.000Z"
+}

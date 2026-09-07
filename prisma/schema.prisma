@@ -3007,3 +3007,52 @@ model CobrancaRecorrente {
   @@unique([assinaturaId, competencia])
   @@index([competencia])
 }
+
+// ─── Dioli Connect: a pendência de consulta ao gerente ───────────────────────
+//
+// UMA linha por consulta aberta, ligando `protocolo` ↔ `conversa`. É o "onde a
+// resposta pousa" do passo 8 — sem ela, a decisão do gerente chega ao produto e
+// não tem como saber de qual cliente ela era.
+//
+// ⛔ NENHUMA COLUNA DE POLÍTICA MORA AQUI, e a ausência é o desenho. A memória
+// de decisão é do núcleo (Control Room). Uma cópia local divergiria do núcleo na
+// primeira revogação, e a divergência não viraria erro — a segunda verdade que
+// o CEO proibiu em 30/08/2026.
+//
+// ⚠️ É TABELA, e não memória de processo, por um motivo medido: o Railway
+// reinicia o container a cada deploy. Pendência em memória some no restart e o
+// cliente que estava esperando vira órfão sem ninguém perceber — exatamente o
+// corte "o produto perde conexão com o Connect e depois volta".
+model PendenciaDeConsulta {
+  /// `dioli-digital:<clientId>:<uuid>`. ÚNICO: é a chave que o retorno do
+  /// núcleo apresenta, e é por ele que a resposta acha a conversa certa.
+  protocolo    String   @id
+  produto      String
+  /// O identificador da conversa DENTRO do produto. Aqui é o `Client.id` — a
+  /// conversa do portal pertence ao CLIENTE, não à solicitação (ver
+  /// `app/api/messages/conversa.ts`). Sem FK pelo mesmo motivo do
+  /// PortalMessage: `/api/admin/reset` apaga a tabela inteira.
+  conversa     String
+  canal        String
+  agente       String
+  /// O fio da conversa interna com o gerente, quando a escalada abriu.
+  fio          String?
+  assunto      String
+  /// PENDENTE | AGUARDANDO_ENVIO | RESPONDIDA | ENCERRADA
+  ///
+  /// ⭐ `AGUARDANDO_ENVIO` é a decisão C4 em coluna: o gerente respondeu e o
+  /// cliente NÃO recebeu. Não é respondida — é fila humana pronta para envio.
+  /// Sem este estado, "recebemos a resposta" e "o cliente foi respondido"
+  /// caberiam na mesma linha, e a casa contaria como atendido quem continua
+  /// esperando.
+  estado       String   @default("PENDENTE")
+  /// Quando o cliente foi avisado de que a decisão está pendente. NULO = ainda
+  /// não avisado, e é o que faz o aviso sair UMA vez por consulta, não por turno.
+  avisadoEm    DateTime?
+  respondidaEm DateTime?
+  criadaEm     DateTime @default(now())
+
+  /// A leitura do passo 4: o que este cliente está esperando agora — PENDENTE
+  /// e AGUARDANDO_ENVIO, que são os dois estados em que ainda há gente esperando.
+  @@index([conversa, estado])
+}

@@ -1,0 +1,23 @@
+{
+  "id": "conector-connect-implantacao",
+  "quem": "ses-9aa8390983",
+  "frente": "implantacao do conector do Dioli Connect na Dioli Digital (PR #413), por autorizacao do CEO",
+  "responsabilidade": "conector-connect-implantacao",
+  "arquivos": [
+    "prisma/schema.prisma",
+    "lib/agency/connect",
+    "app/api/connect",
+    "__tests__/connect",
+    "lib/agency/despertador.ts",
+    "lib/agency/esteira/pm-responde.ts",
+    "vitest.config.ts"
+  ],
+  "abertaEm": "2026-08-30T21:57:27.104Z",
+  "encerradaEm": null,
+  "rotulo": "diretor-geral-connect-homolog",
+  "forcadaPor": {
+    "quem": "ses-9aa8390983",
+    "motivo": "Quarta do mesmo padrao ja auditado nesta casa (ses-b8ee2d70ad, ses-0f653c553f e ses-111b334b1b): colisao de ARQUIVO, nao de responsabilidade, e SO em prisma/schema.prisma. Os outros seis caminhos desta frente nao aparecem em nenhuma reivindicacao viva (a frente gateway-connect-auditoria, que cobria lib/agency/connect e __tests__/connect, esta ENCERRADA). PROVADO, nao afirmado: o diff no schema contra a branch de deploy e 49 insercoes e ZERO remocoes; o arquivo comeca com o schema de deploy INTEIRO byte a byte e so ACRESCENTA um model no fim (75 models para 76). Nao altero uma linha de Diretriz, de RastroDoDiretorGeral nem dos models da celula do 99Freelas. Perguntas disjuntas: la, que orientacao o SDR le, quem e o Diretor Geral e como uma oportunidade percorre o funil; aqui, onde a resposta do gerente pousa quando ela volta do nucleo (model PendenciaDeConsulta). Migracao aditiva: uma tabela nova e um indice, nenhum DROP e nenhum DELETE. Suite verde antes e depois (7702 para 7759 testes, 0 falhas, 0 pulados) e build verde.",
+    "em": "2026-08-30T21:57:27.104Z"
+  }
+}

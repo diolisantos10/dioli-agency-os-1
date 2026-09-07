@@ -27,7 +27,23 @@ export default defineConfig({
     // Os testes do workspace do cliente RENDERIZAM de verdade, com
     // `react-dom/server`, que já está no projeto. Nenhuma dependência nova foi
     // instalada (o `node_modules` é compartilhado com outros worktrees).
-    include: ["__tests__/**/*.test.ts", "__tests__/**/*.test.tsx"],
+    include: [
+      "__tests__/**/*.test.ts",
+      "__tests__/**/*.test.tsx",
+      // ⭐ A TRAVA DO CONTRATO COMUM DO DIOLI CONNECT (decisão C3, 30/08/2026).
+      //
+      // `conector/tests/compatibilidade-do-contrato.test.ts` é COPIADO junto com
+      // a pasta comum e não pode ser movido para `__tests__/`: ele calcula a
+      // impressão digital dos arquivos vizinhos por caminho relativo
+      // (`path.resolve(__dirname, "..")`), e é o MESMO arquivo nos quatro
+      // produtos — editá-lo aqui reprovaria a própria trava.
+      //
+      // ⚠️ Sem esta linha o arquivo existe e NUNCA RODA. Uma trava que não roda
+      // é a "peça pronta, testada e sem chamador" que esta casa já pegou hoje:
+      // a CI ficaria verde com o contrato comum editado, que é exatamente o que
+      // a C3 existe para impedir.
+      "lib/agency/connect/conector/tests/*.test.ts",
+    ],
     // Ver `vitest.setup.ts`: há estado de PROCESSO que é correto em produção e
     // veneno entre casos de teste. Ele é limpo aqui, para a suíte inteira.
     setupFiles: ["./vitest.setup.ts"],

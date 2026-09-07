@@ -1158,6 +1158,9 @@ export async function baterORelogio(): Promise<{
     // Sem IA a mensagem FICA na fila para um humano — mas isso é notícia, não
     // rotina: cliente esperando em silêncio é o defeito que este bloco existe
     // para acabar.
+    // ⭐ O Dioli Connect atendendo é ROTINA, não notícia: o assunto estava fora
+    // da alçada do agente e seguiu o caminho certo. Só se registra no log.
+    if (r.peloConector > 0) log(`Dioli Connect atendeu ${r.peloConector} assunto(s) fora da alçada`);
     // A MESMA regra do alarme do orçamento, e pelo mesmo motivo medido: `semIA`
     // é ESTADO DE PÉ (a mensagem fica na fila até gente abrir a tela) e
     // disparava 57 vezes em 24h sobre comportamento correto. Alarme na

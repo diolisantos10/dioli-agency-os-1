@@ -7,7 +7,7 @@
 // ninguém percebe. A régua é o mecanismo que reabre a conversa em 30, 60 e 90
 // dias, e depois PARA.
 //
-// ── AS QUATRO TRAVAS, e por que cada uma existe ─────────────────────────────
+// ── AS CINCO TRAVAS, e por que cada uma existe ──────────────────────────────
 //
 // 1. ANCORAGEM. A mensagem só fala de coisa que está no banco. "Faz 30 dias do
 //    seu carrossel" exige (a) o item comprado, lido do pedido pago, e (b) uma
@@ -40,6 +40,22 @@
 //    nenhum, em marco nenhum — desconto automático é leilão com o próprio
 //    preço.
 //
+// 5. VOLUME SÓ DA FONTE, NUNCA REDIGITADO. Até 29/08/2026 o texto do marco 60
+//    escrevia "8 peças por mês" à mão — resíduo do tempo em que o item do
+//    balcão tinha volume PRÓPRIO, antes de virar o Ritmo
+//    (`self-serve-catalog.ts:175`). A fonte (`planos.ts`) já dizia 12: o
+//    cliente recebia, por cron diário e sem revisão humana, uma oferta 4
+//    peças menor do que a casa realmente vende. E o teste que deveria
+//    proteger isso EXIGIA literalmente o número errado
+//    (`__tests__/esteira/recompra.test.ts:132`, antes desta correção) — teste
+//    verde sobre número errado é pior que teste nenhum, porque dá confiança
+//    falsa. `planoDoDegrau()` lê `PLANOS` em tempo de chamada, nunca no topo
+//    do módulo, e `numerosDePecasNaoAncorados` varre o texto final: todo
+//    número de peça citado tem de vir de um valor que o código REALMENTE
+//    derivou da fonte (`pecasPorMes` do plano, ou `a.compras`). Sobrou algum
+//    que não veio de lá? O toque fica de fora — fail-closed, igual à trava de
+//    promessa.
+//
 // ── O QUE ESTE ARQUIVO NÃO FAZ ──────────────────────────────────────────────
 // Não chama IA. Nenhuma linha de texto que chega ao cliente é gerada por
 // modelo: são moldes fixos com lacunas preenchidas por dado do banco. Num toque
@@ -56,7 +72,7 @@ import { createHash } from "crypto";
 import { prisma } from "@/lib/db/client";
 import { SELF_SERVE_CATALOG } from "@/lib/agency/self-serve-catalog";
 import { podeFechar, type ItemNegociavel } from "@/lib/agency/comercial/negociacao";
-import { precoEmReais } from "@/lib/agency/planos";
+import { PLANOS, precoEmReais } from "@/lib/agency/planos";
 import { avisarCliente } from "@/lib/agency/esteira/triagem";
 
 const DIA_MS = 24 * 60 * 60 * 1000;
@@ -167,6 +183,46 @@ export function precoParaOferecer(itemDeCatalogo: string): PrecoAutorizado {
   return { valor: item.price, texto: precoEmReais(item.price), motivo: "catálogo e piso concordam" };
 }
 
+export interface PlanoDoDegrau {
+  /** `null` = a fonte não respondeu (plano ausente ou volume inválido); o
+   *  toque NÃO cita plano nenhum. */
+  pecasPorMes: number | null;
+  precoTexto: string;
+  valor: number | null;
+  motivo: string;
+}
+
+/**
+ * O plano do degrau (Ritmo), lido de `PLANOS` NO MOMENTO DA CHAMADA — nunca
+ * congelado no topo do módulo, porque é essa leitura tardia que deixa provar,
+ * em teste, que a mensagem acompanha a fonte quando a fonte muda.
+ *
+ * `pecasPorMes` só sai preenchido se vier da fonte como inteiro finito > 0.
+ * Preço e volume são conferidos por caminhos independentes (o preço reaproveita
+ * `precoParaOferecer`, que já exige as duas tabelas de acordo) — quem chama
+ * decide se precisa das duas coisas ou só de uma.
+ */
+export function planoDoDegrau(): PlanoDoDegrau {
+  const plano = PLANOS.find((p) => p.id === "ritmo");
+  const preco = precoParaOferecer("balcao-pacote-mes");
+
+  const pecas = plano?.pecasPorMes;
+  const pecasValidas =
+    typeof pecas === "number" && Number.isFinite(pecas) && Number.isInteger(pecas) && pecas > 0;
+
+  const motivos: string[] = [];
+  if (!plano) motivos.push('plano "ritmo" não está em PLANOS');
+  else if (!pecasValidas) motivos.push(`pecasPorMes inválido no plano ritmo: ${String(pecas)}`);
+  if (preco.valor === null) motivos.push(`preço não autorizado para "balcao-pacote-mes": ${preco.motivo}`);
+
+  return {
+    pecasPorMes: pecasValidas ? (pecas as number) : null,
+    precoTexto: preco.texto,
+    valor: preco.valor,
+    motivo: motivos.length > 0 ? motivos.join("; ") : "fonte e piso concordam",
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. A trava de linguagem — nada de promessa de resultado
 // ─────────────────────────────────────────────────────────────────────────────
@@ -181,6 +237,58 @@ const PROMESSA_DE_RESULTADO =
 
 export function temPromessaDeResultado(texto: string): boolean {
   return typeof texto === "string" && PROMESSA_DE_RESULTADO.test(texto);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3a. A trava de volume — nenhum número de peça sem dono na fonte
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Mesmo molde da trava acima: o incidente que a fez existir é a mesma peça de
+// texto onde a promessa se esconde. Aqui o dado é "8 peças por mês" — número
+// digitado à mão que discordava da fonte (`planos.ts` dizia 12) e que o teste
+// antigo EXIGIA literalmente (ver cabeçalho, trava 5). A trava varre o corpo
+// final por "<número> peça(s)" e falha fechado se algum não vier de um valor
+// que o código realmente leu do banco ou da tabela de planos.
+
+const NUMERO_DE_PECAS = /\b(\d+)\s+peças?\b/gi;
+
+export function numerosDePecasNaoAncorados(corpo: string, ancorados: number[]): number[] {
+  if (typeof corpo !== "string") return [];
+  const achados = new Set<number>();
+  for (const m of corpo.matchAll(NUMERO_DE_PECAS)) {
+    const n = Number(m[1]);
+    if (Number.isFinite(n) && !ancorados.includes(n)) achados.add(n);
+  }
+  return [...achados];
+}
+
+/**
+ * Os números de peça que já vêm DENTRO do rótulo do item.
+ *
+ * O rótulo (`SELF_SERVE_CATALOG[].label`) é texto DERIVADO do catálogo, que
+ * deriva de `PLANOS` — `self-serve-catalog.ts:186` monta
+ * `Pacote mês — ${RITMO.pecasPorMes} peças` a partir da fonte, nunca
+ * redigitado à mão. Um número que chega ao corpo pela porta do rótulo já
+ * passou pela fonte antes de chegar aqui; a trava de §3a chamava esse número
+ * de invenção só porque a montagem de `ancorados`, em `registrarToque`, não
+ * olhava para dentro do rótulo. Reaproveita o próprio `NUMERO_DE_PECAS`
+ * porque é o mesmo padrão de texto ("<número> peça(s)") em outro lugar.
+ *
+ * A BORDA, com todas as letras: se um dia alguém cadastrar um item de
+ * catálogo com o rótulo DIGITADO à mão (número que não veio de `PLANOS`),
+ * esta função confia nele — ela só sabe ler o texto do rótulo, não sabe de
+ * onde ele veio. Quem cobre essa borda é a régua do próprio catálogo
+ * (garantir que todo `label` com contagem de peça seja montado a partir da
+ * fonte, nunca escrito solto), não esta trava.
+ */
+export function numerosDePecasNoRotulo(label: string): number[] {
+  if (typeof label !== "string") return [];
+  const achados = new Set<number>();
+  for (const m of label.matchAll(NUMERO_DE_PECAS)) {
+    const n = Number(m[1]);
+    if (Number.isFinite(n)) achados.add(n);
+  }
+  return [...achados];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -227,22 +335,47 @@ function serviceIdDoPedido(briefingJson: string | null): string {
 // porque um cliente que pediu para não ser mais incomodado tem de ser atendido
 // (política da Meta, §1) mesmo quando o pedido nunca foi feito.
 
+/**
+ * A frase de tempo de cada marco, indexada pelo PRÓPRIO tipo `Marco` — que é
+ * derivado de `MARCOS`. Não é o número redigitado de novo: é a única outra
+ * cópia que existe, e o compilador barra se `MARCOS` ganhar ou perder um
+ * marco sem que esta tabela seja atualizada junto (`Record<Marco, string>`
+ * exige uma entrada por membro do tipo). Antes desta correção cada frase
+ * vivia solta dentro do `if` do marco — três lugares que podiam divergir de
+ * `MARCOS` em silêncio, exatamente o defeito desta ficha.
+ */
+const FRASE_DO_MARCO: Record<Marco, string> = {
+  30: "Faz 30 dias",
+  60: "Faz dois meses",
+  90: "Faz três meses",
+};
+
 export interface ToqueRedigido {
   corpo: string;
   /** O valor citado, quando existe. Serve para o teste e para a auditoria. */
   valorCitado: number | null;
+  /**
+   * O parecer da fonte sobre o plano do degrau. `null` quando o plano nem foi
+   * consultado (marco diferente de 60, ou marco 60 com `compras < 2`) — não
+   * confundir com "consultado e recusado", que é `PlanoDoDegrau` com
+   * `pecasPorMes: null`. Serve para a auditoria e para montar `ancorados` na
+   * trava de números de peça (§3a).
+   */
+  plano: PlanoDoDegrau | null;
 }
 
 export function redigirToque(marco: Marco, a: Ancora): ToqueRedigido {
   const primeiroNome = (a.clienteNome ?? "").trim().split(/\s+/)[0] || "Oi";
   const preco = precoParaOferecer(a.itemDeCatalogo);
   const comValor = preco.valor !== null ? ` por ${preco.texto}` : "";
+  const faz = FRASE_DO_MARCO[marco];
 
   if (marco === 30) {
     return {
       valorCitado: preco.valor,
+      plano: null,
       corpo:
-        `Oi, ${primeiroNome}. Faz 30 dias que entreguei seu ${a.itemLabel.toLowerCase()}. ` +
+        `Oi, ${primeiroNome}. ${faz} que entreguei seu ${a.itemLabel.toLowerCase()}. ` +
         `Se quiser outra peça do mesmo tipo, eu produzo${comValor} — é só me responder por aqui. ` +
         `E se o que você precisa agora for outra coisa, me conta o que é que eu te digo se a gente faz.`,
     };
@@ -252,21 +385,34 @@ export function redigirToque(marco: Marco, a: Ancora): ToqueRedigido {
     // O degrau do plano só é oferecido a quem JÁ comprou mais de uma vez. Dizer
     // "você compra sempre" para quem comprou uma vez é inventar um fato sobre o
     // cliente — e é o tipo de erro que a pessoa percebe na hora.
-    if (a.compras >= 2) {
-      const plano = precoParaOferecer("balcao-pacote-mes");
-      const valorPlano = plano.valor !== null ? ` (${plano.texto} por mês)` : "";
+    const plano = a.compras >= 2 ? planoDoDegrau() : null;
+
+    // A condição fica INTEIRA dentro do `if` (não extraída para uma variável
+    // booleana à parte) de propósito: é o que deixa o TypeScript estreitar
+    // `plano` para `PlanoDoDegrau` dentro do bloco — extrair para um booleano
+    // solto perderia esse estreitamento e o compilador voltaria a tratar
+    // `plano` como possivelmente nulo nas linhas abaixo.
+    if (plano !== null && plano.pecasPorMes !== null && plano.valor !== null) {
+      const valorPlano = ` (${plano.precoTexto} por mês)`;
       return {
         valorCitado: plano.valor,
+        plano,
         corpo:
           `Oi, ${primeiroNome}. Já são ${a.compras} peças que você pediu avulsas aqui — a última foi seu ${a.itemLabel.toLowerCase()}. ` +
-          `Existe o pacote do mês${valorPlano}: 8 peças por mês, você aprova pelo portal e publica quando quiser. ` +
+          `Existe o pacote do mês${valorPlano}: ${plano.pecasPorMes} peças por mês, você aprova pelo portal e publica quando quiser. ` +
           `Se quiser que eu te explique o que entra, é só responder.`,
       };
     }
+
+    // FAIL-CLOSED: sem plano válido (fonte não tem `ritmo`, volume inválido, ou
+    // preço não autorizado) o toque cai no texto genérico de 60 dias, que não
+    // faz afirmação nenhuma sobre plano nenhum. Ausência de informação não é
+    // informação — melhor não prometer do que redigitar um número.
     return {
       valorCitado: preco.valor,
+      plano,
       corpo:
-        `Oi, ${primeiroNome}. Faz dois meses do seu ${a.itemLabel.toLowerCase()}. ` +
+        `Oi, ${primeiroNome}. ${faz} do seu ${a.itemLabel.toLowerCase()}. ` +
         `Se aparecer outra peça para fazer, eu continuo aqui${comValor ? ` — a mesma peça sai${comValor}` : ""}. ` +
         `Me diz o que você precisa que eu te respondo.`,
     };
@@ -274,8 +420,9 @@ export function redigirToque(marco: Marco, a: Ancora): ToqueRedigido {
 
   return {
     valorCitado: null,
+    plano: null,
     corpo:
-      `Oi, ${primeiroNome}. Faz três meses do seu ${a.itemLabel.toLowerCase()}. ` +
+      `Oi, ${primeiroNome}. ${faz} do seu ${a.itemLabel.toLowerCase()}. ` +
       `Este é o último lembrete automático que eu te mando — não vou ficar te procurando. ` +
       `Quando precisar de outra peça, é só chamar por aqui que eu produzo. Obrigado por ter comprado com a gente.`,
   };
@@ -354,6 +501,35 @@ export async function registrarToque(a: Ancora, marco: Marco): Promise<Resultado
     return {
       ok: false,
       motivo: `texto barrado pela trava de promessa de resultado (marco ${marco}, cliente ${a.clientId})`,
+    };
+  }
+
+  // VOLUME: todo número de peça citado no corpo tem de vir de um valor que o
+  // código REALMENTE derivou da fonte — o `pecasPorMes` do plano, quando o
+  // texto o cita, e a contagem de `compras`. Sobrou algum número de peça que
+  // não veio de nenhum dos dois? É texto redigitado à mão (o "8" do incidente
+  // desta trava) e o toque fica de fora, fail-closed, mesmo molde da trava de
+  // promessa acima.
+  const ancorados = [
+    a.compras,
+    ...(toque.plano?.pecasPorMes != null ? [toque.plano.pecasPorMes] : []),
+    // O rótulo do item vem do catálogo, e o catálogo deriva de `PLANOS` — não
+    // é redigitado. Barrar o número que está DENTRO do rótulo é a trava
+    // chamando a própria fonte de mentira (achado por execução: cliente do
+    // `balcao-pacote-mes` perdia o toque de 30 dias porque "12" só aparecia
+    // pela porta de `a.itemLabel`, e no marco 30 não há `plano` para ancorá-lo
+    // por outro caminho). BORDA: se um dia um `label` de catálogo for
+    // digitado à mão com número errado, esta trava confia nele — quem cobre
+    // isso é a régua do catálogo, não esta.
+    ...numerosDePecasNoRotulo(a.itemLabel),
+  ];
+  const naoAncorados = numerosDePecasNaoAncorados(toque.corpo, ancorados);
+  if (naoAncorados.length > 0) {
+    return {
+      ok: false,
+      motivo:
+        `texto barrado pela trava de números de peça não ancorados na fonte ` +
+        `(${naoAncorados.join(", ")}) — marco ${marco}, cliente ${a.clientId}`,
     };
   }
 
