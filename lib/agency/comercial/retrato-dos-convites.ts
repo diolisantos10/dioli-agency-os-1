@@ -30,9 +30,12 @@
 // ═══ O QUE NUNCA SAI DAQUI ═══════════════════════════════════════════════════
 //
 // ⛔ O token inteiro — nem aqui, nem em log. Só os 8 primeiros caracteres.
-// ⛔ Qualquer PII (e-mail, telefone, frase de conversa). Nome de cliente SÓ
-//    aparece dentro de um grupo de nome colidente — fora disso, um convite
-//    carrega apenas o `clientId`, nunca o nome.
+// ⛔ Qualquer PII (e-mail, telefone, frase de conversa, nome de cliente — cru
+//    OU normalizado). Um convite carrega só o `clientId`. O grupo de nome
+//    colidente USA o nome para agrupar (`normalizarNome`) e não o emite: sai
+//    só `id`, `temParceriaViva` e `tamanho` do grupo. Corrigido em 07/09/2026
+//    (`.despachos/F5-duplicado-sem-nome.md`) — a versão anterior devolvia o
+//    nome na mesma rota cuja chave trafega em `?chave=`.
 import { decidirConvite, parceriaEstaViva, type LinhaDeConvite, type LinhaDeParceria, type MotivoDaRecusaDoConvite } from "./regra-do-convite";
 
 /** Um convite, como a rota o lê do banco. */
@@ -73,14 +76,24 @@ export type ConviteNoRetrato = {
   revogadoEm: Date | null;
 };
 
+// ⚠️ CORRIGIDO em 07/09/2026 (`seguranca`, `.despachos/F5-duplicado-sem-nome.md`):
+// `ClienteNoGrupo` carregava `nome`, e `GrupoDeNomeColidente` carregava
+// `nomeNormalizado` — os dois são o nome do cliente (um cru, outro só
+// minúsculo/sem acento), na mesma rota cujo segredo trafega em `?chave=` e
+// aparece em log de proxy/CDN. A pergunta que este grupo responde — "há dois
+// cadastros para o mesmo negócio, e só um tem parceria viva?" — não exige o
+// nome na SAÍDA: exige o nome só para AGRUPAR, o que continua acontecendo
+// dentro de `montarRetratoDosConvites`, com `normalizarNome`. Quem recebe a
+// lista de ids abre o painel, com sessão, e vê o nome lá — como deve ser.
 export type ClienteNoGrupo = {
   id: string;
-  nome: string;
   temParceriaViva: boolean;
 };
 
 export type GrupoDeNomeColidente = {
-  nomeNormalizado: string;
+  /** Quantos cadastros colidem neste grupo — sempre === clientes.length,
+   *  explícito para quem lê o JSON não precisar contar. */
+  tamanho: number;
   clientes: ClienteNoGrupo[];
 };
 
@@ -149,13 +162,16 @@ export function montarRetratoDosConvites(
     porNome.set(chave, lista);
   }
 
+  // O nome é usado AQUI para agrupar (`normalizarNome`, acima) e nunca sai —
+  // nem cru, nem normalizado. O que sai é o suficiente para responder "há
+  // duplicado, e qual dos dois tem parceria viva": ids do grupo, quem tem
+  // parceria viva, e o tamanho do grupo.
   const gruposDeNomeColidente: GrupoDeNomeColidente[] = [...porNome.entries()]
     .filter(([, lista]) => lista.length > 1)
-    .map(([nomeNormalizado, lista]) => ({
-      nomeNormalizado,
+    .map(([, lista]) => ({
+      tamanho: lista.length,
       clientes: lista.map((cli) => ({
         id: cli.id,
-        nome: cli.name,
         temParceriaViva: parceriaEstaViva(linhaDeParceriaDoCliente(cli.id), agora),
       })),
     }));

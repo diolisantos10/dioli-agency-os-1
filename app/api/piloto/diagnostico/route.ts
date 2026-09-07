@@ -52,6 +52,39 @@
 //
 // Como sempre nesta rota: só leitura (`findMany`), respeita `LIMITE`, e
 // **nunca** o token inteiro — só os 8 primeiros caracteres (`retrato-dos-convites.ts`).
+//
+// ⚠️ CORRIGIDO em 07/09/2026 (`seguranca`, `.despachos/F5-duplicado-sem-nome.md`):
+// `clientes_de_nome_colidente` devolvia `nome` do cliente — na mesma rota cuja
+// chave trafega em `?chave=` e aparece em log de proxy/CDN. A pergunta "há
+// cadastro duplicado, e qual tem parceria viva?" não exige o nome na saída: o
+// agrupamento por nome normalizado continua acontecendo DENTRO de
+// `montarRetratoDosConvites`; o que sai é só id, `temParceriaViva` e o
+// tamanho do grupo (`retrato-dos-convites.ts`). Quem tem os ids abre o
+// painel, com sessão, e vê o nome lá.
+//
+// ─── SEÇÃO `preco_cheio_apos_negociacao` (30/08/2026) — DINHEIRO DE CLIENTE ─
+//
+// Ordem do Diretor Geral (`.despachos/F1-auditoria-preco-cheio.md`): quem foi
+// cobrado o preço cheio depois de pedir ajuste? `minPrice === maxPrice`, em
+// vigor desde 25/08 (`live-calculator.ts:51`), tornou a trava de
+// `negotiateProposal` (`lib/agency/execution/negotiate-proposal.ts:39`) uma
+// condição impossível de satisfazer — `newTotal` é sempre `null`, e a
+// proposta reaberta sai sempre no valor de tabela.
+//
+// A regra de "o que é uma negociação" e o cruzamento com pagamento moram em
+// `lib/agency/comercial/preco-cheio-apos-negociacao.ts` (módulo puro). Esta
+// rota só lê `ApprovalRequest` (department "proposal") e `PagamentoConfirmado`
+// e chama o módulo — nenhuma decisão de negócio aqui.
+//
+// ⚠️ CORRIGIDO em 07/09/2026 (`seguranca`, `.despachos/F4-auditoria-sem-nome.md`):
+// a ficha original desta seção dizia que "nome do negócio e id são
+// devolvidos aqui de propósito... o próprio despacho autoriza os dois". Essa
+// autorização estava errada e foi revertida — a guarda de PII desta rota é
+// mais velha e vence: o segredo trafega em `?chave=`, que aparece em log de
+// proxy/CDN, e uma trava não se afrouxa porque quem pediu tinha pressa.
+// Só sai `client_request_id`. Quem tem a lista de ids abre o painel, com
+// sessão, e vê o nome — como deve ser. Nada de nome, telefone, e-mail ou
+// frase de conversa.
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
@@ -64,28 +97,44 @@ import {
   type LinhaDeParceriaBruta,
   type LinhaDeClienteBruta,
 } from "@/lib/agency/comercial/retrato-dos-convites";
+import {
+  retratoDoLote as retratoDoPrecoCheio,
+  type LinhaDeAprovacaoBruta,
+  type LinhaDePagamentoBruta,
+} from "@/lib/agency/comercial/preco-cheio-apos-negociacao";
 
 export const dynamic = "force-dynamic";
 
 /** Teto de linhas lidas. Diagnóstico é para dimensionar, não para exportar. */
 const LIMITE = 500;
 
-// ⚠️ ACHADO DO `seguranca` NA REVISÃO DESTA ROTA (16/08/2026) — configuração,
-// não código:
+// ⚠️ CORRIGIDO em 07/09/2026 (`seguranca`, `.despachos/F7-fim-do-fallback-de-escrita.md`):
+// esta rota tinha o fallback `PILOTO_SECRET || CRON_SECRET`, herdado do diário.
+// `CRON_SECRET` é o segredo que autoriza ESCRITA em `cron/v2`, e o segredo desta
+// rota trafega em `?chave=`, que aparece em log de proxy/CDN — então, com
+// `PILOTO_SECRET` ausente ou vazia, um segredo de ESCRITA passava a circular em
+// URL de uma rota de LEITURA. O achado já estava registrado aqui desde 16/08 e
+// continuava sem conserto.
 //
-// O fallback `PILOTO_SECRET || CRON_SECRET` é o padrão herdado do diário. Se
-// `PILOTO_SECRET` NÃO estiver configurado em produção — cenário plausível, é
-// variável nova —, o segredo que trafega em `?chave=` (e que aparece em log de
-// proxy/CDN) passa a ser o **mesmo `CRON_SECRET` que autoriza ESCRITA** em
-// `cron/v2`. Antes só o diário carregava esse risco; com esta rota, são duas
-// espalhando um segredo de escrita em log de leitura.
+// O fallback SUMIU. A rota exige `PILOTO_SECRET`, e só ela — ausente OU vazia
+// (`""`) fecha a rota (503), nunca autoriza pelo `CRON_SECRET`. Fail-closed e
+// visível: 503 diz exatamente o que está errado e some no minuto em que alguém
+// configura a variável certa. O fallback funcionava, e era por isso que era
+// perigoso — nada quebrava, então ninguém descobria que estava usando o
+// segredo errado.
 //
-// **Configurar `PILOTO_SECRET` como variável própria fecha o agravante sem
-// mudar uma linha.** O `seguranca` não recomendou trocar `?chave=` por
-// só-header: quebraria o uso por `curl`/link, que é a razão desta rota existir,
-// e o risco real está no fallback, não no mecanismo.
+// `?chave=` e o header `Authorization: Bearer` continuam os dois: o risco era o
+// fallback, não o mecanismo, e tirar `?chave=` quebraria o uso por `curl`, que é
+// a razão de a rota existir.
+function segredoConfigurado(): string | null {
+  const valor = process.env.PILOTO_SECRET;
+  // String vazia é o caso que mais engana: a variável existe no ambiente, mas
+  // não protege nada. Trata-se como ausente, do mesmo jeito.
+  return valor && valor.length > 0 ? valor : null;
+}
+
 function autorizado(request: NextRequest): boolean {
-  const esperado = process.env.PILOTO_SECRET || process.env.CRON_SECRET;
+  const esperado = segredoConfigurado();
   // Segredo ausente NUNCA vira rota aberta. O `if (secret)` que só protege
   // quando a variável existe é a família de defeito que o `seguranca` já mediu
   // nesta casa: em produção sem a variável, a porta fica escancarada e ninguém
@@ -100,7 +149,7 @@ function autorizado(request: NextRequest): boolean {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const esperado = process.env.PILOTO_SECRET || process.env.CRON_SECRET;
+  const esperado = segredoConfigurado();
   if (!esperado) {
     return NextResponse.json(
       { error: "PILOTO_SECRET não configurado — o diagnóstico fica fechado" },
@@ -151,6 +200,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       agora,
     );
 
+    // ── SEÇÃO `preco_cheio_apos_negociacao` (30/08/2026) — AUDITORIA DE
+    // DINHEIRO DE CLIENTE, ordem do Diretor Geral. `minPrice === maxPrice`
+    // (25/08) tornou a trava de `negotiateProposal` uma condição impossível:
+    // todo pedido de ajuste, desde então, reabre a proposta no preço cheio.
+    // Só leitura — `findMany`, igual ao resto da rota. A regra do que É uma
+    // negociação (não um retrato inventado aqui) mora em
+    // `lib/agency/comercial/preco-cheio-apos-negociacao.ts`.
+    const [aprovacoesDeProposta, pagamentosConfirmados] = await Promise.all([
+      prisma.approvalRequest.findMany({
+        where: { department: "proposal" },
+        select: { clientRequestId: true, department: true, reviewNote: true, createdAt: true },
+        orderBy: { createdAt: "asc" },
+        take: LIMITE,
+      }),
+      prisma.pagamentoConfirmado.findMany({
+        select: { clientRequestId: true, confirmadoEm: true, valorCentavos: true },
+        orderBy: { confirmadoEm: "asc" },
+        take: LIMITE,
+      }),
+    ]);
+
+    const precoCheioAposNegociacao = retratoDoPrecoCheio(
+      aprovacoesDeProposta as LinhaDeAprovacaoBruta[],
+      pagamentosConfirmados as LinhaDePagamentoBruta[],
+    );
+
     return NextResponse.json({
       medido: true,
       lidos: linhas.length,
@@ -178,6 +253,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         por_motivo: parcerias.porMotivo,
         convites: parcerias.convites,
         clientes_de_nome_colidente: parcerias.gruposDeNomeColidente,
+      },
+      // AUDITORIA DE 30/08/2026 (F1-auditoria-preco-cheio.md, ordem do
+      // Diretor Geral): quem pediu ajuste de preço, desde que a tabela de
+      // preço fechado (25/08) tornou a condição de `negotiateProposal`
+      // impossível de satisfazer, e recebeu o preço cheio de volta.
+      //
+      // ⚠️ CORRIGIDO em 07/09/2026 (`seguranca`): só `client_request_id` sai
+      // — nunca nome do negócio, telefone, e-mail ou frase de conversa. Ver o
+      // comentário de correção no topo do arquivo.
+      //
+      // ⚠️ Isto é o INSTRUMENTO que lê a lista, rodando neste ambiente sem
+      // credencial de produção. A LISTA REAL só existe quando esta rota
+      // responde a partir do banco de produção — ver o cabeçalho do arquivo.
+      preco_cheio_apos_negociacao: {
+        total: precoCheioAposNegociacao.total,
+        pagos: precoCheioAposNegociacao.pagos,
+        nao_pagos: precoCheioAposNegociacao.naoPagos,
+        casos: precoCheioAposNegociacao.linhas.map((l) => ({
+          client_request_id: l.clientRequestId,
+          valor_na_proposta_centavos: l.valorNaPropostaCentavos,
+          negociado_em: l.negociadoEm,
+          pago: l.pago,
+          pago_em: l.pagoEm,
+          valor_pago_centavos: l.valorPagoCentavos,
+        })),
       },
       // O que fazer com o número — para quem lê o JSON não ter de perguntar.
       correcao: "npx tsx scripts/volume-subestimado.mts | scripts/nome-do-negocio.mts (simulam por padrão; escrever exige duas confirmações e é decisão do CEO)",
