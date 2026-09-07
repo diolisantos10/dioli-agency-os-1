@@ -45,6 +45,7 @@
 import {
   TABELA_DE_PRECOS, TETO_DE_PECAS_POR_MES,
   podeOfertar, pisoDoServico, comoSeguirSemBaixarOPreco, servicoPorChave,
+  formaDeCobranca, comoSeApresenta,
   type ServicoDaCasa,
 } from "@/lib/agency/financeiro/tabela-de-precos";
 import { emReais, medido } from "@/lib/agency/financeiro/dinheiro";
@@ -71,10 +72,14 @@ export function servicoDaProposta(totalMin?: number, totalMax?: number): Servico
 }
 
 /** Os degraus abaixo do ofertado, do mais caro para o mais barato. É o que ele
- *  oferece quando o cliente diz "está caro". */
+ *  oferece quando o cliente diz "está caro".
+ *
+ * ⛔ Fail-closed: item com forma de cobrança indeterminada (`formaDeCobranca`
+ * devolve `null`) NUNCA aparece aqui — ausência de informação não é
+ * informação, e é melhor oferecer menos opções que uma frase falsa. */
 export function degrausAbaixo(s: ServicoDaCasa): ServicoDaCasa[] {
   return TABELA_DE_PRECOS
-    .filter((o) => o.pecasPorMes > 0 && o.precoFinalCentavos < s.precoFinalCentavos)
+    .filter((o) => o.pecasPorMes > 0 && o.precoFinalCentavos < s.precoFinalCentavos && formaDeCobranca(o) !== null)
     .sort((a, b) => b.precoFinalCentavos - a.precoFinalCentavos);
 }
 
@@ -153,7 +158,7 @@ export function contextoDaNegociacao(entrada: {
   } else if (entrada.servico) {
     const s = entrada.servico;
     linhas.push(
-      `O QUE FOI OFERTADO: ${s.nome}, ${reais(s.precoFinalCentavos)}/mês, ${s.pecasPorMes} peças/mês.`,
+      `O QUE FOI OFERTADO: ${s.nome}, ${comoSeApresenta(s) ?? `${reais(s.precoFinalCentavos)} (forma de cobrança não informada)`}.`,
       "",
       "⛔ VOCÊ NÃO PODE DAR DESCONTO. Nenhum. A casa não autorizou faixa de desconto para este serviço.",
       "Se ele disser que está caro, NÃO invente um valor menor pelo mesmo escopo — isso é o que a casa proíbe.",
@@ -162,7 +167,7 @@ export function contextoDaNegociacao(entrada: {
     const abaixo = degrausAbaixo(s);
     if (abaixo.length > 0) {
       for (const d of abaixo.slice(0, 3)) {
-        linhas.push(`  • ${d.nome} — ${reais(d.precoFinalCentavos)}/mês, ${d.pecasPorMes} peças/mês.`);
+        linhas.push(`  • ${d.nome} — ${comoSeApresenta(d)}.`);
       }
     } else {
       linhas.push(
@@ -281,10 +286,16 @@ export function correcaoDoPiso(servico: ServicoDaCasa): string {
   const abaixo = degrausAbaixo(servico);
   if (abaixo.length > 0) {
     const d = abaixo[0]!;
+    const apresentacao = comoSeApresenta(d) ?? reais(d.precoFinalCentavos);
+    // "Trocar de plano" só é verdade quando o degrau de baixo É um plano
+    // mensal. Avulso e balcão não são plano — dizer que são é a mesma
+    // mentira que este conserto existe para matar.
+    const comoTrocar = formaDeCobranca(d) === "uma_vez"
+      ? `O que dá para fazer é trocar para o ${d.nome}: sai por ${apresentacao}`
+      : `O que dá para fazer é trocar de plano: o ${d.nome} sai por ${apresentacao}`;
     return (
       `Nesse valor eu não consigo fechar, e prefiro te dizer isso agora a combinar uma coisa que não se sustenta. ` +
-      `O que dá para fazer é trocar de plano: o ${d.nome} sai por ${reais(d.precoFinalCentavos)}/mês com ` +
-      `${d.pecasPorMes} peças/mês — é menos volume, pelo preço que cabe. Quer que eu troque para esse?`
+      `${comoTrocar} — é menos volume, pelo preço que cabe. Quer que eu troque para esse?`
     );
   }
   return (

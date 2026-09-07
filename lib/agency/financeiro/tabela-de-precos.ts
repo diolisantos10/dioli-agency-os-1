@@ -78,13 +78,32 @@ export type Produtor =
   /** Pessoa da casa. Hoje só do Presença para cima. */
   | "humano";
 
+/**
+ * A natureza da cobrança — DADO EXPLÍCITO, não heurística sobre `chave`/`nome`.
+ *
+ * Até 29/08/2026 esta distinção só existia no PREFIXO da `chave` (`plano_` ·
+ * `balcao_` · `avulso_`) e na cabeça de quem escreveu o texto que descreve o
+ * serviço — e por isso a casa dizia "R$ 190,00/mês" para um item de compra
+ * única. Ver `docs/diagnosticos/o-avulso-que-virou-mensalidade-29-08.md`.
+ */
+export type FormaDeCobranca = "recorrente_mensal" | "uma_vez";
+
 export interface ServicoDaCasa {
   chave: string;
   nome: string;
   /** Preço de tabela, em centavos de real. */
   precoFinalCentavos: number;
-  /** Quantas peças o serviço entrega por mês (0 quando não se aplica). */
+  /**
+   * Quantas peças o serviço entrega por mês (0 quando não se aplica).
+   *
+   * ⚠️ Sob `cobranca: "uma_vez"` este número é **peças na entrega**, não peças
+   * por mês — o nome do campo ficou de "por mês" porque renomeá-lo aqui teria
+   * ripple grande demais para esta frente. É dívida declarada, não corrigida.
+   */
   pecasPorMes: number;
+  /** Cobra todo mês enquanto durar, ou cobra uma vez e acabou. Obrigatório —
+   *  quem cadastra um serviço novo é forçado pelo `tsc` a declarar qual é. */
+  cobranca: FormaDeCobranca;
   produtor: Produtor;
   /**
    * O custo apurado deste serviço. `nao_medido` sempre que QUALQUER parcela
@@ -200,20 +219,65 @@ const PLANOS_DA_TABELA: ServicoDaCasa[] = PLANOS
     produtor: p.id === "ritmo" ? ("maquina" as const) : ("humano" as const),
     custo: custoDoServico(p.pecasPorMes),
     descontoAutorizadoPct: null,
+    cobranca: "recorrente_mensal" as const,
   }));
 
 export const TABELA_DE_PRECOS: ReadonlyArray<ServicoDaCasa> = [
   ...PLANOS_DA_TABELA,
   // ── Balcão: 100% automático, pago antes da produção ────────────────────
-  { chave: "balcao_post",     nome: "Post (balcão)",      precoFinalCentavos:  7900, pecasPorMes: 1, produtor: "maquina",             custo: custoDoServico(1), descontoAutorizadoPct: null },
-  { chave: "balcao_carrossel",nome: "Carrossel (balcão)", precoFinalCentavos: 12900, pecasPorMes: 1, produtor: "maquina",             custo: custoDoServico(1), descontoAutorizadoPct: null },
+  { chave: "balcao_post",     nome: "Post (balcão)",      precoFinalCentavos:  7900, pecasPorMes: 1, produtor: "maquina",             custo: custoDoServico(1), descontoAutorizadoPct: null, cobranca: "uma_vez" },
+  { chave: "balcao_carrossel",nome: "Carrossel (balcão)", precoFinalCentavos: 12900, pecasPorMes: 1, produtor: "maquina",             custo: custoDoServico(1), descontoAutorizadoPct: null, cobranca: "uma_vez" },
   // ── Avulso para quem já é cliente: com direção de arte e 2 rodadas ──────
-  { chave: "avulso_post",     nome: "Post avulso",        precoFinalCentavos: 19000, pecasPorMes: 1, produtor: "maquina_com_direcao", custo: custoDoServico(1), descontoAutorizadoPct: null },
-  { chave: "avulso_carrossel",nome: "Carrossel avulso",   precoFinalCentavos: 29000, pecasPorMes: 1, produtor: "maquina_com_direcao", custo: custoDoServico(1), descontoAutorizadoPct: null },
+  { chave: "avulso_post",     nome: "Post avulso",        precoFinalCentavos: 19000, pecasPorMes: 1, produtor: "maquina_com_direcao", custo: custoDoServico(1), descontoAutorizadoPct: null, cobranca: "uma_vez" },
+  { chave: "avulso_carrossel",nome: "Carrossel avulso",   precoFinalCentavos: 29000, pecasPorMes: 1, produtor: "maquina_com_direcao", custo: custoDoServico(1), descontoAutorizadoPct: null, cobranca: "uma_vez" },
 ];
 
 export function servicoPorChave(chave: string): ServicoDaCasa | null {
   return TABELA_DE_PRECOS.find((s) => s.chave === chave) ?? null;
+}
+
+// ─── COMO A CASA FALA O PREÇO — um formatador, e só um ──────────────────────
+//
+// Até 29/08/2026 três lugares diferentes montavam "preço + volume" na mão —
+// `correcaoDoPiso` e `contextoDaNegociacao` (em `negociacao-da-proposta.ts`) e
+// `comoSeguirSemBaixarOPreco` (aqui embaixo) — e dois deles escreviam "/mês"
+// em cima de item de compra única. `comoSeApresenta` é o único lugar da casa
+// que faz essa conta; todo o resto CHAMA, nunca reescreve.
+
+/**
+ * A forma de cobrança deste serviço — ou `null` quando o valor não é uma das
+ * duas constantes conhecidas.
+ *
+ * ⛔ Compara contra a LISTA DE LITERAIS, nunca contra texto de `chave` ou
+ * `nome`. É este `null` que sustenta o fail-closed: dado vindo de fora, spread
+ * mal formado, mock de teste ou item futuro sem `cobranca` declarada cai aqui,
+ * não em "recorrente_mensal" por acaso.
+ */
+export function formaDeCobranca(s: ServicoDaCasa): FormaDeCobranca | null {
+  if (s.cobranca === "recorrente_mensal" || s.cobranca === "uma_vez") return s.cobranca;
+  return null;
+}
+
+/**
+ * O único lugar da casa que monta "preço + volume" para o cliente ou para o
+ * prompt do SDR. `null` quando a forma de cobrança é indeterminada — **ausência
+ * de informação não é informação**, e quem chama esta função decide, na
+ * ausência, calar (fail-closed), nunca chutar um rótulo.
+ *
+ *   recorrente_mensal → "R$ 290,00/mês, 12 peças/mês"
+ *   uma_vez           → "R$ 190,00, 1 peça (cobrança única)"
+ *
+ * Concordância acompanha o número nos dois ramos: "1 peça" / "N peças".
+ */
+export function comoSeApresenta(s: ServicoDaCasa): string | null {
+  const forma = formaDeCobranca(s);
+  if (forma === null) return null;
+  const preco = emReais(medido(s.precoFinalCentavos, "contrato"));
+  const peca = s.pecasPorMes === 1 ? "peça" : "peças";
+  if (forma === "recorrente_mensal") {
+    return `${preco}/mês, ${s.pecasPorMes} ${peca}/mês`;
+  }
+  return `${preco}, ${s.pecasPorMes} ${peca} (cobrança única)`;
 }
 
 /**
@@ -389,12 +453,13 @@ export function podeOfertar(chave: string, precoCentavos: number): VereditoDaOfe
  */
 export function comoSeguirSemBaixarOPreco(s: ServicoDaCasa): string {
   const abaixo = TABELA_DE_PRECOS
-    .filter((o) => o.precoFinalCentavos < s.precoFinalCentavos && o.pecasPorMes > 0)
+    // Fail-closed: item com forma de cobrança indeterminada não entra na
+    // conversa — ausência de informação não é informação.
+    .filter((o) => o.precoFinalCentavos < s.precoFinalCentavos && o.pecasPorMes > 0 && formaDeCobranca(o) !== null)
     .sort((a, b) => b.precoFinalCentavos - a.precoFinalCentavos)[0];
   if (abaixo) {
     return (
-      `Ofereça o degrau de baixo: ${abaixo.nome}, ${emReais(medido(abaixo.precoFinalCentavos, "contrato"))}` +
-      `${abaixo.pecasPorMes > 1 ? ` (${abaixo.pecasPorMes} peças/mês)` : ""}. ` +
+      `Ofereça o degrau de baixo: ${abaixo.nome}, ${comoSeApresenta(abaixo)}. ` +
       "Mudar de degrau é venda; baixar o preço do degrau é sangria."
     );
   }

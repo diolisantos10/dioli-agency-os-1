@@ -320,6 +320,7 @@ function planosNegociaveis(): Record<string, LinhaDaTabela> {
             pecasPorMes: p.pecasPorMes, produtor: "humano",
             custo: { estado: "nao_medido", motivo: "plano fora da tabela financeira" },
             descontoAutorizadoPct: null,
+            cobranca: "recorrente_mensal",
           }) / 100,
           recorrente: true,
           versaoMenor: `o ${abaixo.nome} (${precoEmReais(abaixo.preco)})`,
