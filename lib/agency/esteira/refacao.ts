@@ -1642,3 +1642,187 @@ export async function recusarPorPedidoDoCliente(input: {
 
   return saida;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// O CANCELAMENTO — a produção PARA, inclusive o que ainda não virou peça
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Ordem do CEO, 29/08/2026: "Cancelar avisa cliente e agência, e interrompe a
+// produção na hora." Até aqui, `cancel` era a quarta decisão do contrato
+// (`portal/decisoes-do-portal.ts`) sem NENHUM ramo próprio na rota do portal —
+// o status era gravado no `ApprovalRequest` e, quando o card já tinha
+// `SocialPost` vinculado, esses posts saíam do caminho do relógio. Ponto.
+// Ninguém era avisado, e a ENTREGA que deu origem ao card nunca era tocada.
+//
+// ── O BURACO, MEDIDO NA PRÓPRIA ESTRUTURA DA CASA ───────────────────────────
+//
+// A esteira PADRÃO nasce card ANTES de post: `esteira/marcos.ts → apresentar()`
+// cria o `ApprovalRequest`, e só DEPOIS — quando o pacote inteiro é aprovado
+// (`aprovarPacote`) ou o ciclo (`aprovarCalendarioDoCicloCorrente`) —
+// `esteira/publicacao.ts → agendarPostsDaEntrega()` lê TODO `Deliverable` do
+// projeto com `revisionStatus === "quality_ok"` (o ÚNICO valor que passa,
+// `REVISOES_QUE_PODEM_VIRAR_POST`) e vira post com data.
+//
+// Sem esta função, cancelar um card SEM posts ainda vinculados era cancelar
+// NADA: a `ApprovalRequest` virava "cancelled", e a `Deliverable` continuava
+// `quality_ok`, elegível. O cliente cancela a Pauta do Mês, aprova o resto do
+// pacote, `aprovarPacote` roda, `agendarPostsDaEntrega` varre o projeto — e a
+// Pauta CANCELADA vira posts com data, exatamente como se nunca tivesse sido
+// cancelada. É "produção que já está em voo" na forma mais literal: o
+// cancelamento não alcança o que ainda ia nascer.
+//
+// ── O QUE ESTA FUNÇÃO FAZ, e é o MESMO mecanismo da recusa ─────────────────
+// Marca a(s) entrega(s) deste card com um `revisionStatus` que NÃO é
+// `quality_ok` — `REVISION_STATUS_DO_CANCELAMENTO`. Como
+// `REVISOES_QUE_PODEM_VIRAR_POST` só aceita `quality_ok`, isso tranca, pela
+// MESMA porta, TODOS os caminhos que chamam `agendarPostsDaEntrega`
+// (`marcos.ts`, `mes.ts`, `escada/repescagem.ts`, `execution/produzir-agora.ts`)
+// — sem precisar ensinar cada um deles a conhecer "cancelado".
+//
+// Não chama IA, não cria versão, não mexe no que já é `SocialPost` (isso é da
+// rota, que já tira os posts do caminho do relógio antes de chamar aqui).
+export const REVISION_STATUS_DO_CANCELAMENTO = "cancelado_pelo_cliente";
+
+export interface CancelamentoRegistrado {
+  /** Os nomes das entregas carimbadas como canceladas — a prova de que a
+   *  porta de `agendarPostsDaEntrega` foi fechada para elas. */
+  entregasCanceladas: string[];
+  /** O PM foi acionado? */
+  escalado: boolean;
+  avisouCliente: boolean;
+  /** Por que não deu para registrar por inteiro, quando não deu. */
+  motivo?: string;
+}
+
+/**
+ * O CLIENTE CANCELOU. Nem o que já existe como peça, nem o que ainda ia
+ * nascer, segue adiante.
+ *
+ * Aceita as duas chaves de dono, como a irmã (`recusarPorPedidoDoCliente`), e
+ * pelo mesmo motivo: o cliente criado direto não tem solicitação nenhuma.
+ */
+export async function cancelarPorPedidoDoCliente(input: {
+  clientRequestId?: string | null;
+  clientId?: string | null;
+  department: string;
+  comentario?: string;
+  /** A entrega que o cliente apontou, quando o card a nomeia por FK. */
+  deliverableId?: string | null;
+}): Promise<CancelamentoRegistrado> {
+  const saida: CancelamentoRegistrado = {
+    entregasCanceladas: [], escalado: false, avisouCliente: false,
+  };
+
+  const clientRequestId = input.clientRequestId?.trim() || null;
+  let clientId = input.clientId?.trim() || null;
+  const req = clientRequestId
+    ? await prisma.clientRequestDb.findUnique({
+        where: { id: clientRequestId },
+        select: { businessName: true, clientId: true },
+      }).catch(() => null)
+    : null;
+  if (!clientId) clientId = req?.clientId ?? null;
+
+  if (!clientRequestId && !clientId) {
+    return { ...saida, escalado: true, motivo: "cancelamento sem dono: nem clientRequestId nem clientId" };
+  }
+
+  const comentario = input.comentario?.trim();
+  const ancora: AncoraDoPedido = { clientId, clientRequestId };
+
+  const projeto = await prisma.project.findFirst({
+    where: { OR: [
+      ...(clientRequestId ? [{ clientRequestId }] : []),
+      ...(clientId ? [{ clientId }] : []),
+    ] },
+    select: {
+      id: true, workspaceId: true, clientId: true,
+      client: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  }).catch(() => null);
+
+  const cliente = clientId
+    ? await prisma.client.findUnique({
+        where: { id: clientId }, select: { name: true, workspaceId: true },
+      }).catch(() => null)
+    : null;
+
+  const negocio = req?.businessName ?? projeto?.client?.name ?? cliente?.name ?? "o cliente";
+  const dono = {
+    id: projeto?.id ?? null,
+    workspaceId: projeto?.workspaceId ?? cliente?.workspaceId ?? null,
+    clientId: projeto?.clientId ?? clientId,
+  };
+
+  // ── A ENTREGA FICA CARIMBADA COMO CANCELADA ──────────────────────────────
+  // Mesma mira de `recusarPorPedidoDoCliente`: pelo vínculo do card quando ele
+  // existe; sem vínculo, pelas entregas compartilhadas do departamento que o
+  // cliente apontou — nunca "todo o projeto".
+  if (projeto) {
+    const idsDoDepartamento = TODOS_OS_ESPECIALISTAS
+      .filter((e) => e.departamentoId === input.department)
+      .map((e) => e.id);
+
+    // Card de PEDIDO AVULSO nomeia o pedido, não o departamento — mesma leitura
+    // de `recusarPorPedidoDoCliente` (`producao-de-pedido.ts`).
+    const idDoPedido = input.department.startsWith("pedido:")
+      ? input.department.slice("pedido:".length).trim()
+      : null;
+    const entregaDoPedido = idDoPedido
+      ? (await prisma.contentRequest.findUnique({
+          where: { id: idDoPedido }, select: { deliverableId: true },
+        }).catch(() => null))?.deliverableId ?? null
+      : null;
+
+    const idAlvo = input.deliverableId ?? entregaDoPedido;
+
+    const alvos = await prisma.deliverable.findMany({
+      where: idAlvo
+        ? { id: idAlvo }
+        : {
+            projectId: projeto.id,
+            visibility: "compartilhado",
+            ownerAgentId: { in: idsDoDepartamento.length > 0 ? idsDoDepartamento : ["__nenhum__"] },
+          },
+      select: { id: true, name: true },
+    }).catch(() => [] as Array<{ id: string; name: string }>);
+
+    for (const alvo of alvos) {
+      await prisma.deliverable.update({
+        where: { id: alvo.id },
+        data: {
+          ...camposDaDecisaoHumana(
+            REVISION_STATUS_DO_CANCELAMENTO,
+            `cliente:${clientId ?? clientRequestId ?? "desconhecido"}`,
+          ),
+          ...(comentario ? { clientFeedback: comentario.slice(0, 2000) } : {}),
+        },
+      }).catch(() => { /* rastro */ });
+      saida.entregasCanceladas.push(alvo.name);
+    }
+  }
+
+  // ── O PM RECEBE A PRÓXIMA AÇÃO ───────────────────────────────────────────
+  // Mesma tela que já lê `recusarPorPedidoDoCliente`: `ActivityEvent` →
+  // `/api/agency/central` → `/agency/dashboard`.
+  await escalar(dono, negocio,
+    `O CLIENTE CANCELOU a entrega do departamento "${input.department}". ` +
+    "Ela NÃO vira post nem entra na fila de publicação, nem agora nem quando o pacote inteiro for aprovado — " +
+    "cancelamento é definitivo, não é pedido de segunda tentativa. " +
+    "PRÓXIMA AÇÃO: confirmar com o cliente se o cancelamento é só desta peça ou do pacote, e se algo precisa nascer no lugar dela.",
+    comentario ?? "(sem ressalva)",
+  ).catch(() => { /* o escalonamento é rastro; o cancelamento já valeu */ });
+  saida.escalado = true;
+
+  saida.avisouCliente = await escreverNoPortal(ancora, [
+    "Cancelamento registrado — essa entrega NÃO vai ser produzida nem publicada. 🛑",
+    ...(comentario
+      ? ["", `A ressalva que você deixou ficou anotada: "${comentario.slice(0, 300)}"`]
+      : []),
+    "",
+    "Alguém da equipe vai confirmar com você os próximos passos.",
+  ].join("\n"));
+
+  return saida;
+}

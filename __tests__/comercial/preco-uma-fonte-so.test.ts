@@ -30,7 +30,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { PLANOS, PECA_EXTRA } from "@/lib/agency/planos";
+import { PLANOS, PRECO_DA_PECA_AVULSA } from "@/lib/agency/planos";
 
 const DOC = path.join(process.cwd(), "docs/precos.md");
 
@@ -111,9 +111,9 @@ describe("o preço mora em UM lugar só", () => {
       }
     });
 
-    it("a peça extra (R$ 180) do documento é a do código", () => {
+    it("a peça avulsa do documento é a do código (E1, 30/08/2026 — unifica PECA_EXTRA e o avulso)", () => {
       const texto = readFileSync(DOC, "utf8");
-      expect(texto).toContain(`R$ ${PECA_EXTRA}`);
+      expect(texto).toContain(`R$ ${PRECO_DA_PECA_AVULSA}`);
     });
 
     it("o balcão NÃO tem os 5 planos — e isso é de propósito, não um furo", async () => {

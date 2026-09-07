@@ -644,6 +644,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             }
           }
         } catch (e) { console.error("[portal/approvals] refação error", e); }
+      } else if (status === "cancelled") {
+        // ── O RAMO QUE NÃO EXISTIA (29/08/2026, ordem do CEO) ────────────────
+        //
+        // "Cancelar" era a quarta decisão do contrato
+        // (`portal/decisoes-do-portal.ts`) e a ÚNICA sem chamador aqui: o
+        // status ia para o banco (linha ~400 acima, quando o card já tinha
+        // `SocialPost`) e NADA mais acontecia. Zero aviso ao cliente, zero
+        // evento para a agência, e a ENTREGA que originou o card seguia
+        // elegível para `agendarPostsDaEntrega` na próxima vez que o pacote
+        // fosse aprovado — produção "em voo" que o cancelamento nunca alcançava.
+        //
+        // `cancelarPorPedidoDoCliente` fecha as duas metades: trava a entrega
+        // pela MESMA porta que a recusa usa (`revisionStatus` fora de
+        // "quality_ok"), avisa o cliente no portal e escala para a tela que a
+        // agência abre (`/agency/dashboard`, via `ActivityEvent`).
+        try {
+          const { cancelarPorPedidoDoCliente } = await import("@/lib/agency/esteira/refacao");
+          await cancelarPorPedidoDoCliente({
+            clientRequestId: approval.clientRequestId,
+            clientId: clienteDoCard,
+            department: approval.department,
+            comentario: body.comment,
+            deliverableId: approval.deliverableVersion?.deliverableId ?? null,
+          });
+        } catch (e) { console.error("[portal/approvals] cancelamento error", e); }
       }
 
       // Aprovou a última pendência? Então ele aprovou o pacote — e é isso que

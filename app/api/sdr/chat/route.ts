@@ -22,6 +22,11 @@
 import {
   promessasSoltas, limparPromessaSolta, motivoDaPromessa,
 } from "@/lib/agency/comercial/promessa-que-a-maquina-nao-cumpre";
+// A FECHADURA DA ESCALAÇÃO (P0 30/08/2026, ver o cabeçalho do módulo): "vou
+// conferir com o gerente" só sai se um compromisso de verdade nasceu.
+import {
+  registrarCompromisso, prazoPadraoDoCompromisso,
+} from "@/lib/agency/comercial/compromisso-do-sdr";
 import { prisma } from "@/lib/db/client";
 import { validatePortalAccess } from "@/lib/agency/persistence/portal-access-service";
 import { estimativaEntregue, textoDoOrcamento } from "@/lib/agency/esteira/orcamento-do-briefing";
@@ -642,6 +647,14 @@ async function segundaChanceSemPreco(args: {
 const O_QUE_DIZER_NO_LUGAR_AO_CLIENTE =
   "Seu escopo está pronto. Confira o resumo do seu pedido aqui na tela e confirme " +
   "para a casa calcular o seu orçamento.";
+
+/** O que a casa diz quando anunciou escalar e o compromisso NÃO nasceu — item
+ *  4 do P0 de 30/08/2026: um "não sei" verdadeiro vale mais que um "ainda
+ *  hoje" inventado. Nunca promete prazo aqui: é exatamente o que faltou
+ *  mecanismo para cumprir. */
+const O_QUE_DIZER_SEM_COMPROMISSO_AO_CLIENTE =
+  "Não tenho como te confirmar isso nem te dar um prazo garantido agora — assim que eu " +
+  "tiver uma resposta de verdade da equipe, eu te aviso.";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const barrado = await limiteExcedido(req, "sdr-chat", 30, 60_000);
@@ -1501,12 +1514,54 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // agência mudando o que ele aprovou; esta fala é da própria casa e ainda
     // está na mão dela. Barrar o turno inteiro deixaria o cliente sem resposta
     // nenhuma — trocaria uma promessa falsa por um silêncio, que é pior.
+    //
+    // ── P0 AO VIVO: A ESCALAÇÃO GANHOU FECHADURA (30/08/2026) ────────────────
+    //
+    // Medido com o Marcos (Foocci, PARCEIRO REAL) na tela: seis frases de
+    // escalação passaram inteiras pela régua anterior — "vou conferir com o
+    // gerente", "precisa de aprovação de gestão", "pode deixar comigo". Nenhum
+    // gerente era consultado, nenhum pedido de aprovação existia.
+    //
+    // Escalar é diferente das outras promessas soltas: é uma coisa que esta
+    // casa CONSEGUE fazer de verdade. Por isso, só para `tipo === "escalacao"`,
+    // esta rota tenta registrar um COMPROMISSO real (dono + prazo) no MESMO
+    // ato em que a fala sairia — `compromisso-do-sdr.ts`. Nasceu o registro?
+    // A fala pode dizer a verdade. Não nasceu? Barra como sempre: *sem
+    // fechadura, não se promete*, e a casa diz o que sabe em vez de inventar
+    // um prazo (o item 4 do P0: um "não sei" verdadeiro vale mais que um
+    // "ainda hoje" falso).
     const promessas = promessasSoltas(replyText);
     if (promessas.length > 0) {
       console.warn(`[sdr/chat] ${motivoDaPromessa(promessas)}`);
       const limpo = limparPromessaSolta(replyText);
-      // Se limpar esvaziou a fala, a casa diz a verdade em vez de nada.
-      replyText = limpo || O_QUE_DIZER_NO_LUGAR_AO_CLIENTE;
+      const escalacoes = promessas.filter((p) => p.tipo === "escalacao");
+
+      if (escalacoes.length > 0) {
+        const prazo = prazoPadraoDoCompromisso(new Date());
+        const registrado = await registrarCompromisso({
+          sessionId: body.sessionId,
+          workspaceId: workspaceDaConta,
+          texto: escalacoes.map((p) => p.trecho).join(" · "),
+          dono: "PM",
+          prazo,
+          clientId: conviteDoParceiro?.clientId ?? null,
+        });
+        if (registrado) {
+          // A fala agora é VERDADE: existe um registro com dono e prazo atrás
+          // dela. `mesmoDia` evita dizer "ainda hoje" quando o prazo padrão
+          // já rolou para o dia seguinte (conversa de madrugada).
+          const mesmoDia = prazo.toDateString() === new Date().toDateString();
+          const quando = mesmoDia ? "ainda hoje" : "até amanhã";
+          replyText = `${limpo} Registrei isso com a equipe — você tem retorno ${quando}.`.trim();
+        } else {
+          // Nem a fala original nem um genérico vago: a casa diz que NÃO TEM
+          // como confirmar prazo agora, em vez de inventar um "ainda hoje".
+          replyText = [limpo, O_QUE_DIZER_SEM_COMPROMISSO_AO_CLIENTE].filter(Boolean).join(" ").trim();
+        }
+      } else {
+        // Se limpar esvaziou a fala, a casa diz a verdade em vez de nada.
+        replyText = limpo || O_QUE_DIZER_NO_LUGAR_AO_CLIENTE;
+      }
     }
 
     // ⛔ O PISO, SOBRE A FALA PRONTA (27/08/2026) ─────────────────────────────

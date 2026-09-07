@@ -48,12 +48,46 @@
 //
 // Régua larga demais aqui barraria o SDR de conversar. Uma régua que barra
 // conversa legítima é desligada na primeira reclamação — e aí não protege nada.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// P0 AO VIVO — O CLIENTE PARCEIRO (30/08/2026, Marcos, Foocci)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Marcos cobrou uma proposta atrasada há mais de 1h. O SDR respondeu:
+// *"Vou conferir com o gerente de projeto se cabe no cronograma. (…) precisa
+// de aprovação de gestão. Vou trazer essas duas respostas para você ainda
+// hoje — pode deixar comigo. 🙂"*
+//
+// SEIS DE SEIS frases passaram pela régua de então. Não existe gerente sendo
+// consultado, não existe pedido de aprovação, não existe tarefa nem prazo nem
+// dono — a fala é plausível e não tem mecanismo nenhum atrás dela.
+//
+// Isto é uma FAMÍLIA NOVA de promessa solta, e ela ganhou o campo `tipo`:
+//
+//   • `escalacao` — a máquina anuncia que vai CONSULTAR ALGUÉM ("vou conferir
+//     com o gerente", "precisa de aprovação de gestão"). Diferente das outras,
+//     escalar É uma coisa que a casa consegue fazer de verdade — então quem
+//     chama esta função (`app/api/sdr/chat/route.ts`) tenta registrar um
+//     COMPROMISSO real (`compromisso-do-sdr.ts`, dono + prazo) no mesmo ato.
+//     Se o registro nascer, a fala pode dizer a verdade (a equipe VAI olhar,
+//     com prazo de verdade). Se não nascer, a régua barra como sempre —
+//     "escalar é ato, não frase".
+//   • `generica` — as demais. Sempre barradas: "pode deixar comigo", "vou
+//     trazer... ainda hoje", "vou verificar e te aviso" são a mesma dívida de
+//     sempre, só com palavras diferentes.
 
 /** Uma promessa encontrada no texto que ia para o cliente. */
 export interface PromessaSolta {
   trecho: string;
   /** Por que ela é promessa e não instrução. Vai para o log e para o teste. */
   porque: string;
+  /**
+   * `escalacao` — promete CONSULTAR ALGUÉM (gerente, equipe, gestão). É a
+   * única família que pode virar verdade: quem chama tenta registrar um
+   * compromisso real antes de deixar a fala sair. `generica` — todo o resto,
+   * sempre barrada.
+   */
+  tipo: "escalacao" | "generica";
 }
 
 /**
@@ -64,27 +98,74 @@ export interface PromessaSolta {
  * finalizo e envio"* é a casa se comprometendo; *"confirme para eu preparar"* é
  * a casa dizendo o que o cliente precisa fazer.
  */
-const PADROES: ReadonlyArray<{ re: RegExp; porque: string }> = [
+const PADROES: ReadonlyArray<{ re: RegExp; porque: string; tipo: "escalacao" | "generica" }> = [
   {
     // "eu finalizo o orçamento e envio", "vou preparar e te envio",
     // "eu monto a proposta e mando"
     re: /\b(eu\s+)?(vou\s+)?(finaliz|prepar|mont|elabor|gerar?|fa[çz])\w*\s+(o\s+|a\s+|seu\s+|sua\s+)?(or[çc]amento|proposta|escopo)[^.!?\n]{0,80}?\b(e\s+)?(envio|mando|te\s+envio|te\s+mando|encaminho|retorno)\b/gi,
     porque: "a máquina promete finalizar E enviar — nada nesta casa dispara esse envio sozinho",
+    tipo: "generica",
   },
   {
     // "já te envio", "te envio em seguida", "envio para você em breve"
     re: /\b(j[áa]\s+)?(te\s+)?(envio|mando|encaminho|retorno)\s+(o\s+|a\s+|seu\s+|sua\s+)?(or[çc]amento|proposta)[^.!?\n]{0,40}/gi,
     porque: "a máquina promete um envio futuro do orçamento — não há gatilho para ele",
+    tipo: "generica",
   },
   {
     // "vou preparar seu orçamento personalizado" (sem pedir confirmação)
     re: /\bvou\s+(preparar|montar|elaborar|fazer)\s+(o\s+|seu\s+|sua\s+)?(or[çc]amento|proposta)\b(?![^.!?\n]{0,60}\bconfirm)/gi,
     porque: "a máquina anuncia que VAI preparar sozinha, sem apontar o que o cliente precisa fazer",
+    tipo: "generica",
   },
   {
     // "em breve", "logo mais", "em instantes" — prazo que ninguém controla
     re: /\b(em\s+breve|logo\s+mais|em\s+instantes|dentro\s+de\s+(pouco|instantes)|j[áa]\s+j[áa])\b/gi,
     porque: "prazo prometido por máquina é dívida que a agência paga",
+    tipo: "generica",
+  },
+  // ─── A FAMÍLIA NOVA, MEDIDA NA CONVERSA COM O MARCOS (30/08/2026) ─────────
+  {
+    // "vou conferir/verificar/checar/confirmar com o gerente/equipe/time/PM/gestão"
+    re: /\bvou\s+(conferir|verificar|checar|confirmar)\s+com\s+(o\s+|a\s+)?(gerente(\s+de\s+projeto)?|equipe|time|pm|gest[ãa]o)\b[^.!?\n]{0,60}/gi,
+    porque: "a máquina anuncia consulta a um gerente/equipe que nenhum código aciona — escalar é ato, não frase",
+    tipo: "escalacao",
+  },
+  {
+    // "isso precisa de aprovação de gestão/equipe/gerente" — anúncio sem pedido
+    re: /\b(isso\s+)?precisa(r[áa]?)?\s+de\s+aprova[çc][ãa]o\s+(de\s+|da\s+)?(gest[ãa]o|equipe|gerente)\b/gi,
+    porque: "a máquina anuncia que precisa de aprovação de gestão sem que nenhum pedido de aprovação exista",
+    tipo: "escalacao",
+  },
+  {
+    // "pode deixar comigo" — compromisso vazio, sem objeto nem prazo
+    re: /\bpode\s+deixar\s+comigo\b/gi,
+    porque: "'pode deixar comigo' é compromisso sem mecanismo — nada dispara o retorno",
+    tipo: "generica",
+  },
+  {
+    // "vou trazer …", "vou te trazer …", "trago …", "te trago …" — a família
+    // toda, DETECTADA SOZINHA: não depende de achar "para você" nem um prazo
+    // logo depois. P0 30/08/2026: exigir os dois no MESMO regex foi o que
+    // deixou a frase real do Marcos ("Vou trazer essas duas respostas para
+    // você ainda hoje") passar batido — ver o cabeçalho do módulo.
+    //
+    // ⚠️ Este padrão de propósito NÃO fecha com `\b` logo depois de
+    // "voc[êe]": em JS, `\b` só enxerga [A-Za-z0-9_] como "palavra" — "ê" não
+    // é `\w`, então a fronteira entre "ê" e o espaço seguinte NUNCA existe (os
+    // dois lados são "não-palavra"). Era esse `\bpara\s+voc[êe]\b` do padrão
+    // antigo que sumia toda vez que "você" vinha acentuado, e é por isso que
+    // as frases B e C da tabela do despacho passavam mesmo tendo "para você"
+    // no meio — a régua nunca chegava a olhar para o resto.
+    re: /\b(vou\s+te\s+trazer|vou\s+trazer|te\s+trago|trago)\b[^.!?\n]{0,80}/gi,
+    porque: "a máquina promete trazer uma resposta/retorno no futuro — nada nesta casa dispara esse retorno sozinho",
+    tipo: "generica",
+  },
+  {
+    // "vou verificar (com a equipe) e te aviso/retorno/respondo/falo"
+    re: /\bvou\s+(verificar|conferir|checar)\s+(com\s+a\s+equipe\s+)?e\s+te\s+(aviso|retorno|respondo|falo)\b[^.!?\n]{0,40}/gi,
+    porque: "a máquina promete um retorno depois de 'verificar', sem que nada dispare esse retorno",
+    tipo: "generica",
   },
 ];
 
@@ -96,9 +177,9 @@ export function promessasSoltas(texto: string | null | undefined): PromessaSolta
   const t = (texto ?? "").trim();
   if (!t) return [];
   const achadas: PromessaSolta[] = [];
-  for (const { re, porque } of PADROES) {
+  for (const { re, porque, tipo } of PADROES) {
     for (const m of t.matchAll(re)) {
-      achadas.push({ trecho: m[0].trim(), porque });
+      achadas.push({ trecho: m[0].trim(), porque, tipo });
     }
   }
   return achadas;

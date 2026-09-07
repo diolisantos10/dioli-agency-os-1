@@ -384,3 +384,95 @@ verdade (React state, timing, re-render). **Não escrevi PEÇA 2 (conserto)**
    informação (qual tela, qual aparelho). Esta rodada troca "chute" por
    rastro citável — mas a régua da casa é execução, não leitura, e a linha
    de pendências só deve fechar depois do item 1.
+
+---
+
+## 2026-08-30 · P0 AO VIVO — a promessa ao Marcos (Foocci) ganhou fechadura
+
+**O buraco, medido com o CEO na tela:** Marcos (parceiro real) cobrou a
+proposta atrasada há +1h. O SDR respondeu *"Vou conferir com o gerente de
+projeto se cabe no cronograma. (…) precisa de aprovação de gestão. Vou trazer
+essas duas respostas para você ainda hoje — pode deixar comigo. 🙂"* — seis de
+seis frases passavam pela régua existente (`promessa-que-a-maquina-nao-cumpre.ts`).
+Nenhum gerente era consultado, nenhum pedido de aprovação existia, nenhum
+prazo tinha dono.
+
+**O que entrou**
+
+- `lib/agency/comercial/promessa-que-a-maquina-nao-cumpre.ts` — cinco padrões
+  novos (escalação fictícia "vou conferir/verificar com o gerente/equipe/
+  gestão", "precisa de aprovação de...", "pode deixar comigo", "vou trazer...
+  ainda hoje", "vou verificar e te aviso") e um campo novo em `PromessaSolta`:
+  `tipo: "escalacao" | "generica"`. Só `escalacao` pode virar verdade — é a
+  família que a casa CONSEGUE cumprir de verdade.
+- `lib/agency/comercial/compromisso-do-sdr.ts` (novo) — a fechadura em si:
+  `registrarCompromisso` (dono + prazo, um `ActivityEvent` por fio, mesmo
+  desenho de `conversa-sem-pedido.ts` — reaproveita a PRIMITIVA, não duplica
+  mecanismo), `prazoPadraoDoCompromisso` (pura: "ainda hoje" = fim do dia
+  civil, nunca uma hora que ninguém prometeu), `compromissosAbertos` /
+  `compromissosVencidos` / `fraseDoCompromissoVencido` (para o relógio).
+- `app/api/sdr/chat/route.ts:1533-1565` — no ponto onde a promessa já era
+  limpa, agora: promessa de escalação → tenta registrar compromisso real. Nasceu
+  → a fala vira verdade ("Registrei isso com a equipe — você tem retorno ainda
+  hoje/até amanhã", com prazo de verdade atrás). Não nasceu → a casa diz que
+  NÃO SABE, em vez de inventar prazo (`O_QUE_DIZER_SEM_COMPROMISSO_AO_CLIENTE`).
+- `lib/agency/despertador.ts:911-936` — nova perna: lê `compromissosAbertos()`
+  a cada batida, `quebrou()` (grita, com nome do cliente + o que foi prometido
+  + há quanto tempo) para o que venceu, `estadoDe()` para o que está no prazo.
+
+**As decisões que valem mais que o código**
+
+1. **Só `escalacao` ganha tentativa de registro.** As demais famílias ("pode
+   deixar comigo", "vou trazer... ainda hoje") continuam SEMPRE barradas —
+   não existe mecanismo real para "trazer uma resposta" fora de escalar, e
+   fingir que existe seria inventar uma segunda mentira em cima da primeira.
+2. **`registrarCompromisso` nunca finge sucesso.** `false` é a resposta a um
+   banco fora do ar, workspace ausente, fio "sem-sessao" ou texto vazio — e
+   quem chama (a rota) É QUEM DECIDE barrar a fala original. A régua "sem
+   fechadura, não se promete" vive na ROTA, não no módulo — o módulo só diz a
+   verdade sobre se registrou.
+3. **`ActivityEvent` de novo, não tabela nova.** Mesma primitiva de
+   `conversa-sem-pedido.ts`/`atribuir-conversa-orfa.ts` (`type` próprio,
+   índice já existe). NÃO é a MESMA fila daquele módulo: aquela só grava
+   quando `body.scope` chega com conteúdo NOVO — e Marcos, cliente conhecido,
+   não estava mandando escopo nenhum naquele turno. Um compromisso precisa
+   existir mesmo sem escopo.
+4. **"Alguém avisado" (item 3 da ficha) é o idioma desta casa, não SMS.**
+   Não existe canal de notificação de staff nesta casa (procurei; não achei).
+   A visibilidade real é `/api/pulso` via o relógio — o MESMO canal que toda
+   outra trava daqui usa (`estadoDe`/`quebrou`). Registrei isso como
+   interpretação deliberada, não como decisão silenciosa — está em "o que
+   ficou aberto" abaixo, porque é exatamente o tipo de lacuna que o CEO deve
+   ver, não esconder.
+
+**O que ficou aberto**
+
+- **"Alguém avisado" não é síncrono.** O compromisso fica visível no pulso na
+  batida seguinte do relógio (até 5 min), não no instante em que o SDR
+  escalou. Se a casa precisar de aviso *imediato* de verdade (WhatsApp/e-mail
+  para o PM humano), isso é um canal que não existe hoje e é decisão de
+  produto, não conserto de bug.
+- **`dono` é sempre `"PM"`.** Não existe hoje uma fila que aponte um
+  responsável NOMEADO por escalação do SDR — "PM" é o rótulo do cargo, não
+  uma pessoa. Quando existir fila de atribuição de PM por cliente, é aí que
+  este campo ganha um nome de verdade.
+- **`marcarCompromissoCumprido` existe e não tem chamador.** Escrevi a função
+  simétrica (fechar quando um humano de fato respondeu) porque um compromisso
+  que nunca fecha vira ruído permanente no pulso — mas NINGUÉM a chama ainda.
+  É o mesmo risco de D-003 ("caixa sem seta") que este arquivo já registrou em
+  16/08: quem ligar isso a um evento real (ex.: PM responde no portal) precisa
+  procurar por `marcarCompromissoCumprido` e não reescrever.
+- **`npx tsc --noEmit` e `npx vitest run` NÃO RODARAM nesta sessão.** Todo
+  `npx`/`node`/`vitest` devolveu *"This command requires approval"*, mesmo
+  bloqueio já registrado nas três entradas de 16/08 acima. Conferi à mão:
+  reli os quatro arquivos tocados por inteiro depois de cada edição, tracei
+  os seis regex contra as seis frases da tabela do P0 caractere a caractere,
+  conferi que os testes existentes de `promessa-que-a-maquina-nao-cumpre.test.ts`
+  não seriam quebrados (nenhum padrão novo colide com os casos "NÃO barra"
+  daquele arquivo) e segui o padrão de mock já provado em
+  `conversa-sem-pedido-nao-some.test.ts`/`o-pm-tem-ouvido.test.ts` para os
+  três arquivos de teste novos. **Isto não substitui o portão real.** Quem
+  retomar precisa rodar `npx tsc --noEmit && npx vitest run` antes de
+  considerar isto fechado — e, se algum dos regex novos se mostrar largo
+  demais contra tráfego real, a correção é afinar a lista de exceções
+  legítimas no cabeçalho do módulo, não alargar o strip.

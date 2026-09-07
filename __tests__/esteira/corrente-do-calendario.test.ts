@@ -23,7 +23,7 @@ const db = vi.hoisted(() => ({
   project: { findUnique: vi.fn() },
   cycle: { findUnique: vi.fn(), findFirst: vi.fn() },
   deliverable: { findMany: vi.fn() },
-  socialPost: { findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
+  socialPost: { findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
   activityEvent: { create: vi.fn() },
   // 08/08/2026: a publicação confere o MIME antes de falar com a Meta (só
   // JPEG). Ver `lib/integrations/meta/formato-de-midia.ts`.
@@ -97,6 +97,13 @@ beforeEach(() => {
     const p = banco.get(where.id);
     if (p) Object.assign(p, data);
     return p;
+  });
+  // A confirmação de estado, na hora, antes de publicar: lê do MESMO banco de
+  // mentira que `update` escreve — se uma junta anterior já mudou o status,
+  // esta leitura enxerga a mudança de verdade, em vez de uma fotografia presa.
+  db.socialPost.findUnique.mockImplementation(async ({ where }: { where: { id: string } }) => {
+    const p = banco.get(where.id);
+    return p ? { status: p.status } : null;
   });
   db.socialPost.findFirst.mockResolvedValue(null);
   db.activityEvent.create.mockResolvedValue({});

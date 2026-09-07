@@ -10,6 +10,20 @@
 // cliente?"*. Provar a função isolada responde NÃO. Por isso aqui se renderiza
 // `ScopeSection`, que é o quadro que o Foocci teve na frente, e se mede o texto
 // que sai dele.
+//
+// ── E3 (30/08/2026): reconciliação, não relaxamento ─────────────────────────
+// O conserto "recusa vira preço e prazo" (E2, `escopo-na-voz-da-casa.ts` e
+// `tabela-de-precos.ts`) mudou o que a tela DEVE dizer e deixou cinco
+// asserções deste arquivo vermelhas — elas ainda cobravam a doutrina que o
+// CEO revogou: empurrar o pedido para o degrau mais próximo ("36/mês (você
+// pediu 28)") e recusar acima da capacidade ("Não vendemos esse volume").
+//
+// As cinco foram REESCRITAS abaixo — cada uma com o "por quê" no corpo,
+// citando a ordem do CEO de 30/08. Nenhuma foi apagada ou afrouxada: elas
+// passaram a cobrar o comportamento novo com o MESMO rigor (renderização de
+// verdade, números exatos, nunca texto livre). As guardas que continuam
+// valendo — nunca "a definir", nunca "projeto pontual" para volume mensal,
+// nunca promessa de vídeo — não foram tocadas.
 
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -42,18 +56,43 @@ function texto(scope: BriefingScope): string {
 }
 
 describe("a tela do cliente 001 — os três defeitos, na saída", () => {
-  it("NÃO estampa 28/mês como se fosse o contratado", () => {
-    expect(texto(foocci)).not.toMatch(/Posts\s*28\/mês/);
-  });
-
-  it("mostra o degrau que a casa vende — 36 — e o que ele pediu", () => {
+  it("estampa 28/mês — o que ele pediu, à carta, com preço (ORDEM DO CEO, 30/08/2026)", () => {
+    // MUDOU: até 30/08 este teste proibia "28/mês" porque a tela não tinha
+    // preço nem explicação do lado — 28 sozinho lia como promessa. O CEO
+    // revogou o empurrão para o degrau ("não existe volume acima ou abaixo
+    // [...] é um pacote personalizado"), e a correção não é apagar o número —
+    // é precificá-lo: 28 peças à carta (28 × R$ 55) = R$ 1.540,00. O número
+    // pedido aparece, e ao lado dele o preço, nunca "a definir".
     const t = texto(foocci);
-    expect(t).toMatch(/36\/mês/);
-    expect(t).toMatch(/você pediu 28/i);
+    expect(t).toMatch(/Posts\s*28\/mês/);
+    expect(t).toMatch(/R\$\s?1\.540,00/);
+    expect(t).not.toMatch(/a definir|sob consulta/i);
   });
 
-  it("explica o encaixe na própria tela, não só no código", () => {
-    expect(texto(foocci)).toMatch(/degrau|recebe mais, não menos/i);
+  it("oferece o plano mais barato (36) como PERGUNTA — nunca mais como resposta imposta", () => {
+    // MUDOU: a versão anterior exigia o texto "você pediu 28" ao lado de
+    // "36/mês" — a frase do ENCAIXE que o CEO proibiu em 30/08 ("Cliente que
+    // pede uma composição que ninguém nunca pediu recebe PREÇO, não recebe
+    // 'vou verificar'" — e muito menos recebe o pedido substituído). O plano
+    // Conteúdo (36) continua aparecendo, porque é mais barato para o volume
+    // pedido — mas como OFERTA que o cliente aceita ou não ("quer?"), nunca
+    // como o número que "de fato" vale.
+    const t = texto(foocci);
+    expect(t).toMatch(/plano Conteúdo/i);
+    expect(t).toMatch(/36 peças\/mês/);
+    expect(t).toMatch(/quer\?/);
+    expect(t).not.toMatch(/você pediu 28/i);
+  });
+
+  it("explica a oferta na própria tela, não só no código", () => {
+    // MUDOU: a explicação de 27/08 era "isto é o degrau que cobre seu
+    // pedido" ("recebe mais, não menos"). Com o encaixe revogado (CEO,
+    // 30/08), a explicação virou "isto é uma alternativa mais barata, você
+    // decide" — a EXIGÊNCIA de explicar na tela (não só no código) é a mesma;
+    // só a doutrina explicada mudou.
+    const t = texto(foocci);
+    expect(t).toMatch(/sai mais barato/i);
+    expect(t).toMatch(/te dá mais peças/i);
   });
 
   it("NÃO promete produção de vídeo a quem pediu vídeo", () => {
@@ -91,21 +130,31 @@ describe("as travas não valem só para o Foocci", () => {
     }
   });
 
-  it("nenhum volume entre 1 e 36 sai da tela fora de um degrau vendido", () => {
-    const degraus = [12, 20, 36];
+  it("todo volume de 1 a 36 aparece na tela como o número PEDIDO — nunca substituído por um degrau", () => {
+    // MUDOU o sentido inteiro do teste. Até 30/08 ele provava o OPOSTO do que
+    // prova agora: que só 12, 20 ou 36 podiam sair da tela — ou seja, que todo
+    // pedido fora desses três números era substituído. Essa era, letra por
+    // letra, a doutrina que o CEO revogou em 30/08 ("não existe volume acima
+    // ou abaixo"). A prova correta é a inversa: o número que o cliente pediu
+    // é o que aparece, sempre — nunca trocado por um degrau vizinho.
     for (let n = 1; n <= 36; n++) {
       const t = texto({ ...foocci, social: { platforms: [], postsPerWeek: 0, reelsPerMonth: n } });
-      const casados = t.match(/(\d+)\/mês/g) ?? [];
-      expect(casados.length).toBeGreaterThan(0);
-      for (const c of casados) {
-        expect(degraus).toContain(Number(c.replace("/mês", "")));
-      }
+      expect(t).toContain(`${n}/mês`);
     }
   });
 
-  it("volume acima da capacidade da casa não vira número nenhum", () => {
+  it("volume acima da capacidade sai preço e prazo — nunca 'Não vendemos esse volume' (ORDEM DO CEO, 30/08/2026)", () => {
+    // MUDOU: até 30/08 a tela recusava a venda acima de 36/mês e o número
+    // sumia da tela. O CEO revogou a recusa: *"Cliente que pede uma
+    // composição que ninguém nunca pediu recebe PREÇO, não recebe 'vou
+    // verificar'"*. Acima do teto de PRODUÇÃO de hoje (36/mês), a tela agora
+    // mostra o número pedido, o preço à carta e um prazo maior — nunca a
+    // ausência do número, nunca uma recusa.
     const t = texto({ ...foocci, social: { platforms: [], postsPerWeek: 0, reelsPerMonth: 60 } });
-    expect(t).toMatch(/Não vendemos esse volume/i);
-    expect(t).not.toMatch(/60\/mês/);
+    expect(t).toMatch(/60\/mês/);
+    expect(t).toMatch(/R\$\s?3\.300,00/);
+    expect(t).toMatch(/2 meses/);
+    expect(t).not.toMatch(/Não vendemos esse volume/i);
+    expect(t).not.toMatch(/a definir|sob consulta/i);
   });
 });

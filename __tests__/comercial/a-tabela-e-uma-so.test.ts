@@ -30,7 +30,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { SOCIAL_PACKAGES, detectPackage, getPackageDef, computeEstimate } from "@/lib/agency/live-calculator";
-import { PLANOS, PECA_EXTRA, CAPACIDADE_MENSAL, precoEmReais } from "@/lib/agency/planos";
+import { PLANOS, PRECO_DA_PECA_AVULSA, CAPACIDADE_MENSAL, precoEmReais } from "@/lib/agency/planos";
 import { TABELA_DE_PISO, FAIXAS } from "@/lib/agency/comercial/negociacao";
 import { SOCIAL_MARGINS } from "@/lib/agency/pricing-margins";
 import { somaDosItens, temPreco } from "@/lib/agency/comercial/preco-do-item";
@@ -141,7 +141,7 @@ describe("os freios da ordem — nenhum é opcional", () => {
     const PISO_DO_MERCADO = 800;
     expect(Math.max(...PLANOS.map((p) => p.preco))).toBeLessThan(PISO_DO_MERCADO);
     // Peça avulsa: mercado R$ 120–190.
-    expect(PECA_EXTRA).toBeLessThan(120);
+    expect(PRECO_DA_PECA_AVULSA).toBeLessThan(120);
   });
 
   it("a conta fecha: o custo de IA de um mês cheio é fração pequena da receita", () => {

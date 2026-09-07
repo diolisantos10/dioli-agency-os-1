@@ -71,15 +71,21 @@ export function servicoDaProposta(totalMin?: number, totalMax?: number): Servico
   return TABELA_DE_PRECOS.find((s) => s.precoFinalCentavos === centavos) ?? null;
 }
 
-/** Os degraus abaixo do ofertado, do mais caro para o mais barato. É o que ele
- *  oferece quando o cliente diz "está caro".
+/**
+ * Os degraus abaixo do ofertado, do mais caro para o mais barato. É o que ele
+ * oferece quando o cliente diz "está caro".
  *
- * ⛔ Fail-closed: item com forma de cobrança indeterminada (`formaDeCobranca`
- * devolve `null`) NUNCA aparece aqui — ausência de informação não é
- * informação, e é melhor oferecer menos opções que uma frase falsa. */
+ * ⚠️ SÓ COMPARA PLANO COM PLANO (E1, 30/08/2026). Desde que `avulso_post`/
+ * `avulso_carrossel` convergiram para `PRECO_DA_PECA_AVULSA` (R$ 55), eles
+ * ficaram mais baratos que qualquer plano — mas não são "um plano menor": são
+ * peça única, avulsa, e `avulso_*` é exclusivo de quem JÁ é cliente de plano.
+ * Sem este filtro, esta função ofereceria "Post avulso — R$ 55/mês" como se
+ * fosse o próximo degrau de uma assinatura, o que não é nem verdadeiro (não é
+ * recorrente) nem vendável a quem está decidindo ENTRAR num plano.
+ */
 export function degrausAbaixo(s: ServicoDaCasa): ServicoDaCasa[] {
   return TABELA_DE_PRECOS
-    .filter((o) => o.pecasPorMes > 0 && o.precoFinalCentavos < s.precoFinalCentavos && formaDeCobranca(o) !== null)
+    .filter((o) => o.chave.startsWith("plano_") && o.pecasPorMes > 0 && formaDeCobranca(o) !== null && o.precoFinalCentavos < s.precoFinalCentavos)
     .sort((a, b) => b.precoFinalCentavos - a.precoFinalCentavos);
 }
 

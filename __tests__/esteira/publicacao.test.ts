@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 const db = vi.hoisted(() => ({
   project: { findUnique: vi.fn() },
   deliverable: { findMany: vi.fn() },
-  socialPost: { findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
+  socialPost: { findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
   metaConnection: { findFirst: vi.fn() },
   activityEvent: { create: vi.fn() },
   // 08/08/2026: a publicação passou a conferir o MIME de cada arquivo antes de
@@ -39,6 +39,11 @@ import {
   extrairPecas,
   motivoParaNaoVirarCalendario,
 } from "@/lib/agency/esteira/publicacao";
+// A prova de que o cancelamento (`refacao.ts`) e o calendário (este arquivo)
+// falam a MESMA língua: o único valor que passa por `motivoParaNaoVirarCalendario`
+// é "quality_ok" — então marcar `REVISION_STATUS_DO_CANCELAMENTO` tranca esta
+// porta por construção, sem que este arquivo precise conhecer o nome do estado.
+import { REVISION_STATUS_DO_CANCELAMENTO } from "@/lib/agency/esteira/refacao";
 
 const CONTEUDO = `**1. Bastidor da produção**
 - Pilar: Bastidores
@@ -77,6 +82,10 @@ beforeEach(() => {
   ]);
   db.socialPost.findMany.mockResolvedValue([]);
   db.socialPost.findFirst.mockResolvedValue(null);
+  // A confirmação de estado, na hora, antes de falar com a Meta: o caso limpo
+  // destes testes é a peça CONTINUAR agendada — quem prova a decisão do
+  // cliente chegando no meio da rodada é `cancelamento-para-a-producao.test.ts`.
+  db.socialPost.findUnique.mockResolvedValue({ status: "scheduled" });
   db.socialPost.create.mockResolvedValue({});
   db.socialPost.update.mockResolvedValue({});
   conexaoDoCliente.mockResolvedValue({ id: "mc1", status: "connected" });
@@ -225,6 +234,20 @@ describe("o calendário só recebe o que a escada liberou e a Qualidade aprovou"
     // O alerta carrega a própria evidência: QUAL entrega e POR QUÊ.
     expect(evento!.message).toContain("Social — semana 1");
     expect(evento!.message).toMatch(/escada/i);
+  });
+
+  // ── A PROVA DO CONSERTO DE 29/08/2026 ──────────────────────────────────
+  // "Cancelar avisa e PARA a produção — inclusive o que ainda não virou peça."
+  // `cancelarPorPedidoDoCliente` (refacao.ts) carimba a entrega com este
+  // status; é esta régua, e só ela, que precisa recusá-lo — sem isso, uma
+  // entrega cancelada que sobrevive até `aprovarPacote` vira post do mesmo
+  // jeito, como se nunca tivesse sido cancelada.
+  it("entrega CANCELADA pelo cliente NÃO vira post — nem quando o pacote inteiro é aprovado depois", async () => {
+    db.deliverable.findMany.mockResolvedValue(entrega({ revisionStatus: REVISION_STATUS_DO_CANCELAMENTO }));
+    const r = await agendarPostsDaEntrega("p1");
+    expect(r.criados).toBe(0);
+    expect(db.socialPost.create).not.toHaveBeenCalled();
+    expect(r.retidas[0]!.motivo).toContain(REVISION_STATUS_DO_CANCELAMENTO);
   });
 
   it("uma retida não derruba a liberada que veio junto", async () => {

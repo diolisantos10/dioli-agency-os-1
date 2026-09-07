@@ -908,6 +908,33 @@ export async function baterORelogio(): Promise<{
     quebrou("cobranca-esquecida", err);
   }
 
+  // ── O COMPROMISSO DO SDR VENCIDO GRITA (P0 AO VIVO, 30/08/2026) ──────────
+  //
+  // Marcos (Foocci, PARCEIRO REAL) cobrou uma proposta atrasada há mais de 1h.
+  // O SDR respondeu "vou conferir com o gerente… precisa de aprovação de
+  // gestão… pode deixar comigo" — e nada existia atrás da frase: nem
+  // registro, nem alarme, nem dono. `app/api/sdr/chat/route.ts` agora
+  // registra um compromisso de verdade (dono + prazo) sempre que o SDR
+  // anuncia uma escalação; esta perna é o lado que COBRA esse compromisso.
+  //
+  // Compromisso que ninguém cobra é pior que promessa não feita: o cliente
+  // está esperando. `quebrou` para o que já venceu — acorda quem lê o pulso,
+  // com nome do cliente, o que foi prometido e há quanto tempo. `estadoDe`
+  // para o que ainda está no prazo — visível, sem gritar sobre o normal.
+  try {
+    const { compromissosAbertos, compromissosVencidos, fraseDoCompromissoVencido } =
+      await import("@/lib/agency/comercial/compromisso-do-sdr");
+    const abertos = await compromissosAbertos();
+    const vencidos = compromissosVencidos(abertos);
+    for (const c of vencidos) quebrou("compromisso-do-sdr", fraseDoCompromissoVencido(c));
+    const dentroDoPrazo = abertos.length - vencidos.length;
+    if (dentroDoPrazo > 0) {
+      estadoDe("compromisso-do-sdr", `${dentroDoPrazo} compromisso(s) de escalação do SDR aberto(s) e dentro do prazo`);
+    }
+  } catch (err) {
+    quebrou("compromisso-do-sdr", err);
+  }
+
   // ── A CAIXA DE ENTRADA DA AGÊNCIA ─────────────────────────────────────────
   // A terceira porta do Radar: em vez de esperar alguém colar o projeto ou
   // configurar um encaminhador, a casa LÊ a caixa da agência e ingere sozinha.

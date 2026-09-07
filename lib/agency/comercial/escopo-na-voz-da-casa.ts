@@ -21,6 +21,13 @@
 // ⛔ NUNCA devolva "a definir", "sob consulta" ou "a combinar" daqui. Promessa
 // com a assinatura em branco é dívida: o cliente conta, a casa não produz, e a
 // conversa difícil acontece depois de ele já ter dito sim.
+//
+// ── E2 (30/08/2026): `volumeQueACasaVende` parou de recusar e de empurrar ──
+// `linhaDeVolume` mostrava o pedido encaixado no degrau mais próximo ("36/mês
+// (você pediu 28)") e, acima da capacidade, "Não vendemos esse volume". As
+// duas saíram: a casa não recusa venda, e não finge que o pedido é outro
+// número. Agora a tela mostra o número PEDIDO, o preço dele à carta e, quando
+// existe, a oferta de um plano mais barato — nunca um encaixe forçado.
 
 import { volumeQueACasaVende, aCasaProduz } from "@/lib/agency/financeiro/tabela-de-precos";
 import type { BriefingScope, SocialScope } from "@/lib/agency/briefing-conversation";
@@ -47,26 +54,35 @@ export function temVolumeRecorrente(social: SocialScope | undefined): boolean {
 }
 
 /**
- * O VOLUME — dito no degrau que a casa vende, nunca no número cru do pedido.
+ * O VOLUME — no número PEDIDO, precificado como pedido. Nunca um encaixe
+ * forçado, nunca uma recusa (E2, 30/08/2026: "não existe volume acima ou
+ * abaixo" — ver `volumeQueACasaVende`).
  *
- * Mostrar 28 como se fosse o contratado é o caminho mais curto para um preço
- * inventado, e para o cliente descobrir na fatura que comprou outra coisa.
+ * Acima da capacidade de hoje, a tela continua mostrando preço e prazo — só
+ * que o prazo passa de "até 1 mês" para os meses que a produção atual exige,
+ * com a nota de que encurtar é decisão do CEO.
  */
 export function linhaDeVolume(label: string, pecasPorMes: number): LinhaDeEscopo {
   if (pecasPorMes <= 0) return { label, value: "Não incluído", dim: true };
 
   const resposta = volumeQueACasaVende(pecasPorMes);
-  if (!resposta.vende) {
-    return { label, value: "Não vendemos esse volume", alerta: true, detalhe: resposta.frase };
+
+  if (!resposta.cabeNaCapacidadeAtual) {
+    return {
+      label,
+      value: `${pecasPorMes}/mês — prazo de ${resposta.prazoEmMeses} meses na capacidade de hoje`,
+      alerta: true,
+      detalhe: resposta.frase,
+    };
   }
-  if (resposta.degrau.pecasPorMes === pecasPorMes) {
+  if (!resposta.ofertaMaisBarata) {
     return { label, value: `${pecasPorMes}/mês` };
   }
-  // O degrau COBRE o pedido — nunca arredonda para baixo. Quem pede 28 recebe
-  // 36, e o número que ele pediu continua na tela para ele conferir.
+  // Existe um plano pronto mais barato para este volume — é OFERTA, não
+  // encaixe: o número que o cliente pediu continua sendo o que aparece.
   return {
     label,
-    value: `${resposta.degrau.pecasPorMes}/mês (você pediu ${pecasPorMes})`,
+    value: `${pecasPorMes}/mês`,
     alerta: true,
     detalhe: resposta.frase,
   };

@@ -214,55 +214,138 @@ describe("⛔ o SDR não consegue ofertar abaixo do piso", () => {
   });
 });
 
-describe("o SDR não promete o que a casa não produz", () => {
-  it("o teto é 36 — o número literal, não a constante que ele mesmo define", () => {
-    // ⚠️ ESTE TESTE NASCEU DE UMA FALHA DA PRÓPRIA PROVA DE MUTAÇÃO: a versão
-    // anterior media `podePrometerVolume(TETO + 1)`, que é a constante contra
-    // ela mesma. Subir o teto para 100 passava verde — o teste acompanhava a
-    // mudança em vez de barrá-la. Capacidade é fato do mundo (a casa produz 36),
-    // não um número que o código pode redefinir sozinho.
+// ═══════════════════════════════════════════════════════════════════════════
+// E2 (30/08/2026) — A CASA RECUSA VIRA PREÇO. O CEO PROIBIU A RECUSA.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// *"Não existe volume acima ou abaixo. Se o cliente quiser trezentos
+// carrosséis por dia, a gente vai ter que dar um jeito. Não é exceção — o que
+// ele está comprando é um pacote personalizado."* — CEO, 30/08/2026.
+//
+// Os testes abaixo SUBSTITUEM os que existiam: a versão anterior desta
+// suíte travava exatamente o comportamento que o CEO proibiu —
+// `podePrometerVolume(37).pode === false` e `volumeQueACasaVende(60).vende
+// === false`. Rodar esta suíte contra o código de ANTES do E2 (com a recusa
+// reposta) é o que prova a mutação: os testes ficam VERMELHOS, porque
+// `.pode`/`.vende` não existem mais no retorno e a recusa que eles checavam
+// não acontece.
+describe("o SDR nunca recusa volume — devolve preço e prazo, sempre", () => {
+  it("o teto é 36 — continua um fato do mundo, mas agora vira PRAZO, nunca recusa", () => {
     expect(TETO_DE_PECAS_POR_MES).toBe(36);
-    expect(podePrometerVolume(36).pode).toBe(true);
+    const dentro = podePrometerVolume(36);
+    expect(dentro.cabeNaCapacidadeAtual).toBe(true);
+    expect(dentro.prazoEmMeses).toBe(1);
+    expect(dentro.precoCentavos).toBeGreaterThan(0);
+  });
+
+  it("37 (1 acima do teto) NÃO é recusado — sai preço e prazo de 2 meses", () => {
     const v = podePrometerVolume(37);
-    expect(v.pode).toBe(false);
-    expect(v.motivo).toMatch(/capacidade/i);
-    expect(podePrometerVolume(100).pode).toBe(false);
+    expect(v.cabeNaCapacidadeAtual).toBe(false);
+    expect(v.precoCentavos).toBeGreaterThan(0);
+    expect(v.prazoEmMeses).toBe(2);
+    // Nenhuma das duas frases antigas de recusa pode voltar.
+    expect(v.frase).not.toMatch(/dívida com outro rosto/i);
+    expect(v.frase).not.toMatch(/não pode|não vend/i);
+    expect(v.frase).toMatch(/capacidade/i);
+    expect(v.frase).toMatch(/CEO/);
+  });
+
+  it("100 peças/mês (quase 3× o teto): número e prazo, nunca 'não'", () => {
+    const v = podePrometerVolume(100);
+    expect(v.cabeNaCapacidadeAtual).toBe(false);
+    expect(v.precoCentavos).toBe(100 * 55 * 100);
+    expect(v.prazoEmMeses).toBe(Math.ceil(100 / 36));
+    expect(v.frase).not.toMatch(/não pode|não vend/i);
+  });
+
+  it("⚠️ MUTAÇÃO: repor `if (pecasPorMes > TETO_DE_PECAS_POR_MES) return { pode: false, ... }` " +
+    "faz este teste VERMELHO — `.pode` não existe no tipo novo, e o TS já barra a leitura",
+    () => {
+      // Prova por contrato: o retorno não tem mais `pode` nem `motivo` de recusa.
+      const v = podePrometerVolume(37) as unknown as Record<string, unknown>;
+      expect(v.pode).toBeUndefined();
+      expect(v.motivo).toBeUndefined();
+    });
+
+  it("300 carrosséis por DIA — a fala literal do CEO — não gera recusa", () => {
+    // "300 por dia" convertido a peças/mês (30 dias): o caso que o CEO deu,
+    // usado literalmente, na escala em que ele foi dito.
+    const pedidoMensal = 300 * 30;
+    const v = podePrometerVolume(pedidoMensal);
+    expect(v.cabeNaCapacidadeAtual).toBe(false);
+    expect(v.precoCentavos).toBeGreaterThan(0);
+    expect(v.prazoEmMeses).toBeGreaterThan(1);
+    expect(v.frase).not.toMatch(/não pode|não vend|dívida/i);
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OS DOIS DEFEITOS DO PAINEL DO CLIENTE 001 — 27/08/2026
-//   "Posts: 28/mês"  → 28 não existe na tabela (12 · 20 · 36)
-//   "Vídeo: A definir" → vídeo não tem produtor; "a definir" é promessa em branco
+// OS DOIS DEFEITOS DO PAINEL DO CLIENTE 001 — 27/08/2026, ATUALIZADO PELO E2
+//   "Posts: 28/mês"  → antes virava "36/mês (você pediu 28)"; agora é
+//   precificado COMO PEDIDO, com o plano mais barato como OFERTA.
 // ─────────────────────────────────────────────────────────────────────────────
-describe("28 peças/mês: a casa encaixa num degrau e DIZ que encaixou", () => {
-  it("28 vira o degrau que COBRE o pedido — 36, nunca 20", () => {
+describe("28 peças/mês: a casa precifica o que foi pedido — e OFERECE o plano mais barato", () => {
+  it("28 é precificado como 28, à carta — nunca vira 36 calado", () => {
     const r = volumeQueACasaVende(28);
-    expect(r.vende).toBe(true);
-    if (r.vende) {
-      expect(r.degrau.pecasPorMes).toBe(36);
-      // Arredondar para baixo entregaria menos do que foi pedido, calado.
-      expect(r.degrau.pecasPorMes).toBeGreaterThanOrEqual(28);
-      // E o cliente lê o encaixe, em vez de descobrir na fatura.
-      expect(r.frase).toMatch(/28/);
-      expect(r.frase).toMatch(/36/);
-      expect(r.frase).toMatch(/recebe mais, não menos/i);
-    }
+    expect(r.pedido).toBe(28);
+    expect(r.precoCentavos).toBe(28 * 55 * 100);
+    expect(r.cabeNaCapacidadeAtual).toBe(true);
+    // A oferta existe (Conteúdo é mais barato), mas é OFERTA — o preço
+    // cobrado por padrão continua sendo o da composição pedida.
+    expect(r.ofertaMaisBarata).not.toBeNull();
+    expect(r.ofertaMaisBarata!.servico.nome).toBe("Conteúdo");
+    expect(r.frase).toMatch(/28/);
+    expect(r.frase).toMatch(/quer\?/i);
   });
 
-  it("o volume exato não inventa conversa", () => {
+  it("o volume exato de um plano também recebe a oferta — nunca é escondida", () => {
+    // 20 é o próprio tamanho do Presença: à carta (R$ 1.100) é mais caro que
+    // o plano (R$ 490), e a casa diz isso — não finge que os dois empatam.
     const r = volumeQueACasaVende(20);
-    expect(r.vende).toBe(true);
-    if (r.vende) {
-      expect(r.degrau.pecasPorMes).toBe(20);
-      expect(r.frase).not.toMatch(/recebe mais/i);
-    }
+    expect(r.pedido).toBe(20);
+    expect(r.precoCentavos).toBe(20 * 55 * 100);
+    expect(r.ofertaMaisBarata!.servico.pecasPorMes).toBe(20);
   });
 
-  it("acima da capacidade a casa NÃO vende — e diz por quê", () => {
+  it("acima da capacidade a casa NÃO recusa — devolve preço e prazo, nunca 'não vendemos'", () => {
     const r = volumeQueACasaVende(60);
-    expect(r.vende).toBe(false);
+    expect(r.cabeNaCapacidadeAtual).toBe(false);
+    expect(r.precoCentavos).toBeGreaterThan(0);
+    expect(r.prazoEmMeses).toBeGreaterThan(1);
     expect(r.frase).toMatch(/capacidade/i);
+    expect(r.frase).not.toMatch(/não vend/i);
+    // Nenhum plano de tabela cobre 60 (o maior é 36) — logo não há oferta de
+    // preset mais barato para ofertar, e isto também precisa ficar honesto.
+    expect(r.ofertaMaisBarata).toBeNull();
+  });
+
+  it("72 peças/mês (2× a capacidade): MESMO preço, o prazo é que muda com a decisão do CEO", () => {
+    const r = volumeQueACasaVende(72);
+    expect(r.precoCentavos).toBe(72 * 55 * 100);
+    expect(r.prazoEmMeses).toBe(2);
+    expect(r.frase).toMatch(/CEO/);
+    expect(r.frase).toMatch(/escalar/i);
+    // O despacho é literal: o preço é o MESMO nos dois caminhos (2 meses no
+    // ritmo de hoje, ou 1 mês se o CEO escalar) — só o prazo muda.
+    expect(r.frase).toMatch(/preço não muda/i);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// O VOCABULÁRIO PROIBIDO — item 4 do despacho E2. Regex sobre o texto
+// devolvido, no molde do veto do jurídico.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("⛔ nenhuma frase de volume usa o vocabulário proibido", () => {
+  const PROIBIDO = /fora do plano|acima do plano|abaixo do plano|não cabe em nenhum plano|\bexceção\b|\bcustomizado\b|a definir|sob consulta/i;
+
+  it("em nenhum dos casos do despacho — 28, 30, 36, 60, 72, 300/dia — a frase usa o vocabulário vetado", () => {
+    const pedidosMensais = [28, 30, 36, 60, 72, 300 * 30];
+    for (const pedido of pedidosMensais) {
+      const capacidade = podePrometerVolume(pedido);
+      expect(capacidade.frase, `podePrometerVolume(${pedido})`).not.toMatch(PROIBIDO);
+      const volume = volumeQueACasaVende(pedido);
+      expect(volume.frase, `volumeQueACasaVende(${pedido})`).not.toMatch(PROIBIDO);
+    }
   });
 });
 

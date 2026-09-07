@@ -57,6 +57,44 @@ export type Plano = {
 export const CAPACIDADE_MENSAL = 36;
 
 /**
+ * O PREÇO DA PEÇA AVULSA — fonte única. Decidido pelo Diretor Geral, por
+ * despacho do CEO, em 30/08/2026 (`.despachos/E1-tabela-no-codigo.md`).
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * O QUE ESTE NÚMERO MATA: TRÊS PREÇOS VIVOS PARA A MESMA PEÇA
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Medido em 30/08/2026: a casa cobrava, ao mesmo tempo, por "1 peça além do
+ * combinado, com direção de arte, para quem já é cliente":
+ *
+ *   • R$ 90  — `PECA_EXTRA`, aqui em `planos.ts` (este mesmo nome, MORTO agora);
+ *   • R$ 190 / R$ 290 — `avulso_post` / `avulso_carrossel`, em
+ *     `financeiro/tabela-de-precos.ts` — MESMO cenário: cliente de plano pedindo
+ *     peça além da cota, com direção e 2 rodadas.
+ *
+ * Três números para a MESMA venda não é flexibilidade, é aposta em qual
+ * negociador o cliente pega. `PRECO_DA_PECA_AVULSA` é o único que sobrevive: ele
+ * substitui os dois de cima, e as duas pontas do código (`planos.ts` e
+ * `tabela-de-precos.ts`) passam a lê-lo daqui — `tabela-de-precos.ts` já importa
+ * `PLANOS` deste arquivo, então importar mais esta constante não cria ciclo.
+ *
+ * ⚠️ **O BALCÃO (`balcao_post` R$ 79 / `balcao_carrossel` R$ 129) NÃO CONVERGE
+ * AQUI, E ISTO É DECISÃO, NÃO ESQUECIMENTO.** É produto diferente: automático,
+ * pago ANTES da produção, sem direção de arte e sem rodada de ajuste, para
+ * QUALQUER pessoa (não precisa ser cliente de plano). `avulso`/`PECA_EXTRA`
+ * eram a MESMA promessa (direção + 2 rodadas, para quem já é cliente) com dois
+ * preços; balcão é uma promessa diferente com um preço próprio. Convergir os
+ * três apagaria a diferença real entre "impulso, sem gente" e "negociado, com
+ * gente por trás" — e o balcão ficaria mais caro que o avulso com direção, que
+ * inverteria a régua de valor da casa.
+ *
+ * ─── POR QUE R$ 55, E NÃO OUTRO NÚMERO ──────────────────────────────────────
+ *
+ * A peça embutida no plano custa ~R$ 20–25 (Ritmo: R$ 290 ÷ 12). A peça avulsa
+ * de mercado (agência ou freelancer) fica entre R$ 120 e R$ 190 — a mesma faixa
+ * que `avulso_post` (R$ 190) tentava cobrar. R$ 55 fica ACIMA do embutido (para
+ * não punir quem compra pouco) e MUITO ABAIXO do mercado (para não ser dívida de
+ * posicionamento) — a mesma régua que fixou as quatro mensalidades.
  * Quantas peças cada degrau entrega por mês. UMA declaração, usada tanto no
  * campo estruturado `pecasPorMes` quanto na frase de `inclui[]` que o cliente
  * lê em /planos — era a divergência entre esses dois números que produzia o
@@ -78,7 +116,7 @@ export const PECAS_POR_MES = {
  * fica entre R$ 120 e R$ 190 — este fica abaixo, pela mesma decisão de
  * posicionamento de entrada que fixou as mensalidades.
  */
-export const PECA_EXTRA = 90;
+export const PRECO_DA_PECA_AVULSA = 55;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // A TABELA ÚNICA — fechada em 26/08/2026, e agora ela É a única
@@ -196,7 +234,7 @@ export const PLANOS: Plano[] = [
       "Tráfego pago",
     ],
     permanencia: 3,
-    pecaExtra: PECA_EXTRA,
+    pecaExtra: PRECO_DA_PECA_AVULSA,
     pecasPorMes: PECAS_POR_MES.ritmo,
   },
   {
@@ -229,7 +267,7 @@ export const PLANOS: Plano[] = [
       "Manutenção da ficha do Google: locais, horários e informações",
     ],
     permanencia: 3,
-    pecaExtra: PECA_EXTRA,
+    pecaExtra: PRECO_DA_PECA_AVULSA,
     pecasPorMes: PECAS_POR_MES.presenca,
     destaque: true,
   },
@@ -261,7 +299,7 @@ export const PLANOS: Plano[] = [
       "Site e material impresso",
     ],
     permanencia: 6,
-    pecaExtra: PECA_EXTRA,
+    pecaExtra: PRECO_DA_PECA_AVULSA,
     pecasPorMes: PECAS_POR_MES.conteudo,
   },
   // ── O DEGRAU QUE SAIU: Crescimento, R$ 2.590 (26/08/2026) ─────────────────
@@ -308,4 +346,35 @@ export const FORA_DE_TODO_PLANO = [
 
 export function precoEmReais(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+}
+
+/**
+ * O PLANO COMO COMPOSIÇÃO — item 2 do despacho E1 (30/08/2026).
+ *
+ * *"Existe a carta item a item. Todo pedido é uma composição dela. O plano é
+ * uma composição PRÉ-MONTADA com desconto"* — não um preço caixa-preta ao lado
+ * da carta. Esta função não muda NENHUM preço final: `preco` continua vindo,
+ * intocado, de `PLANOS` (R$ 49/290/490/790, fechados pelo CEO). O que ela
+ * expõe é a CONTA por trás dele — soma dos itens à carta menos o desconto do
+ * atalho —, para o desconto deixar de ser invisível e virar % e R$ conferíveis.
+ *
+ * `null` para o Pulso: ele não entrega peça (`pecasPorMes === 0`), não há o
+ * que compor.
+ */
+export interface ComposicaoDoPlano {
+  /** Soma se cada peça do plano fosse comprada avulsa, à carta. */
+  somaCentavos: number;
+  /** O preço final do plano, sem alteração — o mesmo de `Plano.preco`. */
+  precoFinalCentavos: number;
+  descontoCentavos: number;
+  descontoPct: number;
+}
+
+export function composicaoDoPlano(p: Plano): ComposicaoDoPlano | null {
+  if (p.pecasPorMes <= 0) return null;
+  const somaCentavos = p.pecasPorMes * PRECO_DA_PECA_AVULSA * 100;
+  const precoFinalCentavos = Math.round(p.preco * 100);
+  const descontoCentavos = Math.max(0, somaCentavos - precoFinalCentavos);
+  const descontoPct = somaCentavos > 0 ? (descontoCentavos / somaCentavos) * 100 : 0;
+  return { somaCentavos, precoFinalCentavos, descontoCentavos, descontoPct };
 }

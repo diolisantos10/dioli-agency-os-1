@@ -905,6 +905,44 @@ export async function publicarAgendados(opcoes: OpcoesDaRodada = {}): Promise<Pu
       continue;
     }
 
+    // ── A ÚLTIMA CONFIRMAÇÃO ANTES DE FALAR COM A META (29/08/2026) ─────────
+    //
+    // `pendentes` é uma FOTOGRAFIA tirada lá em cima, antes deste laço. Entre a
+    // foto e este ponto passam segundos a minutos — até
+    // `MAX_PUBLICACOES_POR_RODADA` peças, cada uma com upload de mídia e
+    // chamada à Meta. Se o cliente CANCELAR ou RECUSAR esta peça nesse
+    // intervalo (`app/api/portal/approvals/route.ts`), o `post` que este laço
+    // segura na mão ainda diz "scheduled" — foi assim que ele chegou aqui —
+    // mesmo que o banco já diga outra coisa.
+    //
+    // Publicar por cima dessa fotografia velha é publicar em nome do cliente
+    // DEPOIS que ele disse não: exatamente a produção "já em voo" que a casa
+    // decidiu que o cancelamento tem de alcançar. A trava é reconferir o
+    // estado, na hora, contra o mesmo campo que abriu a rodada
+    // (`ESTADO_QUE_A_FILA_LE`) — não contra uma cópia.
+    //
+    // Fail-closed: não conseguir CONFIRMAR não vira permissão de publicar.
+    const estadoNaHora = await prisma.socialPost
+      .findUnique({ where: { id: post.id }, select: { status: true } })
+      .catch(() => undefined);
+    if (estadoNaHora === undefined) {
+      saida.adiados.push({
+        postId: post.id,
+        motivo: "não consegui confirmar o estado da peça bem antes de publicar — na dúvida, não publico",
+      });
+      continue;
+    }
+    if (estadoNaHora === null || estadoNaHora.status !== ESTADO_QUE_A_FILA_LE) {
+      saida.adiados.push({
+        postId: post.id,
+        motivo:
+          `a peça deixou de estar "${ESTADO_QUE_A_FILA_LE}" enquanto esta rodada rodava ` +
+          `(agora: "${estadoNaHora?.status ?? "peça removida"}") — alguém decidiu sobre ela nesse ` +
+          "intervalo, e essa decisão vale mais que a fotografia com que esta rodada começou",
+      });
+      continue;
+    }
+
     let r;
     try {
       r = await publishPost(post.workspaceId, {

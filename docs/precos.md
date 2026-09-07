@@ -61,7 +61,14 @@ de mídia**.
 | **Presença** | R$ 490/mês | R$ 390 | 20 | R$ 800–1.500 | + 20 peças, **nós publicamos**, avaliações e **um humano no atendimento**. |
 | **Conteúdo** | R$ 790/mês | R$ 690 | 36 | R$ 2.000–4.000 (esse volume) | + 36 peças — a capacidade INTEIRA da casa —, stories, plano de medição, reunião mensal. |
 
-**Peça extra: R$ 90** (mercado: R$ 120–190).
+**Peça avulsa: R$ 55** (mercado: R$ 120–190). Unificada em 30/08/2026
+(`.despachos/E1-tabela-no-codigo.md`): existiam DOIS preços para a mesma venda
+— "peça além do combinado, com direção de arte, para quem já é cliente" — R$ 90
+aqui e R$ 190/290 na tabela financeira (`avulso_post`/`avulso_carrossel`). Os
+dois convergem para R$ 55, fonte única em `PRECO_DA_PECA_AVULSA`
+(`lib/agency/planos.ts`). O balcão (post R$ 79, carrossel R$ 129, tabela
+abaixo) continua separado: é produto diferente, sem direção de arte e sem
+relação prévia com a casa.
 
 ### Por que abaixo, degrau a degrau
 
@@ -110,8 +117,8 @@ na vitrine.
 
 | | **Balcão** (vitrine) | **Avulso** (cliente de plano) |
 |---|---|---|
-| Post | R$ 79 | R$ 190 |
-| Carrossel | R$ 129 | R$ 290 |
+| Post | R$ 79 | R$ 55 |
+| Carrossel | R$ 129 | R$ 55 |
 | Quem produz | máquina, sem revisão humana | equipe, com direção de arte |
 | Revisões | nenhuma | 2 rodadas |
 | Pagamento | antes da produção, no cartão | na fatura do plano |
@@ -122,13 +129,31 @@ antes. O avulso é serviço de agência para quem já está dentro. **Preço
 diferente para trabalho diferente não é incoerência — é o que impede a linha
 barata de canibalizar a cara.**
 
+> ⚠️ Unificado em 30/08/2026: post e carrossel avulsos tinham preços diferentes
+> entre si (R$ 190/R$ 290) e um TERCEIRO preço para o mesmo cenário
+> (`PECA_EXTRA = R$ 90`, em `planos.ts`). Os três eram a mesma venda — "peça
+> além do combinado, com direção, para quem já é cliente" — e convergem para
+> R$ 55, `PRECO_DA_PECA_AVULSA`. Note que isso deixou o balcão (self-serve, sem
+> direção) mais CARO que o avulso com direção — artefato conhecido e
+> registrado, não corrigido neste despacho (fora de escopo: mexer no balcão não
+> foi pedido, e os dois preços do balcão vêm de `self-serve-catalog.ts`, uma
+> fonte já independente).
+>
+> ⚠️ **A tabela abaixo ("Serviço | Preço | Observação") não foi auditada nesta
+> passada** — vários itens (roteiro de reel, criativo de anúncio, ficha do
+> Google) descrevem coisas que `FORA_DE_TODO_PLANO` e `so-vende-o-que-produz`
+> hoje tratam como "a casa não produz" ou "orçado à parte, sem preço de
+> tabela". Ela é herança de versões anteriores deste documento; não é lida por
+> nenhum código e não deve ser tratada como preço vigente sem confirmar contra
+> `tabela-de-precos.ts` primeiro.
+
 **Conteúdo avulso só para quem já tem plano**, pedido mínimo R$ 750. Serviço de
 projeto pode ser a primeira compra.
 
 | Serviço | Preço | Observação |
 |---|---|---|
-| Carrossel até 6 telas | R$ 290 | R$ 180 como excedente dentro do plano |
-| Post único com arte e legenda | R$ 190 | |
+| Carrossel até 6 telas | R$ 55 | preço único da peça avulsa, dentro ou fora do plano |
+| Post único com arte e legenda | R$ 55 | preço único da peça avulsa, dentro ou fora do plano |
 | Sequência de stories (3 telas) | R$ 190 | incluída a partir do Conteúdo |
 | Criativo de anúncio | R$ 320 | 3/mês no Crescimento |
 | Roteiro de reel | R$ 290 | 4/mês a partir do Conteúdo |
@@ -150,7 +175,7 @@ WhatsApp do cliente R$ 490/mês · SEO local R$ 690/mês.
 
 ## As regras sem as quais o preço não sobrevive
 
-- **Excedente:** peça além do contratado R$ 180; pedido avulso mínimo R$ 750.
+- **Excedente:** peça além do contratado R$ 55 (`PRECO_DA_PECA_AVULSA`); pedido avulso mínimo R$ 750.
 - **Ajustes:** 2 rodadas por peça (3 a partir do Conteúdo). Aprovação em até 2
   dias úteis; passado isso a peça segue para a data agendada.
 - **Permanência:** 3 meses até o Presença, 6 do Conteúdo em diante. Pausa máxima

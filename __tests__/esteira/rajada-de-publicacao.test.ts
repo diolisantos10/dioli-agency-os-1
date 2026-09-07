@@ -19,7 +19,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 const db = vi.hoisted(() => ({
   project: { findUnique: vi.fn() },
   deliverable: { findMany: vi.fn() },
-  socialPost: { findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
+  socialPost: { findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
   activityEvent: { create: vi.fn() },
   mediaAsset: { findMany: vi.fn() },
 }));
@@ -61,6 +61,10 @@ beforeEach(() => {
   db.socialPost.findMany.mockResolvedValue(seisVencidasDoMesmoPerfil());
   // Nunca publicou antes: a primeira peça pode ir.
   db.socialPost.findFirst.mockResolvedValue(null);
+  // A confirmação de estado, na hora, antes de publicar: nenhuma das 6 mudou
+  // de ideia durante a rodada — a régua da rajada é sobre ESPAÇAMENTO, não
+  // sobre cancelamento no meio do caminho.
+  db.socialPost.findUnique.mockResolvedValue({ status: "scheduled" });
   db.socialPost.update.mockResolvedValue({});
   db.activityEvent.create.mockResolvedValue({});
   publishPost.mockResolvedValue({ ok: true, externalPostId: "ig1", permalink: "https://i/p/1" });

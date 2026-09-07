@@ -34,7 +34,10 @@ const generate = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/db/client", () => ({ prisma: db }));
 vi.mock("@/lib/ai/generate", () => ({ generate }));
 
-import { refazerPorPedidoDoCliente, MAX_REFACOES_DO_CLIENTE } from "@/lib/agency/esteira/refacao";
+import {
+  refazerPorPedidoDoCliente, MAX_REFACOES_DO_CLIENTE,
+  cancelarPorPedidoDoCliente, REVISION_STATUS_DO_CANCELAMENTO,
+} from "@/lib/agency/esteira/refacao";
 
 const ENTREGA = {
   id: "d1", name: "Calendário de conteúdo", content: "**1. Post**\n- Legenda: texto antigo",
@@ -231,5 +234,70 @@ describe("o que a máquina NÃO deve tentar adivinhar", () => {
     expect(r.refeitas).toHaveLength(0);
     expect(r.escalado).toBe(true);
     expect(r.motivo).toMatch(/inventou dado/);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// O CANCELAMENTO — ordem do CEO, 29/08/2026: "avisa cliente e agência, e
+// interrompe a produção na hora". Estes testes provam as DUAS metades.
+// ═══════════════════════════════════════════════════════════════════════════
+describe("o cliente cancelou", () => {
+  it("METADE B — a entrega é carimbada FORA de 'quality_ok', que é a única porta que agendarPostsDaEntrega aceita", async () => {
+    await cancelarPorPedidoDoCliente({ clientRequestId: "cr1", department: "social-media", comentario: "não precisamos mais disso" });
+    expect(db.deliverable.update).toHaveBeenCalledOnce();
+    const gravado = db.deliverable.update.mock.calls[0]![0].data.revisionStatus;
+    expect(gravado).toBe(REVISION_STATUS_DO_CANCELAMENTO);
+    expect(gravado).not.toBe("quality_ok");
+  });
+
+  it("a entrega carimbada é a prova devolvida — não um silêncio disfarçado de sucesso", async () => {
+    const r = await cancelarPorPedidoDoCliente({ clientRequestId: "cr1", department: "social-media", comentario: "cancela" });
+    expect(r.entregasCanceladas).toEqual(["Calendário de conteúdo"]);
+  });
+
+  it("não chama IA — cancelamento não produz peça nenhuma", async () => {
+    await cancelarPorPedidoDoCliente({ clientRequestId: "cr1", department: "social-media", comentario: "cancela" });
+    expect(generate).not.toHaveBeenCalled();
+  });
+
+  it("METADE A (cliente) — o portal recebe uma confirmação, não o eco do próprio comentário do cliente", async () => {
+    const r = await cancelarPorPedidoDoCliente({ clientRequestId: "cr1", department: "social-media", comentario: "não preciso mais" });
+    expect(r.avisouCliente).toBe(true);
+    const corpo = db.portalMessage.create.mock.calls[0]![0].data.body as string;
+    expect(corpo).toMatch(/[Cc]ancelamento registrado/);
+    expect(corpo).toContain("não preciso mais");
+  });
+
+  it("METADE A (agência) — vira ActivityEvent, a MESMA tela que a recusa já usa (/agency/dashboard)", async () => {
+    const r = await cancelarPorPedidoDoCliente({ clientRequestId: "cr1", department: "social-media", comentario: "cancela isso" });
+    expect(r.escalado).toBe(true);
+    expect(db.activityEvent.create).toHaveBeenCalledOnce();
+    const evento = db.activityEvent.create.mock.calls[0]![0].data;
+    expect(evento.message).toMatch(/CANCELOU/);
+    expect(evento.workspaceId).toBe("ws1");
+  });
+
+  it("sem ressalva ainda assim cancela e avisa — a ressalva não é condição para parar", async () => {
+    const r = await cancelarPorPedidoDoCliente({ clientRequestId: "cr1", department: "social-media" });
+    expect(r.entregasCanceladas).toEqual(["Calendário de conteúdo"]);
+    expect(r.avisouCliente).toBe(true);
+    expect(r.escalado).toBe(true);
+  });
+
+  it("sem clientRequestId nem clientId, não inventa dono — devolve o motivo e não escreve nada", async () => {
+    const r = await cancelarPorPedidoDoCliente({ department: "social-media", comentario: "cancela" });
+    expect(r.motivo).toMatch(/sem dono/);
+    expect(db.deliverable.update).not.toHaveBeenCalled();
+  });
+
+  // ── O VEDADO DO CEO (29/08/2026): nada de regra de dinheiro por aqui ──────
+  it("VEDADO — nenhuma mensagem (cliente ou agência) fala de multa, reembolso, devolução ou desistência", async () => {
+    const r = await cancelarPorPedidoDoCliente({ clientRequestId: "cr1", department: "social-media", comentario: "cancela" });
+    expect(r.avisouCliente).toBe(true);
+    const paraOCliente = db.portalMessage.create.mock.calls[0]![0].data.body as string;
+    const paraAAgencia = db.activityEvent.create.mock.calls[0]![0].data.message as string;
+    const PROIBIDO = /multa|reembolso|devolu[cç][aã]o|desist[êe]ncia/i;
+    expect(paraOCliente).not.toMatch(PROIBIDO);
+    expect(paraAAgencia).not.toMatch(PROIBIDO);
   });
 });
