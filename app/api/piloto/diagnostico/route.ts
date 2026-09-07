@@ -108,22 +108,33 @@ export const dynamic = "force-dynamic";
 /** Teto de linhas lidas. Diagnóstico é para dimensionar, não para exportar. */
 const LIMITE = 500;
 
-// ⚠️ ACHADO DO `seguranca` NA REVISÃO DESTA ROTA (16/08/2026) — configuração,
-// não código:
+// ⚠️ CORRIGIDO em 07/09/2026 (`seguranca`, `.despachos/F7-fim-do-fallback-de-escrita.md`):
+// esta rota tinha o fallback `PILOTO_SECRET || CRON_SECRET`, herdado do diário.
+// `CRON_SECRET` é o segredo que autoriza ESCRITA em `cron/v2`, e o segredo desta
+// rota trafega em `?chave=`, que aparece em log de proxy/CDN — então, com
+// `PILOTO_SECRET` ausente ou vazia, um segredo de ESCRITA passava a circular em
+// URL de uma rota de LEITURA. O achado já estava registrado aqui desde 16/08 e
+// continuava sem conserto.
 //
-// O fallback `PILOTO_SECRET || CRON_SECRET` é o padrão herdado do diário. Se
-// `PILOTO_SECRET` NÃO estiver configurado em produção — cenário plausível, é
-// variável nova —, o segredo que trafega em `?chave=` (e que aparece em log de
-// proxy/CDN) passa a ser o **mesmo `CRON_SECRET` que autoriza ESCRITA** em
-// `cron/v2`. Antes só o diário carregava esse risco; com esta rota, são duas
-// espalhando um segredo de escrita em log de leitura.
+// O fallback SUMIU. A rota exige `PILOTO_SECRET`, e só ela — ausente OU vazia
+// (`""`) fecha a rota (503), nunca autoriza pelo `CRON_SECRET`. Fail-closed e
+// visível: 503 diz exatamente o que está errado e some no minuto em que alguém
+// configura a variável certa. O fallback funcionava, e era por isso que era
+// perigoso — nada quebrava, então ninguém descobria que estava usando o
+// segredo errado.
 //
-// **Configurar `PILOTO_SECRET` como variável própria fecha o agravante sem
-// mudar uma linha.** O `seguranca` não recomendou trocar `?chave=` por
-// só-header: quebraria o uso por `curl`/link, que é a razão desta rota existir,
-// e o risco real está no fallback, não no mecanismo.
+// `?chave=` e o header `Authorization: Bearer` continuam os dois: o risco era o
+// fallback, não o mecanismo, e tirar `?chave=` quebraria o uso por `curl`, que é
+// a razão de a rota existir.
+function segredoConfigurado(): string | null {
+  const valor = process.env.PILOTO_SECRET;
+  // String vazia é o caso que mais engana: a variável existe no ambiente, mas
+  // não protege nada. Trata-se como ausente, do mesmo jeito.
+  return valor && valor.length > 0 ? valor : null;
+}
+
 function autorizado(request: NextRequest): boolean {
-  const esperado = process.env.PILOTO_SECRET || process.env.CRON_SECRET;
+  const esperado = segredoConfigurado();
   // Segredo ausente NUNCA vira rota aberta. O `if (secret)` que só protege
   // quando a variável existe é a família de defeito que o `seguranca` já mediu
   // nesta casa: em produção sem a variável, a porta fica escancarada e ninguém
@@ -138,7 +149,7 @@ function autorizado(request: NextRequest): boolean {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const esperado = process.env.PILOTO_SECRET || process.env.CRON_SECRET;
+  const esperado = segredoConfigurado();
   if (!esperado) {
     return NextResponse.json(
       { error: "PILOTO_SECRET não configurado — o diagnóstico fica fechado" },
