@@ -1,8 +1,8 @@
 ---
 titulo: "How to use the Commercial Music Library"
 url: https://ads.tiktok.com/help/article/how-to-use-the-commercial-music-library?lang=en
-capturado_em: 2026-09-06
-hash: a06a59bf8eb462a1
+capturado_em: 2026-09-07
+hash: 4214cfd1fff29425
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -64,6 +64,7 @@ Select filters. You can filter by usable placements, themes, genre, mood, and du
 
 Once the Commercial Sounds have been selected, you can use them for organic or paid content.
 
+*Was the information helpful?
 Related Articles
  About the Commercial Music Library
  About the TikTok Ads Manager Video Editor

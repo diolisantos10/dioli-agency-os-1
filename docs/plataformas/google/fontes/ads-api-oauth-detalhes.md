@@ -1,7 +1,7 @@
 ---
 titulo: "Google Ads API — OAuth: refresh token e detalhes internos"
 url: https://developers.google.com/google-ads/api/docs/oauth/internals?hl=pt-br
-capturado_em: 2026-09-06
+capturado_em: 2026-09-07
 hash: 2fafc03c9b06a0db
 ---
 

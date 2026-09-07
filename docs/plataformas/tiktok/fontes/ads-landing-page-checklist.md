@@ -1,8 +1,8 @@
 ---
 titulo: "Best Practices for your landing page (Ad Review Checklist)"
 url: https://ads.tiktok.com/help/article/ad-review-checklist-landing-page?lang=en
-capturado_em: 2026-09-06
-hash: 14ee8c13a30c512c
+capturado_em: 2026-09-07
+hash: 82df89d07336b10e
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -63,6 +63,7 @@ No Sensitive Information: Your Landing Page cannot request visitors provide sens
 
 Note: This is not a comprehensive list of disapproval reasons or suggested actions. Learn about TikTok advertising policies for ad creatives and landing pages.
 
+*Was the information helpful?
 Related Articles
  About ad disclaimers in TikTok Ads Manager
  About Call-to-Action (CTA) Buttons in your ads

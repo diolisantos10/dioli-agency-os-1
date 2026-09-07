@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — referência de Campaign (ad-campaign-group)"
 url: https://developers.facebook.com/documentation/ads-commerce/marketing-api/reference/ad-campaign-group
-capturado_em: 2026-09-06
+capturado_em: 2026-09-07
 hash: 4d6122084832f301
 ---
 

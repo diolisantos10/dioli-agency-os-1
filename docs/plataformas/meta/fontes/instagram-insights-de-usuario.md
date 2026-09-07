@@ -1,7 +1,7 @@
 ---
 titulo: "Instagram — IG User Insights (métricas de conta)"
 url: https://developers.facebook.com/documentation/instagram-platform/api-reference/instagram-user/insights
-capturado_em: 2026-09-06
+capturado_em: 2026-09-07
 hash: e9f2aad836474942
 ---
 

@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — anúncios de cadastro (lead ads)"
 url: https://developers.facebook.com/documentation/ads-commerce/marketing-api/guides/lead-ads
-capturado_em: 2026-09-06
+capturado_em: 2026-09-07
 hash: 065343793b98525e
 ---
 

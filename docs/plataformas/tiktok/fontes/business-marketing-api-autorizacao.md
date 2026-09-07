@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — Authorization (fluxo de autorização da conta de anunciante do cliente)"
 url: https://business-api.tiktok.com/portal/docs/authorization/v1.3
-capturado_em: 2026-09-06
+capturado_em: 2026-09-07
 hash: 178c3d19692e8cb8
 ---
 

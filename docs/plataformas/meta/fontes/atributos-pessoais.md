@@ -1,7 +1,7 @@
 ---
 titulo: "Padrões de Publicidade — Violações de privacidade e atributos pessoais"
 url: https://transparency.meta.com/pt-br/policies/ad-standards/objectionable-content/privacy-violations-personal-attributes/
-capturado_em: 2026-09-06
+capturado_em: 2026-09-07
 hash: a4c7c35835a49cdb
 ---
 

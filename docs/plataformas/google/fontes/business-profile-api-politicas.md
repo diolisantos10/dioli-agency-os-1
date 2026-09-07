@@ -1,7 +1,7 @@
 ---
 titulo: "Business Profile APIs — políticas de uso"
 url: https://developers.google.com/my-business/content/policies?hl=pt-br
-capturado_em: 2026-09-06
+capturado_em: 2026-09-07
 hash: 6ed123ab5097f373
 ---
 

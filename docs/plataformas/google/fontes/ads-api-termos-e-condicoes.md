@@ -1,8 +1,8 @@
 ---
 titulo: "Google Ads API — Termos e Condições"
 url: https://developers.google.com/google-ads/api/terms?hl=pt-br
-capturado_em: 2026-09-06
-hash: 3d7e509bb17eaf9c
+capturado_em: 2026-09-07
+hash: f8d995d0f8dc1732
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -101,10 +101,6 @@ Miscellaneous. (a) This Google Ads API Agreement sets out all terms agreed betwe
 
 Last updated February 21, 2019
 
-Previous
-Non-compliance fees
-Next
-Support for European Union Political Ads Regulation
 Isso foi útil?
 Send feedback
 
