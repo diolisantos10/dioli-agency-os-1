@@ -1,0 +1,475 @@
+{
+  "data": "2026-09-07",
+  "em": "2026-09-07T11:09:54.942Z",
+  "commit": "564bb53",
+  "metade": "dados",
+  "varreduras": [
+    {
+      "varredura": "dados-presos",
+      "padrao": "estado-morto",
+      "status": "rodou",
+      "achados": [
+        {
+          "padrao": "estado-morto",
+          "chave": "pedido-do-cliente-parado",
+          "titulo": "Pedido do cliente parado sem a esteira andar",
+          "evidencia": "2 pedido(s) sem sair do lugar há +24h (2 em aberto no total). O mais antigo: cmt959ml8001g0xnydd03abel em \"triado\" desde 2026-08-25T20:55:40.700Z",
+          "local": "ContentRequest.status",
+          "gravidade": "alto"
+        },
+        {
+          "padrao": "estado-morto",
+          "chave": "pedido-esperando-decisao",
+          "titulo": "Pedido que a máquina parou e ninguém decidiu",
+          "evidencia": "16 pedido(s) em \"precisa_decisao\" há +24h. O fail-closed chamou; ninguém atendeu.",
+          "local": "ContentRequest.status",
+          "gravidade": "medio"
+        }
+      ],
+      "medidas": {
+        "postsAprovados": 0,
+        "postsAgendados": 0,
+        "postsRascunho": 17,
+        "postsPublicados": 0,
+        "postsTotal": 26,
+        "postsCarrossel": 5,
+        "postsVisiveisAoCliente": 26,
+        "aprovacoesPendentes": 23,
+        "aprovacoesVisiveisAoCliente": 8,
+        "clientes": 11,
+        "projetos": 9,
+        "postsAtrasados": 0,
+        "postsFalhados": 0,
+        "mensagensNaoLidas": 0,
+        "mensagensNaoLidasHaMaisDeUmDia": 0,
+        "aprovacoesVencidas": 0,
+        "materiaisNaoPerguntados": 0,
+        "chamadasDeIA24h": 297,
+        "chamadasDeIAComFalha24h": 0,
+        "whatsappFalhado": 0,
+        "solicitacoesOrfas": 0,
+        "pedidosDoClienteAbertos": 2,
+        "pedidosDoClienteParadosHaMaisDeUmDia": 2,
+        "pedidosEsperandoDecisaoHaMaisDeUmDia": 16,
+        "solicitacoesDeBriefingAbertas": 0,
+        "solicitacoesDeBriefingParadasHaMaisDeUmDia": 0,
+        "solicitacoesClassificadas": 0,
+        "solicitacoesParadasComContato": 0,
+        "solicitacoesParadasSemContato": 0
+      }
+    }
+  ],
+  "porCliente": {
+    "em": "2026-09-07T11:09:54.942Z",
+    "diaDeReferencia": "2026-09-07",
+    "clientes": [
+      {
+        "clientId": "cmt93c5ft00020xt2449p87md",
+        "nome": "CANTINA DA PROVA",
+        "projetos": {
+          "estado": "medido",
+          "valor": 1
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmt9f1f2c001v0xo7wtyyc18w",
+        "nome": "CANTINA DO PORTO TESTE",
+        "projetos": {
+          "estado": "medido",
+          "valor": 1
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 2
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 5
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmt9l47uv004p0xmnf4m0u7xd",
+        "nome": "Cantina Oculta NOME TESTE",
+        "projetos": {
+          "estado": "medido",
+          "valor": 2
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 5
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmtc13zy700760xo40pmav2xc",
+        "nome": "FOOCCI",
+        "projetos": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmtc145qf007a0xo4txmjss11",
+        "nome": "FOOCCI",
+        "projetos": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmt7savi4001r0xpab37an3dr",
+        "nome": "Farol 27 — Padaria & Café [TESTE]",
+        "projetos": {
+          "estado": "medido",
+          "valor": 1
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 5
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmt9up7a7001e0xpsb7smj71h",
+        "nome": "GRAO DO BECO NOME TESTE",
+        "projetos": {
+          "estado": "medido",
+          "valor": 1
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmtasmfwm000z0xt8qs9otgw6",
+        "nome": "NOME TESTE",
+        "projetos": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 1
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmt8psrc500020xmogoco02oj",
+        "nome": "OFICINA FAROL TESTE",
+        "projetos": {
+          "estado": "medido",
+          "valor": 1
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmt7y15av001k0xpenloum3q6",
+        "nome": "Padaria & Cafe R5 [TESTE]",
+        "projetos": {
+          "estado": "medido",
+          "valor": 1
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 5
+        },
+        "ritmoContratado": null
+      },
+      {
+        "clientId": "cmt8wthdk003l0xqootsm3a3c",
+        "nome": "TRATTORIA DA ANA TESTE",
+        "projetos": {
+          "estado": "medido",
+          "valor": 1
+        },
+        "projetosComAvalDoCliente": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "pecasDeHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "agendadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "publicadasHoje": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "atrasadas": {
+          "estado": "medido",
+          "valor": 0
+        },
+        "aprovacoesPendentes": {
+          "estado": "medido",
+          "valor": 5
+        },
+        "materiaisPendentes": {
+          "estado": "medido",
+          "valor": 5
+        },
+        "ritmoContratado": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "data": "2026-09-07",
+  "em": "2026-09-07T11:09:54.378Z",
+  "commit": "8f3587f",
+  "metade": "codigo",
+  "varreduras": [
+    {
+      "varredura": "trabalho-invisivel",
+      "padrao": "trabalho-invisivel",
+      "status": "rodou",
+      "achados": [
+        {
+          "padrao": "trabalho-invisivel",
+          "chave": "laco-pago:lib/ai/generate.ts:callProvider",
+          "titulo": "Laço que chama motor pago (callProvider) — sem teto visível",
+          "evidencia": "lib/ai/generate.ts:362 · for (const provider of order) {",
+          "local": "lib/ai/generate.ts:362",
+          "gravidade": "medio"
+        },
+        {
+          "padrao": "trabalho-invisivel",
+          "chave": "laco-pago:lib/ai/transcricao-servidor.ts:transcrever",
+          "titulo": "Laço que chama motor pago (transcrever) — sem teto visível",
+          "evidencia": "lib/ai/transcricao-servidor.ts:120 · for (const provedor of ordemDeProvedores()) {",
+          "local": "lib/ai/transcricao-servidor.ts:120",
+          "gravidade": "medio"
+        }
+      ],
+      "medidas": {
+        "lacosComMotorPago": 2,
+        "lacosSemProtecao": 2
+      }
+    },
+    {
+      "varredura": "id-sem-dono",
+      "padrao": "id-sem-dono",
+      "status": "rodou",
+      "achados": [
+        {
+          "padrao": "id-sem-dono",
+          "chave": "id-sem-dono:app/api/agency/provedor-do-cliente/route.ts",
+          "titulo": "Posse delegada: o workspace viaja com o id, mas quem confere está uma camada abaixo",
+          "evidencia": "app/api/agency/provedor-do-cliente/route.ts recebe clientId e repassa o workspaceId adiante — confira se a função de destino filtra por ele",
+          "local": "app/api/agency/provedor-do-cliente/route.ts",
+          "gravidade": "medio"
+        },
+        {
+          "padrao": "id-sem-dono",
+          "chave": "id-sem-dono:app/api/avisos/route.ts",
+          "titulo": "Posse delegada: o workspace viaja com o id, mas quem confere está uma camada abaixo",
+          "evidencia": "app/api/avisos/route.ts recebe id e repassa o workspaceId adiante — confira se a função de destino filtra por ele",
+          "local": "app/api/avisos/route.ts",
+          "gravidade": "medio"
+        },
+        {
+          "padrao": "id-sem-dono",
+          "chave": "id-sem-dono:app/api/meta/connect/route.ts",
+          "titulo": "Posse delegada: o workspace viaja com o id, mas quem confere está uma camada abaixo",
+          "evidencia": "app/api/meta/connect/route.ts recebe clientId e repassa o workspaceId adiante — confira se a função de destino filtra por ele",
+          "local": "app/api/meta/connect/route.ts",
+          "gravidade": "medio"
+        },
+        {
+          "padrao": "id-sem-dono",
+          "chave": "id-sem-dono:app/api/meta/publish/route.ts",
+          "titulo": "Posse delegada: o workspace viaja com o id, mas quem confere está uma camada abaixo",
+          "evidencia": "app/api/meta/publish/route.ts recebe connectionId e repassa o workspaceId adiante — confira se a função de destino filtra por ele",
+          "local": "app/api/meta/publish/route.ts",
+          "gravidade": "medio"
+        }
+      ],
+      "medidas": {
+        "rotasQueRecebemId": 53,
+        "rotasSemProvaDePosse": 0,
+        "rotasComPosseDelegada": 4
+      }
+    },
+    {
+      "varredura": "promessa-nao-cumprida",
+      "padrao": "promessa-nao-cumprida",
+      "status": "rodou",
+      "achados": [
+        {
+          "padrao": "promessa-nao-cumprida",
+          "chave": "p0-checagens-nao-executaveis",
+          "titulo": "Checagens de qualidade que nenhum código roda",
+          "evidencia": "27 de 37 checagens são autoCheckable: false — descrevem o que alguém deveria conferir, numa operação sem revisão humana",
+          "local": "lib/dioli-brain/quality-gates.ts",
+          "gravidade": "alto"
+        }
+      ],
+      "medidas": {
+        "carimbosConstantes": 0,
+        "checagensDeQualidade": 37,
+        "checagensNaoExecutaveis": 27
+      }
+    },
+    {
+      "varredura": "estado-morto",
+      "padrao": "estado-morto",
+      "status": "rodou",
+      "achados": [
+        {
+          "padrao": "estado-morto",
+          "chave": "estado-morto:status=archived",
+          "titulo": "Estado \"status=archived\" é gravado e ninguém lê",
+          "evidencia": "1 escrita(s), 0 leitura(s). Primeira em lib/agency/radar/library.ts:67",
+          "local": "lib/agency/radar/library.ts:67",
+          "gravidade": "alto"
+        },
+        {
+          "padrao": "estado-morto",
+          "chave": "estado-morto:status=dispensado",
+          "titulo": "Estado \"status=dispensado\" é gravado e ninguém lê",
+          "evidencia": "1 escrita(s), 0 leitura(s). Primeira em lib/agency/esteira/avisos.ts:193",
+          "local": "lib/agency/esteira/avisos.ts:193",
+          "gravidade": "alto"
+        },
+        {
+          "padrao": "estado-morto",
+          "chave": "estado-morto:status=enviado",
+          "titulo": "Estado \"status=enviado\" é gravado e ninguém lê",
+          "evidencia": "1 escrita(s), 0 leitura(s). Primeira em lib/agency/esteira/avisos.ts:180",
+          "local": "lib/agency/esteira/avisos.ts:180",
+          "gravidade": "alto"
+        },
+        {
+          "padrao": "estado-morto",
+          "chave": "estado-morto:status=respondida",
+          "titulo": "Estado \"status=respondida\" é gravado e ninguém lê",
+          "evidencia": "1 escrita(s), 0 leitura(s). Primeira em lib/agency/esteira/avaliacoes.ts:188",
+          "local": "lib/agency/esteira/avaliacoes.ts:188",
+          "gravidade": "alto"
+        },
+        {
+          "padrao": "estado-morto",
+          "chave": "estado-morto:status=skipped_running",
+          "titulo": "Estado \"status=skipped_running\" é gravado e ninguém lê",
+          "evidencia": "1 escrita(s), 0 leitura(s). Primeira em lib/agency/execution/run-execution.ts:230",
+          "local": "lib/agency/execution/run-execution.ts:230",
+          "gravidade": "alto"
+        },
+        {
+          "padrao": "estado-morto",
+          "chave": "estado-morto:status=superseded",
+          "titulo": "Estado \"status=superseded\" é gravado e ninguém lê",
+          "evidencia": "2 escrita(s), 0 leitura(s). Primeira em lib/agency/persistence/brain-artifact-service.ts:30",
+          "local": "lib/agency/persistence/brain-artifact-service.ts:30",
+          "gravidade": "alto"
+        }
+      ],
+      "medidas": {
+        "estadosDistintos": 95,
+        "estadosSemLeitor": 6
+      }
+    },
+    {
+      "varredura": "porta-aberta",
+      "padrao": "porta-aberta",
+      "status": "rodou",
+      "achados": [
+        {
+          "padrao": "porta-aberta",
+          "chave": "porta-aberta:app/api/brain/briefing-extract/route.ts",
+          "titulo": "Rota pública paga com teto de ritmo NO BANCO (sobrevive a deploy e a réplica)",
+          "evidencia": "app/api/brain/briefing-extract/route.ts é pública por desenho e chama motor pago; a defesa é limiteExcedido (contador em RateLimitBucket, atômico e fail-closed). Continua listada porque rota pública que gasta merece vigilância permanente",
+          "local": "app/api/brain/briefing-extract/route.ts",
+          "gravidade": "baixo"
+        },
+        {
+          "padrao": "porta-aberta",
+          "chave": "porta-aberta:app/api/sdr/chat/route.ts",
+          "titulo": "Rota pública paga com teto de ritmo NO BANCO (sobrevive a deploy e a réplica)",
+          "evidencia": "app/api/sdr/chat/route.ts é pública por desenho e chama motor pago; a defesa é limiteExcedido (contador em RateLimitBucket, atômico e fail-closed). Continua listada porque rota pública que gasta merece vigilância permanente",
+          "local": "app/api/sdr/chat/route.ts",
+          "gravidade": "baixo"
+        },
+        {
+          "padrao": "porta-aberta",
+          "chave": "porta-aberta:app/api/sdr/transcribe/route.ts",
+          "titulo": "Rota pública paga com teto de ritmo NO BANCO (sobrevive a deploy e a réplica)",
+          "evidencia": "app/api/sdr/transcribe/route.ts é pública por desenho e chama motor pago; a defesa é limiteExcedido (contador em RateLimitBucket, atômico e fail-closed). Continua listada porque rota pública que gasta merece vigilância permanente",
+          "local": "app/api/sdr/transcribe/route.ts",
+          "gravidade": "baixo"
+        },
+        {
+          "padrao": "porta-aberta",
+          "chave": "porta-aberta:app/api/sdr/upload/route.ts",
+          "titulo": "Rota pública paga com teto de ritmo NO BANCO (sobrevive a deploy e a réplica)",
+          "evidencia": "app/api/sdr/upload/route.ts é pública por desenho e chama motor pago; a defesa é limiteExcedido (contador em RateLimitBucket, atômico e fail-closed). Continua listada porque rota pública que gasta merece vigilância permanente",
+          "local": "app/api/sdr/upload/route.ts",
+          "gravidade": "baixo"
+        },
+        {
+          "padrao": "porta-aberta",
+          "chave": "porta-aberta:app/api/self-serve/order/route.ts",
+          "titulo": "Rota pública paga com teto de ritmo NO BANCO (sobrevive a deploy e a réplica)",
+          "evidencia": "app/api/self-serve/order/route.ts é pública por desenho e grava no banco; a defesa é limiteExcedido (contador em RateLimitBucket, atômico e fail-closed). Continua listada porque rota pública que gasta merece vigilância permanente",
+          "local": "app/api/self-serve/order/route.ts",
+          "gravidade": "baixo"
+        }
+      ],
+      "medidas": {
+        "rotas": 135,
+        "rotasSemGuarda": 0,
+        "rotasPublicasPagasComLimiteApenas": 0,
+        "rotasPublicasPagasComLimiteNoBanco": 5,
+        "rotasSemGuardaQueImportam": 5
+      }
+    }
+  ]
+}
