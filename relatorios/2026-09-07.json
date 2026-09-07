@@ -1,0 +1,141 @@
+{
+  "produto": "dioli-digital",
+  "data": "2026-09-07",
+  "geradoEm": "2026-09-07T11:15:00Z",
+  "assinatura": "Diretor da Dioli Digital",
+
+  "avisoDeFormato": {
+    "seguiuAFicha": false,
+    "motivo": "`control_room` não está anexado a esta sala; `docs/relatorio-diario.md` não pôde ser lido. Schema montado a partir das 8 seções da chamada.",
+    "delegou": false,
+    "motivoDeNaoDelegar": "ferramenta de despacho desabilitada desde 29/08 — `Error: No such tool available: Agent`. Exceção SEM_AGENTE declarada, 9º dia.",
+    "comparacaoContra": "2026-09-06"
+  },
+
+  "saude": {
+    "arvoreMedida": "origin/claude/dioli-agency-os-architecture-kk7kp (deploy), worktree sincronizada em 07/09 11:08 UTC, 0 commits atrás",
+    "tsc": { "valor": "limpo", "exit": 0, "fonte": "npx tsc --noEmit executado hoje" },
+    "suite": { "arquivos": 555, "testesPassando": 7781, "testesFalhando": 2, "totalTestes": 7783, "fonte": "npx vitest run executado no deploy em 07/09 11:08 UTC" },
+    "falhasDeCODIGO": 0,
+    "falhasDeAMBIENTE": 2,
+    "falhaDetalhada": {
+      "arquivo": "__tests__/coordenacao/reivindicar-guarda-antes-de-escrever.test.ts",
+      "natureza": "AMBIENTE, não código",
+      "prova": "node_modules/tsx/dist/cli.mjs com 0 bytes nesta máquina. O teste exercita scripts/reivindicar.mts, que roda por tsx e devolve saída vazia.",
+      "ressalva": "NÃO medi se o CI sofre o mesmo — não tenho como ler o CI. 9º dia com essa lacuna."
+    },
+    "comparacaoComOntem": {
+      "arquivos": { "de": 555, "para": 555 },
+      "testes": { "de": 7783, "para": 7783 },
+      "falhasDeCodigo": { "de": 0, "para": 0 },
+      "leitura": "idêntico. O deploy é o MESMO commit de ontem — remedi do zero em vez de reaproveitar o número."
+    }
+  },
+
+  "cliente": {
+    "clientesAtendidos": null,
+    "pecasEntregues": null,
+    "avisosEnviados": null,
+    "faturamentoDoMesPassado": null,
+    "motivoDoNulo": "esta sala não tem acesso ao banco de produção. Nenhum número de cliente ou faturamento foi medido — e nenhum foi estimado. Vale para a cobrança do CEO, aberta há 5 dias.",
+    "defeitosVIVOSQueAlcancamCliente": [
+      { "o_que": "a mensagem automática de recompra oferece \"8 peças por mês\"; a fonte diz 12", "vivoNoDeploy": true, "diasVivo": 9, "fonte": "git show <deploy>:lib/agency/esteira/recompra.ts | grep -c = 1" },
+      { "o_que": "o link do portal no aviso usa `Client.portalToken`; a porta valida `PortalAccess.token`. Cliente vê \"acesso negado\" e a casa grava \"enviado\"", "vivoNoDeploy": true, "diasVivo": 9, "fonte": "git show <deploy>:lib/agency/esteira/avisos.ts | grep -c portalToken = 4" },
+      { "o_que": "item de compra única é oferecido ao cliente com \"/mês\"", "vivoNoDeploy": true, "diasVivo": 9, "fonte": "git show <deploy>:lib/agency/comercial/negociacao-da-proposta.ts | grep -c = 4" }
+    ],
+    "comparacaoComOntem": "os três continuam vivos. Nono dia. Zero progresso."
+  },
+
+  "produtividade": {
+    "deployParado": true,
+    "ultimoCommitNoDeploy": "2bc28a2b — 03/09 11:57",
+    "horasSemDeploy": 93,
+    "commitsNoDeploy": { "em_04_09": 0, "em_05_09": 0, "em_06_09": 0, "em_07_09": 0 },
+    "fonte": "git log origin/<deploy> --since/--until, medido hoje",
+    "meusPacotesEntregues": 0,
+    "meusPacotesParados": 12,
+    "detalhe": "conferido um a um com `git merge-base --is-ancestor`. Igual a 30/08, 02/09, 03/09, 05/09 e 06/09.",
+    "prsAbertos": null,
+    "motivoDoNuloEmPRs": "ferramentas do GitHub desabilitadas há 9 dias. O \"34\" é de 29/08 e não foi reconfirmado."
+  },
+
+  "qualidade": {
+    "ondeSeProcurou": "deploy inteiro: tsc e suíte completa (555 arquivos, 7783 testes), executados hoje. Mais verificação dirigida dos defeitos conhecidos por `git show` no deploy.",
+    "verdePorAusencia": false,
+    "falhasDeCodigoNoDeploy": 0,
+    "furosAINDAvivosNoDeploy": {
+      "rotasDeDinheiroSemConferenciaDePosse": 5,
+      "diasVivo": 9,
+      "fonte": "git show <deploy>:app/api/agency/parcerias/route.ts | grep -c clienteDoWorkspace = 0",
+      "o_que_permitem": "qualquer master ou project_manager de qualquer agência concede/revoga parceria, cunha convite, isenta pedido e marca pedido como pago sobre agência alheia"
+    }
+  },
+
+  "dinheiro": {
+    "custoDoDia": { "valor": 0, "moeda": "USD", "fonte": "nenhuma chamada de IA real, nenhum e-mail, nenhum pagamento — medido, e deu zero" },
+    "parcelasDeCustoMedidas": 1,
+    "parcelasDeCustoTotais": 6,
+    "unicaParcelaMedida": { "rotulo": "IA por peça", "valor": 0.17, "moeda": "USD", "fonte": "CUSTO_DE_IA_POR_PECA_USD em lib/agency/financeiro/tabela-de-precos.ts:112" },
+    "parcelasNaoMedidas": ["taxa do gateway (Mercado Pago)", "infraestrutura (Railway)", "domínio e e-mail (Resend)", "hora humana", "impostos"],
+    "margemDeLucro": null,
+    "margemNegociavel": null,
+    "motivoDoNulo": "5 das 6 parcelas não são medidas, e o código nomeia o CEO como dono de cada uma. Aberto há 8 dias, zero progresso.",
+    "itensNoCardapio": 4
+  },
+
+  "risco": {
+    "coordenacaoDesligadaNaPratica": {
+      "reivindicacoesTotal": 96,
+      "vivas": 15,
+      "vencidasMais24h": 15,
+      "gravidade": "alta",
+      "descricao": "TODAS as 15 vivas seguem vencidas. Vencida vira aviso, não bloqueio: a proteção contra trabalho em dobro está DESLIGADA para a casa inteira. Nono dia sem progresso.",
+      "fonte": "leitura dos 96 JSON no deploy com cálculo de idade, hoje"
+    },
+    "colisaoDeSchemaAindaAberta": {
+      "arquivo": "prisma/schema.prisma",
+      "partes": ["conta-de-servico-diretor-geral", "mesa-de-comando-diretriz-do-sdr"],
+      "estado": "as duas seguem ABERTAS há 8 dias",
+      "porqueOTesteNaoAcusa": "passaram de 24h e viraram `velha` = aviso. A colisão envelheceu; nunca foi resolvida."
+    },
+    "identidadeDeSessaoAmbigua": { "confirmado": true, "consertado": false, "diasAberto": 9 },
+    "camadaDeDespachoIndisponivel": {
+      "diasFora": 9,
+      "saidaLiteral": "Error: No such tool available: Agent. Agent is disabled for this session, in subagents as well as here.",
+      "tambemFora": ["Artifact", "ReadNotifications", "WebSearch", "ferramentas do GitHub", "Railway"]
+    },
+    "ordemAgendadaNaoLida": { "tentativas": 30, "saidaLiteral": "Error: No such tool available: ReadNotifications.", "descricao": "há aviso agendado enfileirado que esta sessão não lê. Quem despachou acredita ter entregado." },
+    "canalDoRelatorioNaoConfirmado": {
+      "relatoriosEntregues": 8,
+      "desde": "2026-08-28",
+      "respostasRecebidas": 0,
+      "mergesRecebidos": 0,
+      "descricao": "não tenho como medir se estes relatórios chegam a alguém. Pedi confirmação de recebimento em 06/09; não houve resposta. Se estão sendo lidos e a ordem é esperar, eu espero — mas a ausência de sinal é indistinguível de canal quebrado, que é a mesma doença que reporto todo dia.",
+      "gravidade": "média"
+    },
+    "tsxCorrompido": { "descricao": "node_modules/tsx/dist/cli.mjs com 0 bytes; quebra `npm run reivindicar` e 2 testes", "ehDefeitoDoRepositorio": false }
+  },
+
+  "bloqueioDoCeo": [
+    { "id": 1, "assunto": "publicar os 12 pacotes auditados", "passoExato": "responder aqui: \"pode publicar\".", "custoDeNaoDecidir": "nove dias de conserto pronto e não entregue", "diasAberto": 9 },
+    { "id": 2, "assunto": "fechar as 5 rotas de dinheiro abertas entre agências", "passoExato": "responder: \"autorizo aplicar os 4 consertos de risco baixo\".", "custoDeNaoDecidir": "qualquer dono de agência mexe no dinheiro de outra, hoje", "diasAberto": 9 },
+    { "id": 3, "assunto": "as 5 parcelas de custo — trava o cardápio inteiro", "passoExato": "Railway → Billing → total DEBITADO no último mês fechado. Mercado Pago → Taxas → percentual por transação. Domínio + Resend → custo mensal. Existe hora humana paga e quanto vale. Regime tributário e alíquota efetiva.", "custoDeNaoDecidir": "sem isso não há custo, margem, preço nem margem negociável", "diasAberto": 8 },
+    { "id": 4, "assunto": "o pacote do mês tem 12 peças?", "passoExato": "responder o número. A máquina oferece 8; a tabela diz 12.", "custoDeNaoDecidir": "a casa oferece um terço a menos do que entrega, por relógio, todo dia", "diasAberto": 9 },
+    { "id": 5, "assunto": "o valor do mês passado que ele diz estar errado", "passoExato": "abrir o painel financeiro → mês passado → DIZER QUAL VALOR APARECE. Custa 2 minutos e é o passo que falta para responder à cobrança dele.", "custoDeNaoDecidir": "sem o número, qualquer resposta minha sobre faturamento é chute com cara de dado", "diasAberto": 5 },
+    { "id": 6, "assunto": "vídeo entra no cardápio?", "passoExato": "responder sim/não. A edição do vídeo do cliente JÁ ESTÁ construída e ligada. A frase que justificou tirá-lo dos planos em 25/08 — \"a casa não edita\" — é FALSA.", "custoDeNaoDecidir": "produto pronto e não vendido", "diasAberto": 8 },
+    { "id": 7, "assunto": "pedidos sem agência dona na produção", "passoExato": "painel da agência → aba Solicitações → contar os sem cliente vinculado. Responder o número.", "custoDeNaoDecidir": "trava o 5º conserto de dinheiro", "diasAberto": 9 }
+  ],
+
+  "oQueNaoFoiMedido": [
+    "Qualquer número de PRODUÇÃO: clientes, peças, avisos, pedidos órfãos e o FATURAMENTO DO MÊS PASSADO que o CEO cobra há 5 dias. Sem acesso ao banco.",
+    "De qual produto é o `raia-da-chave.ts`. Só medi que NÃO é deste.",
+    "POR QUE o deploy está parado há 93 horas. Medi a parada; não medi a causa nem quem parou.",
+    "Se as 2 falhas de `tsx` também quebram o CI. Só medi nesta máquina, 9º dia com essa lacuna.",
+    "Quantos PRs estão abertos. Ferramentas do GitHub fora há 9 dias.",
+    "Quantos avisos históricos saíram com link morto marcados como \"enviado\".",
+    "Quantos clientes ficam sem aviso por não terem PortalAccess vivo.",
+    "Se existe portão de qualidade para VÍDEO. Não procurei.",
+    "O mercado: preço de concorrente. WebSearch fora.",
+    "Se estes relatórios chegam a alguém. Oito entregues, zero respostas. Pedi confirmação em 06/09 e não houve retorno — não tenho instrumento para distinguir 'lido e despriorizado' de 'canal quebrado'."
+  ]
+}
