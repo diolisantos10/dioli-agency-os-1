@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { canalFoiRetratado } from "@/lib/agency/comercial/retratacao";
+import { resolverConviteDeParceria } from "@/lib/agency/comercial/convite-de-parceria";
 import { createClientRequest, listClientRequests, updateClientRequest, getClientRequest, deleteClientRequest } from "@/lib/agency/persistence/client-request-service";
 import { requireSession } from "@/lib/auth/api-guard";
 import {
@@ -289,8 +290,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
+    // ═══ O CONVITE DO PARCEIRO AMARRA O PEDIDO (29/08/2026) ═══════════════
+    //
+    // ── O DEFEITO, MEDIDO EM PRODUÇÃO COM O CLIENTE 001 NA TELA ───────────
+    // O Marcos entrou pelo link de parceiro, conversou, o briefing subiu — e o
+    // pedido nasceu SEM `clientId`. A proposta dele então leu "cliente
+    // pagante": preço de R$ 290 à vista e botão "Aceitar e começar", para um
+    // parceiro isento autorizado pelo CEO.
+    //
+    // ⚠️ A TRAVA ABAIXO NÃO FOI AFROUXADA, E ISSO É O PONTO. O que entra aqui é
+    // o TOKEN do convite — nunca um `clientId`. Quem diz de quem é o pedido é
+    // `resolverConviteDeParceria`, no SERVIDOR, a mesma função que `/api/sdr/chat`
+    // usa desde 27/08. Token inventado na barra de endereço resolve `null`, e o
+    // pedido nasce órfão exatamente como hoje: o comportamento seguro é o de
+    // sempre, e continua sendo o padrão.
+    //
+    // *A fechadura existia, a porta existia — faltava o convite chegar até aqui.*
+    const conviteDoParceiro = await resolverConviteDeParceria(
+      typeof body.convite === "string" ? body.convite : undefined,
+    ).catch(() => null);
+
     const record = await createClientRequest({
       status: contato.temComoFalar ? "new" : "lead_incompleto",
+      // ⛔ DERIVADO do token pelo servidor, nunca lido do corpo. `undefined`
+      // quando não há convite válido — e aí nada muda.
+      clientId: conviteDoParceiro?.clientId,
       businessName,
       segment:         typeof body.segment        === "string"   ? body.segment          : undefined,
       services:        Array.isArray(body.services)              ? body.services as string[] : [],

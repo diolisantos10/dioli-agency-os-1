@@ -4,7 +4,7 @@ import { useState } from "react";
 import { canalFoiRetratado } from "@/lib/agency/comercial/retratacao";
 import Link from "next/link";
 import { useAgencyStore } from "@/store/agency-store";
-import { PublicBriefingRoom } from "@/components/agency/briefing/PublicBriefingRoom";
+import { PublicBriefingRoom, conviteDaUrl } from "@/components/agency/briefing/PublicBriefingRoom";
 import type { PublicBriefingRoomSubmitData } from "@/components/agency/briefing/PublicBriefingRoom";
 import { LeadNaPorta, type ContatoDaPorta } from "@/components/agency/briefing/LeadNaPorta";
 import { lerNegocio } from "@/lib/agency/comercial/negocio-do-lead";
@@ -91,6 +91,11 @@ export default function BriefingPage() {
           // sabe ler — a tela mostra "Negócio não informado". Ausência de
           // informação não é informação, e sem revisor humano um nome deduzido
           // vira dado inventado no cadastro do cliente.
+          // ⛔ O CONVITE VIAJA NO SUBMIT (29/08/2026) — sem esta linha o pedido
+          // do parceiro nasce órfão e a proposta dele sai COBRANDO. Medido em
+          // produção com o cliente 001. É o token, não o cliente: quem deriva o
+          // dono é o servidor.
+          convite:        conviteDaUrl(),
           businessName:   lerNegocio(data.businessName) ?? "",
           segment:        data.extractedSummary.segment,
           services:       data.extractedSummary.services,
