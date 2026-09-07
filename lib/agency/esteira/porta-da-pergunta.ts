@@ -173,10 +173,32 @@ export async function responderPergunta(input: {
   /** Um número digitado, quando a pergunta pede contagem. */
   numero?: number | null;
 }): Promise<ResultadoDaResposta> {
-  const pedido = await prisma.contentRequest.findFirst({
-    where: { id: input.pedidoId, clientId: input.clientId },
-    select: { id: true, status: true, pendingQuestionJson: true, clientRequestId: true, title: true, taskId: true, projectId: true },
-  }).catch(() => null);
+  // ── FALHA DE BANCO NÃO É FATO SOBRE O PEDIDO (07/09/2026) ────────────────
+  //
+  // Antes: `.catch(() => null)`. Se o banco caísse, `pedido` virava `null` e o
+  // cliente lia **"Pedido não encontrado"** — uma afirmação FALSA sobre o
+  // pedido dele, indistinguível de "esse id não é seu". É a família de defeito
+  // que custou um mês de Google Drive a esta casa: infraestrutura quebrada
+  // virando fato sobre o cliente.
+  //
+  // Agora as duas causas se separam: banco fora → 503 e "tente de novo"; busca
+  // que rodou e não achou → 404. *Ausência de informação não é informação.*
+  const buscarPedido = () =>
+    prisma.contentRequest.findFirst({
+      where: { id: input.pedidoId, clientId: input.clientId },
+      select: { id: true, status: true, pendingQuestionJson: true, clientRequestId: true, title: true, taskId: true, projectId: true },
+    });
+
+  let pedido: Awaited<ReturnType<typeof buscarPedido>>;
+  try {
+    pedido = await buscarPedido();
+  } catch {
+    return {
+      ok: false,
+      erro: "Não consegui consultar seu pedido agora. Tente de novo em instantes.",
+      codigo: 503,
+    };
+  }
 
   // "Não é seu" e "não existe" saem iguais: a distinção já é o vazamento.
   //
