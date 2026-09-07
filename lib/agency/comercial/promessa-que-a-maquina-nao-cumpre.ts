@@ -89,6 +89,62 @@ const PADROES: ReadonlyArray<{ re: RegExp; porque: string }> = [
 ];
 
 /** A despedida que fecha a conversa sem deixar próxima ação. */
+// ═══ A PROMESSA POR TERCEIRO (29/08/2026) ═══════════════════════════════════
+//
+// ── O DEFEITO, MEDIDO COM O CLIENTE 001 NA TELA ────────────────────────────
+// A conversa do primeiro cliente real terminou assim:
+//
+//   *"Já deixei essa observação registrada no seu escopo para a equipe analisar
+//    a viabilidade e entrar em contato para alinhar os detalhes."*
+//
+// E parou. Sem prazo, sem canal, sem dizer se ele espera ali ou pode fechar a
+// janela. O CEO chamou de descaso, e tinha razão.
+//
+// ⚠️ ESTA RÉGUA JÁ EXISTIA E NÃO PEGOU — e é esse o achado, não a frase. Os
+// padrões acima cobrem a promessa em PRIMEIRA pessoa ("eu preparo e te envio").
+// A frase acima terceiriza: **"a equipe" analisa, "a equipe" entra em contato**.
+// Mesma dívida com o cliente, sujeito diferente — e a régua media só um sujeito.
+//
+// *Régua verde sobre o padrão errado é pior que régua nenhuma.*
+//
+// ── POR QUE É PROMESSA SOLTA, e não informação ─────────────────────────────
+// "A equipe entra em contato" só é verdade se ALGUÉM for avisado. Se nada
+// dispara aviso nenhum, a frase é uma dívida que a casa não tem como pagar — e
+// o cliente fica esperando um retorno que não foi agendado por ninguém.
+// *Toda promessa precisa da instrução gêmea, e toda instrução precisa de porta
+// alcançável.*
+const PROMESSA_POR_TERCEIRO: ReadonlyArray<{ re: RegExp; porque: string }> = [
+  {
+    // "a equipe / o time / alguém / nosso pessoal" + "entra em contato / retorna
+    // / responde / avisa" — em qualquer ordem razoável, sem prazo declarado.
+    // ⚠️ O lookahead NEGATIVO separa promessa de INFORMAÇÃO: dispensa quando há
+    // CANAL **ou** PRAZO. A frase do cliente 001 não tinha nenhum dos dois.
+    //
+    // ── POR QUE CANAL SOZINHO AINDA DISPENSA, e isto é deliberado ──────────
+    // O #356 já decidiu que "Nossa equipe entra em contato por este e-mail"
+    // PASSA — o teste dele diz, com todas as letras: *"quem promete é gente, e
+    // gente cumpre"*. Essa decisão é anterior a este conserto e **não é minha
+    // para reverter no meio de um P0**.
+    //
+    // 🚩 E há uma tensão real aqui, levada ao Diretor Geral em 29/08: o CEO
+    // reclamou justamente da falta de PRAZO. Canal sem prazo ainda deixa o
+    // cliente sem saber **se espera ali**. Exigir os dois barraria a frase que
+    // o #356 aprovou — por isso a régua atual pede um OU outro, e a pergunta
+    // "canal basta?" está aberta para quem decide doutrina, não para mim.
+    re: /\b(a|o)?\s*(equipe|time|pessoal|atendimento|consultor\w*|algu[ée]m)\b[^.!?\n]{0,60}?\b(entra\s+em\s+contato|entrar[áa]?\s+em\s+contato|retorna|retornar[áa]?|responde|responder[áa]?|te\s+avisa|avisar[áa]?|te\s+procura)\b(?![^.!?\n]{0,90}\b(por\s+(este\s+|esse\s+)?e-?mail|por\s+whats\w*|por\s+aqui|neste\s+chat|em\s+at[ée]|at[ée]\s+\d|prazo|hoje|amanh[ãa]|\d+\s*(h\b|horas|dias?|dia\s+[úu]til))\b)/gi,
+    porque:
+      "promete que ALGUÉM entra em contato. Se nada avisa essa pessoa, é dívida que a casa não paga — " +
+      "e o cliente fica esperando um retorno que ninguém agendou.",
+  },
+  {
+    // "vou levar para a equipe / vou passar para o time" sem dizer o que
+    // acontece depois.
+    re: /\b(vou\s+)?(levar|passar|encaminhar|repassar)\s+(isso\s+|essa\s+\w+\s+|o\s+\w+\s+)?(para|pra|ao|à)\s+(a\s+|o\s+)?(equipe|time|pessoal|dire[çc][ãa]o|CEO)\b(?![^.!?\n]{0,90}\b(em\s+at[ée]|prazo|hoje|amanh[ãa]|\d+\s*(h\b|horas|dias?))\b)/gi,
+    porque:
+      "encaminha para alguém e não diz o que acontece depois nem quando — o cliente sai sem saber se espera ali.",
+  },
+];
+
 const DESPEDIDAS = /\b(estou|fico|estamos|ficamos)\s+(à|a)\s+disposi[çc][ãa]o\b|\bqualquer\s+d[úu]vida,?\s+(é\s+)?s[óo]\s+chamar\b|\bat[ée]\s+(logo|breve)\b/gi;
 
 /** Acha as promessas soltas no texto. Lista vazia = pode falar. */
@@ -96,7 +152,7 @@ export function promessasSoltas(texto: string | null | undefined): PromessaSolta
   const t = (texto ?? "").trim();
   if (!t) return [];
   const achadas: PromessaSolta[] = [];
-  for (const { re, porque } of PADROES) {
+  for (const { re, porque } of [...PADROES, ...PROMESSA_POR_TERCEIRO]) {
     for (const m of t.matchAll(re)) {
       achadas.push({ trecho: m[0].trim(), porque });
     }
@@ -130,7 +186,16 @@ export const O_QUE_DIZER_NO_LUGAR =
   "Não prometa que você envia o orçamento: nada dispara esse envio sozinho. " +
   "Diga o que é verdade e o que depende dele — 'Seu escopo está pronto. " +
   "Confira o resumo e confirme para a casa calcular o seu orçamento' — e aponte " +
-  "o botão. Se não houver botão, não se despeça: escale para a equipe dizendo isso.";
+  "o botão. Se não houver botão, não se despeça: escale para a equipe dizendo isso. " +
+  // ── A METADE QUE FALTAVA (29/08/2026) ────────────────────────────────────
+  // O cliente 001 saiu sem saber se esperava ali. Proibir "a equipe entra em
+  // contato" sem dizer o que falar no lugar empurraria o modelo para outra
+  // frase igualmente vazia.
+  "E NUNCA prometa que 'a equipe entra em contato': se você precisa levar algo " +
+  "a uma pessoa, diga as três coisas que ele precisa para não ficar no escuro — " +
+  "POR ONDE vem a resposta, EM QUANTO TEMPO, e se ele pode fechar a janela. " +
+  "Prazo só se a casa cumprir; se você não sabe o prazo, diga que não sabe e " +
+  "diga por onde ele será avisado.";
 
 /**
  * Substitui a promessa pela verdade, preservando o resto da fala.
