@@ -6,6 +6,85 @@
 > Decisão que serve a **mais de um projeto** não mora aqui: vai como proposta ao
 > **Diretor Geral do Cérebro**, no `dioli-brain-kit`.
 
+
+---
+
+## O PARCEIRO ESPERANDO NA TELA REVELOU QUATRO DEFEITOS DE DINHEIRO — E O PIOR ESTAVA CALADO HÁ CINCO DIAS
+
+**Decidido em** 2026-08-30 (madrugada) · **por** o CEO e o Diretor Geral, executado
+pela sala do piloto · **origem:** o parceiro Foocci esperando na página da proposta,
+cobrado indevidamente, depois de **quatro** promessas de retorno não cumpridas.
+
+**A conclusão primeiro:** nenhum dos quatro defeitos era "faltava construir". Nos
+quatro, a peça **existia**, e o que faltava era o **elo** — a maçaneta na porta que
+já tinha fechadura. É a assinatura desta casa, e ela custou um parceiro real
+esperando na tela.
+
+### As decisões que atravessam domínios
+
+- **A NEGOCIAÇÃO DE PREÇO ESTAVA MORTA HAVIA CINCO DIAS, EM SILÊNCIO.** A tabela de
+  preço fechado (25/08) fez `minPrice === maxPrice` por construção, e a trava do
+  desconto era `newTotal >= totalMin && newTotal < totalMax` — **condição impossível
+  de satisfazer**. O SDR prometia "condição especial" e **nunca conseguiu conceder um
+  centavo a ninguém**. *Uma decisão certa (preço fechado) matou outra decisão certa
+  (desconto com piso) na junta entre as duas, e nenhum teste falhou — porque nenhum
+  teste perguntava se a faixa ainda existia.* **Regra nova: mudança que colapsa uma
+  faixa tem de quebrar quem depende da faixa, e não emudecer.**
+
+- **UMA PEÇA, UM PREÇO.** A casa tinha **três** preços vivos para a mesma peça —
+  R$ 90 (`planos.ts`), R$ 190/290 (avulso) e R$ 79/129 (balcão) — enquanto o
+  embutido no plano era ~R$ 20. Decisão do Diretor Geral: **R$ 55, fonte única**, e
+  `PECA_EXTRA` morre. *Verdade escrita em três lugares já está errada em dois.*
+
+- **TETO DE ENTREGA NÃO É TETO DE VENDA — E A TELA DO CLIENTE NÃO SE SOBRESCREVE.**
+  O código respondia *"não vendemos esse volume"* e *"36/mês (você pediu 28)"* — na
+  sala de briefing **pública**, na tela do próprio cliente. Ordem do CEO: *"se o
+  cliente quiser trezentos carrosséis por dia, a gente vai ter que dar um jeito"*.
+  Passa a sair **preço + prazo**, sempre. **O preset vira oferta ("te dá mais peças
+  por menos, quer?"), nunca encaixe.** O teto de produção continua verdadeiro — ele
+  vira **prazo e decisão do CEO**, jamais recusa automática.
+
+- **REVERSÃO DE DOUTRINA ASSUMIDA, NÃO APAGADA.** Em 27/08 a casa proibiu estampar
+  o número pedido pelo cliente, porque **parecia contrato**. Em 30/08 o CEO mandou
+  dar preço ao que o cliente pediu. **Mesma tela, mesmo cliente, três dias.** As duas
+  posições tinham razão, e a saída foi reconciliar: mostra o pedido **com preço**, e
+  o que a guarda antiga defende (não parecer contrato, nunca "a definir") continua
+  defendido. **Cada asserção alterada explica no próprio teste por que mudou.**
+  *Guarda que se apaga para ficar verde é a dívida mais cara desta casa.*
+
+- **PROMESSA SÓ SAI COM FECHADURA.** O SDR dizia *"vou conferir com o gerente"* e
+  *"trago ainda hoje"* sem que existisse gerente, pedido de aprovação, tarefa, prazo
+  ou dono. A trava **já existia e já estava ligada** — e **as seis frases reais
+  passavam**. Agora a promessa registra compromisso com dono e prazo no mesmo ato; não
+  registrou, **a frase não sai**.
+
+- **CANCELAR DEIXA DE SER MUDO.** Aprovar, ajustar e recusar avisavam alguém.
+  Cancelar gravava um status que **nenhuma tela lia**, e a produção seguia — a casa
+  pagando IA por peça que ninguém ia usar. Junto, fechou uma **corrida** que ninguém
+  tinha visto: a peça cancelada no meio da rodada era publicada assim mesmo.
+
+### As lições de método, que valem além destes defeitos
+
+- **A frase composta esconde o buraco da frase simples.** A sonda da promessa deu
+  verde na mensagem inteira e vermelho em cada oração isolada. *Régua que testa o
+  todo pode esconder o furo da parte.*
+- **Régua verde que não pega a regressão é pior que régua nenhuma.** A trava do preço
+  congelado nasceu **falsa**: o teste batia num banco real, mas nunca chamava a
+  função duas vezes, e `COALESCE(NULL, ?)` é igual a `?`.
+- **Preço forçado para bater com a expectativa é a mentira mais cara que um sistema
+  conta.** Pediram R$ 700; nenhuma régua da casa produz R$ 700 (dá R$ 790). O
+  especialista **parou e trouxe a conta** em vez de inventar uma curva.
+- **Antes de pedir ação humana, confira se o mecanismo já tem saída.** O Diretor
+  escalou ao CEO uma colisão de reivindicação que **expira sozinha em 24h**, por regra
+  própria da casa. *Pedir ajuda desnecessária gasta a atenção que a urgência real vai
+  precisar.*
+- **Reivindicação forçada tem custo coletivo.** A forçada do Diretor deixou o
+  sentinela vermelho para **todos os PRs da casa**. Foi encerrada assim que medida:
+  o custo dos outros era maior que o benefício próprio.
+- **Especialista que não pode rodar o portão precisa DIZER isso no topo.** Nesta
+  sessão, três relatos apresentaram raciocínio declarado como raciocínio — e foi por
+  isso que os furos apareceram no portão do Diretor, e não no cliente.
+
 ---
 
 ## A JUNTA ENTRE DUAS DECISÕES CERTAS ENTOPE A FILA DE ORÇAMENTO; UM NÚMERO PÚBLICO ERA MANIPULÁVEL; O DIRETOR TRAVOU O RESET DE PRODUÇÃO
