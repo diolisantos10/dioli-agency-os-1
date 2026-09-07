@@ -27,6 +27,26 @@ vi.mock("@/lib/security/navegacao-cross-site", () => ({
 vi.mock("@/lib/agency/financeiro/conceder-isencao", () => ({
   concederIsencaoDeParceria: lib.conceder,
 }));
+// ── POR QUE ESTE ARQUIVO GANHOU UM DUBLÊ DE POSSE (29/08/2026) ─────────────
+//
+// O assunto DESTE arquivo são as GUARDAS da rota (dono da sessão, fail-closed,
+// idempotência, respostas) — nunca a posse. Sem dublê, `solicitacaoDoWorkspace`
+// caía no Prisma de verdade, não achava "req_foocci" em nenhum banco e a rota
+// devolvia 404 em todo caso que passasse das guardas, mascarando o que este
+// arquivo existe para provar.
+//
+// A POSSE NÃO FICOU SEM PROVA: ela é exercitada, de verdade, contra um banco
+// fiel ao `where`, em `__tests__/seguranca/posse-nas-cinco-rotas-de-pagamento-e-
+// parceria.test.ts` (bloco "POST /api/admin/isencoes-de-parceria"), inclusive o
+// caso do clientRequestId do vizinho devolvendo 404. Dublar o Prisma aqui só
+// para este arquivo, honrando o `where`, duplicaria aquela prova sem acrescentar
+// trava nova — por isso a escolha foi dublar `@/lib/auth/posse-de-workspace`
+// (mantendo `naoEncontrado` real, via `importOriginal`), e não o módulo de
+// posse inteiro sem motivo declarado.
+vi.mock("@/lib/auth/posse-de-workspace", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/auth/posse-de-workspace")>()),
+  solicitacaoDoWorkspace: vi.fn(async () => true),
+}));
 
 const { POST } = await import("@/app/api/admin/isencoes-de-parceria/route");
 

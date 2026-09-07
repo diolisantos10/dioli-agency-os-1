@@ -37,6 +37,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, isAgencyRole } from "@/lib/auth/session";
 import { deveBloquearMutacaoCrossSite } from "@/lib/security/navegacao-cross-site";
+import { solicitacaoDoWorkspace, naoEncontrado } from "@/lib/auth/posse-de-workspace";
 import { registrarPagamento } from "@/lib/agency/financeiro/portao-de-pagamento";
 
 const MAX_OBSERVACAO = 500;
@@ -64,6 +65,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       { status: 400 },
     );
   }
+
+  // POSSE ANTES DA ESCRITA. O `clientRequestId` já foi validado como presente
+  // acima; a partir daqui, "não é seu" e "não existe" são a mesma porta fechada.
+  if (!(await solicitacaoDoWorkspace(clientRequestId, session.workspaceId))) return naoEncontrado();
 
   // ⚠️ CENTAVOS, inteiro. Dinheiro em ponto flutuante é erro de arredondamento
   // com nome de bug. E o zero é recusado AQUI, não só no portão: esta casa já

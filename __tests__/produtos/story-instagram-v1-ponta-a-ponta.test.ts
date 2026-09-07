@@ -281,10 +281,25 @@ vi.mock("@/lib/ai/design-engine", () => ({
 
 // PARCIAL de propósito: só `getSession` é encenado. `isAgencyRole` — a régua de
 // PERMISSÃO — continua sendo a real e continua julgando o papel de verdade.
+//
+// ── 29/08/2026: `workspaceId: null` ERA UM ESTADO IMPOSSÍVEL ───────────────
+//
+// `Session.workspaceId` é `string`, não nulável — login de verdade nunca
+// devolve sessão de agência sem workspace. Um dublê que encena esse estado
+// impossível não testa a rota de sessão contra o que a autenticação real
+// produz; ele testa contra algo que não existe, e um teste que passa sobre um
+// estado impossível não protege nada.
+//
+// O `workspaceId` real do workspace criado por esta suíte (`beforeAll`, mais
+// abaixo) é lido de forma PREGUIÇOSA — dentro da função `async () => ({...})`,
+// nunca no corpo do módulo — porque `vi.mock` é içado e roda antes de
+// `let workspaceId = ""` ser inicializado. A leitura só acontece quando
+// `getSession()` é de fato chamada, já dentro de um `it`, depois do
+// `beforeAll` ter preenchido a variável.
 vi.mock("@/lib/auth/session", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/auth/session")>()),
   getSession: vi.fn(async () => ({
-    userId: "op-1", role: "master", workspaceId: null, clientId: null, email: "operador@dioli.test",
+    userId: "op-1", role: "master", workspaceId, clientId: null, email: "operador@dioli.test",
   })),
 }));
 
