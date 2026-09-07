@@ -32,6 +32,10 @@ export async function POST(request: NextRequest, ctx: { params: Promise<Params> 
     // um dia alguém vai perguntar quem mandou refazer, e a resposta tem de ser
     // confiável.
     quemReprovou: session.name?.trim() || session.email?.trim() || "equipe",
+    // ⛔ Da SESSÃO. Sem isto a rota alcançava a peça de qualquer inquilino
+    // (varredura de 28/08) — e o motivo virava proibição de marca no cliente
+    // alheio.
+    workspaceId: session.workspaceId,
   });
 
   // 422 e não 400: o pedido está bem formado, o que falta é conteúdo — e a

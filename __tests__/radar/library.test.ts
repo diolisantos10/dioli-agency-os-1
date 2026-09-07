@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const db = vi.hoisted(() => ({
-  marketInsight: { create: vi.fn(), update: vi.fn(), updateMany: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
+  marketInsight: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), updateMany: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
 }));
 vi.mock("@/lib/db/client", () => ({ prisma: db }));
 
@@ -11,6 +11,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   db.marketInsight.updateMany.mockResolvedValue({ count: 0 });
   db.marketInsight.update.mockResolvedValue({});
+  db.marketInsight.updateMany.mockResolvedValue({ count: 1 });
   db.marketInsight.create.mockImplementation(async ({ data }: { data: { status: string } }) => ({ id: "i1", status: data.status }));
 });
 
@@ -52,11 +53,11 @@ describe("Radar Dioli — biblioteca (governança oficial vs tendência)", () =>
   });
 
   it("aprovar tendência pendente → entra em vigor e supersede o tópico", async () => {
-    db.marketInsight.findUnique.mockResolvedValue({ workspaceId: "ws1", topic: "trend-x", status: "pending" });
-    const ok = await approveInsight("i1", "diego");
+    db.marketInsight.findFirst.mockResolvedValue({ workspaceId: "ws1", topic: "trend-x", status: "pending" });
+    const ok = await approveInsight("i1", "diego", "ws-1");
     expect(ok).toBe(true);
     expect(db.marketInsight.updateMany).toHaveBeenCalled(); // arquivou o tópico
-    expect(db.marketInsight.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: "active", approvedBy: "diego" }) }));
+    expect(db.marketInsight.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: "active", approvedBy: "diego" }) }));
   });
 
   it("getActiveInsights busca ativos do domínio + general", async () => {

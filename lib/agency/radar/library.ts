@@ -102,16 +102,22 @@ export async function addInsight(input: AddInsightInput): Promise<{ id: string; 
 }
 
 /** Aprova uma tendência pendente (validação humana) → entra em vigor e supersede o tópico. */
-export async function approveInsight(id: string, approvedBy: string): Promise<boolean> {
-  const insight = await prisma.marketInsight.findUnique({ where: { id }, select: { workspaceId: true, topic: true, status: true } });
+/**
+ * ⛔ `workspaceId` OBRIGATÓRIO (varredura de 28/08). Sem ele, uma agência
+ * aprovava o insight de outra — e `archiveActiveTopic` usava o workspace LIDO
+ * do insight alheio, mexendo na biblioteca do vizinho.
+ */
+export async function approveInsight(id: string, approvedBy: string, workspaceId: string): Promise<boolean> {
+  const insight = await prisma.marketInsight.findFirst({ where: { id, workspaceId }, select: { workspaceId: true, topic: true, status: true } });
   if (!insight || insight.status !== "pending") return false;
   await archiveActiveTopic(insight.workspaceId, insight.topic);
-  await prisma.marketInsight.update({ where: { id }, data: { status: "active", approvedBy, approvedAt: new Date() } });
+  await prisma.marketInsight.updateMany({ where: { id, workspaceId }, data: { status: "active", approvedBy, approvedAt: new Date() } });
   return true;
 }
 
-export async function rejectInsight(id: string, by: string): Promise<boolean> {
-  const r = await prisma.marketInsight.updateMany({ where: { id, status: "pending" }, data: { status: "rejected", approvedBy: by } });
+/** ⛔ `workspaceId` OBRIGATÓRIO — mesma razão de `approveInsight`. */
+export async function rejectInsight(id: string, by: string, workspaceId: string): Promise<boolean> {
+  const r = await prisma.marketInsight.updateMany({ where: { id, workspaceId, status: "pending" }, data: { status: "rejected", approvedBy: by } });
   return r.count > 0;
 }
 

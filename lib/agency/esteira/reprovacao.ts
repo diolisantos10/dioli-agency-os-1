@@ -88,6 +88,15 @@ export async function reprovarPeca(input: {
   motivo: string;
   /** Quem disse não. Entra no registro porque um dia alguém vai perguntar. */
   quemReprovou: string;
+  /**
+   * ⛔ O WORKSPACE DE QUEM ESTÁ REPROVANDO — da SESSÃO, nunca do corpo.
+   *
+   * Sem ele, `findUnique({ where: { id } })` alcançava a peça de QUALQUER
+   * inquilino: um `social_staff` da agência A reprovava o post da agência B —
+   * e, pior, o motivo dele virava **proibição de marca no cliente da B**.
+   * Escrita alheia que vira regra permanente (varredura de 28/08).
+   */
+  workspaceId: string;
 }): Promise<ReprovacaoRegistrada> {
   const motivo = (input.motivo ?? "").trim();
   const quem = (input.quemReprovou ?? "").trim();
@@ -102,8 +111,10 @@ export async function reprovarPeca(input: {
     );
   }
 
-  const post = await prisma.socialPost.findUnique({
-    where: { id: input.postId },
+  const post = await prisma.socialPost.findFirst({
+    // ⛔ O id VEM DA URL; o workspace vem da sessão. Buscar só por id fazia
+    // desta rota uma porta para a peça de qualquer outro inquilino.
+    where: { id: input.postId, workspaceId: input.workspaceId },
     select: { id: true, workspaceId: true, clientId: true },
   }).catch(() => null);
   if (!post) return recusar("não encontrei esta peça");

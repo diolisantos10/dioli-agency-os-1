@@ -20,7 +20,7 @@ export async function POST(
 
   const { id } = await context.params;
   try {
-    await applyBrainUpdate(id);
+    await applyBrainUpdate(id, session.workspaceId);
     return NextResponse.json({ ok: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Falha ao aplicar atualização.";

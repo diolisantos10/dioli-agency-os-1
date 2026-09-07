@@ -13,7 +13,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 const db = vi.hoisted(() => ({
-  socialPost: { findUnique: vi.fn(), update: vi.fn() },
+  // `reprovarPeca` usa findFirst (agora filtra workspace); `historicoDaPeca`
+  // ainda usa findUnique — os dois precisam existir no dublê.
+  socialPost: { findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   activityEvent: { count: vi.fn(), create: vi.fn() },
 }));
 vi.mock("@/lib/db/client", () => ({ prisma: db }));
@@ -30,6 +32,9 @@ const MOTIVO = "nunca escreva o nome da marca em texto gigante na capa";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  db.socialPost.findFirst.mockResolvedValue({ id: "p1", workspaceId: "ws1", clientId: "c1" });
+  // `historicoDaPeca` ainda busca por `findUnique` — ver a dívida declarada no
+  // documento da varredura de 28/08 (é LEITURA de histórico, não escrita).
   db.socialPost.findUnique.mockResolvedValue({ id: "p1", workspaceId: "ws1", clientId: "c1" });
   db.socialPost.update.mockResolvedValue({});
   db.activityEvent.count.mockResolvedValue(0);
@@ -39,7 +44,7 @@ beforeEach(() => {
 
 describe("sem motivo não reprova — e essa é a regra inteira", () => {
   it("motivo vazio é RECUSADO, e nada acontece com a peça", async () => {
-    const r = await reprovarPeca({ postId: "p1", motivo: "", quemReprovou: "Dioli" });
+    const r = await reprovarPeca({ postId: "p1", motivo: "", quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(r.ok).toBe(false);
     expect(r.recusa).toMatch(/escreva o que está errado/i);
     expect(db.socialPost.update).not.toHaveBeenCalled();
@@ -49,20 +54,20 @@ describe("sem motivo não reprova — e essa é a regra inteira", () => {
   it('resmungo curto — "ruim", "feio" — também não passa', async () => {
     // Resmungo não vira regra que o produtor consiga obedecer.
     for (const resmungo of ["ruim", "feio", "não gostei", "nao"]) {
-      const r = await reprovarPeca({ postId: "p1", motivo: resmungo, quemReprovou: "Dioli" });
+      const r = await reprovarPeca({ postId: "p1", motivo: resmungo, quemReprovou: "Dioli" , workspaceId: "ws-1"});
       expect(r.ok, `"${resmungo}" passou`).toBe(false);
     }
     expect(MINIMO_DO_MOTIVO).toBeGreaterThan(4);
   });
 
   it("reprovação sem autor não é registro", async () => {
-    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "  " });
+    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "  " , workspaceId: "ws-1"});
     expect(r.ok).toBe(false);
     expect(r.recusa).toMatch(/assinar/i);
   });
 
   it("A METADE OPOSTA: com motivo de verdade, reprova e registra", async () => {
-    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" });
+    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(r.ok).toBe(true);
     expect(r.recusa).toBeNull();
   });
@@ -70,26 +75,26 @@ describe("sem motivo não reprova — e essa é a regra inteira", () => {
 
 describe("o motivo vira REGRA — é isto que impede a peça 3 de repetir a peça 1", () => {
   it("o que foi dito na reprovação vira proibição do cliente", async () => {
-    await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" });
+    await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(proib.registrarProibicoes).toHaveBeenCalledWith("c1", MOTIVO, "equipe");
   });
 
   it("e a resposta diz ao humano o que passou a valer", async () => {
-    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" });
+    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(r.proibicoesNovas).toContain("texto gigante");
     expect(r.paraQuemReprovou).toContain("texto gigante");
   });
 
   it("quando nenhuma regra sai da frase, ele DIZ isso em vez de fingir que aprendeu", async () => {
     proib.registrarProibicoes.mockResolvedValue({ novas: [], total: 0 });
-    const r = await reprovarPeca({ postId: "p1", motivo: "achei que ficou fraco demais para o público", quemReprovou: "Dioli" });
+    const r = await reprovarPeca({ postId: "p1", motivo: "achei que ficou fraco demais para o público", quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(r.ok).toBe(true);
     expect(r.paraQuemReprovou).toMatch(/não consegui extrair uma regra/i);
   });
 
   it("peça sem cliente não quebra — o registro vale, a proibição não tem dono", async () => {
-    db.socialPost.findUnique.mockResolvedValue({ id: "p1", workspaceId: "ws1", clientId: null });
-    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" });
+    db.socialPost.findFirst.mockResolvedValue({ id: "p1", workspaceId: "ws1", clientId: null });
+    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(r.ok).toBe(true);
     expect(proib.registrarProibicoes).not.toHaveBeenCalled();
     expect(db.activityEvent.create).toHaveBeenCalled();
@@ -98,14 +103,14 @@ describe("o motivo vira REGRA — é isto que impede a peça 3 de repetir a peç
 
 describe("a volta é contada, e na terceira vira gente", () => {
   it("primeira reprovação é a volta 1", async () => {
-    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" });
+    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(r.volta).toBe(1);
     expect(r.escalado).toBe(false);
   });
 
   it("a contagem vem do HISTÓRICO, não de um campo que alguém zera sem querer", async () => {
     db.activityEvent.count.mockResolvedValue(1);
-    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" });
+    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(r.volta).toBe(2);
     const where = db.activityEvent.count.mock.calls[0]![0].where;
     expect(where.type).toBe(EVENTO_DE_REPROVACAO);
@@ -114,7 +119,7 @@ describe("a volta é contada, e na terceira vira gente", () => {
 
   it("na terceira volta a máquina PARA de tentar", async () => {
     db.activityEvent.count.mockResolvedValue(VOLTAS_ATE_VIRAR_GENTE - 1);
-    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" });
+    const r = await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(r.escalado).toBe(true);
     expect(r.paraQuemReprovou).toMatch(/não vai tentar de novo/i);
     expect(r.paraQuemReprovou).toMatch(/reescrever o pedido/i);
@@ -123,7 +128,7 @@ describe("a volta é contada, e na terceira vira gente", () => {
 
 describe("o registro carrega a evidência, e a peça sai da fila", () => {
   it("o motivo inteiro entra no evento — alerta sem o caso concreto é ruído", async () => {
-    await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" });
+    await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     const dados = db.activityEvent.create.mock.calls[0]![0].data;
     expect(dados.type).toBe(EVENTO_DE_REPROVACAO);
     expect(dados.message).toContain(MOTIVO);
@@ -133,15 +138,15 @@ describe("o registro carrega a evidência, e a peça sai da fila", () => {
 
   it("peça reprovada VOLTA para rascunho e perde a data — não vai ao ar sozinha", async () => {
     // Deixá-la agendada faria uma peça que alguém já recusou subir na hora marcada.
-    await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" });
+    await reprovarPeca({ postId: "p1", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     const dados = db.socialPost.update.mock.calls[0]![0].data;
     expect(dados.status).toBe("draft");
     expect(dados.scheduledFor).toBeNull();
   });
 
   it("peça que não existe é recusada sem escrever nada", async () => {
-    db.socialPost.findUnique.mockResolvedValue(null);
-    const r = await reprovarPeca({ postId: "x", motivo: MOTIVO, quemReprovou: "Dioli" });
+    db.socialPost.findFirst.mockResolvedValue(null);
+    const r = await reprovarPeca({ postId: "x", motivo: MOTIVO, quemReprovou: "Dioli" , workspaceId: "ws-1"});
     expect(r.ok).toBe(false);
     expect(db.socialPost.update).not.toHaveBeenCalled();
   });

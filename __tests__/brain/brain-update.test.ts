@@ -13,7 +13,10 @@ const updateUpdate = vi.fn();
 
 vi.mock("@/lib/db/client", () => ({
   prisma: {
-    clientRequestDb: { findUnique: (...a: unknown[]) => requestFindUnique(...a) },
+    // A posse do BrainUpdate é DERIVADA do pedido (varredura de 28/08): o
+    // aplicador confere que a solicitação é do workspace de quem chamou. Aqui o
+    // dono existe — os casos deste arquivo são todos do próprio inquilino.
+    clientRequestDb: { findFirst: vi.fn(async () => ({ id: "req-1" })), findUnique: (...a: unknown[]) => requestFindUnique(...a) },
     brandBrain: {
       findUnique: (...a: unknown[]) => brandFindUnique(...a),
       upsert: (...a: unknown[]) => brandUpsert(...a),
@@ -73,7 +76,7 @@ describe("applyBrainUpdate", () => {
     brandUpsert.mockResolvedValue({});
     updateUpdate.mockResolvedValue({});
 
-    await applyBrainUpdate("upd1");
+    await applyBrainUpdate("upd1", "ws-1");
 
     expect(brandUpsert).toHaveBeenCalledOnce();
     const upsertArg = brandUpsert.mock.calls[0][0];
@@ -89,13 +92,13 @@ describe("applyBrainUpdate", () => {
       id: "upd1", clientRequestId: "req1", department: "strategy",
       fieldChanged: "positioning", proposedValue: "X", status: "applied",
     });
-    await expect(applyBrainUpdate("upd1")).rejects.toThrow(/already applied/);
+    await expect(applyBrainUpdate("upd1", "ws-1")).rejects.toThrow(/already applied/);
     expect(brandUpsert).not.toHaveBeenCalled();
   });
 
   it("unknown update id throws", async () => {
     updateFindUnique.mockResolvedValue(null);
-    await expect(applyBrainUpdate("nope")).rejects.toThrow(/not found/);
+    await expect(applyBrainUpdate("nope", "ws-1")).rejects.toThrow(/not found/);
   });
 
   it("refuses to apply when the field is not a writable BrandBrain column", async () => {
@@ -104,7 +107,7 @@ describe("applyBrainUpdate", () => {
       fieldChanged: "preferredChannels", proposedValue: "Instagram", status: "pending",
     });
     requestFindUnique.mockResolvedValue({ id: "req1", clientId: "cli1" });
-    await expect(applyBrainUpdate("upd2")).rejects.toThrow(/Cannot apply/);
+    await expect(applyBrainUpdate("upd2", "ws-1")).rejects.toThrow(/Cannot apply/);
     expect(brandUpsert).not.toHaveBeenCalled();
   });
 });

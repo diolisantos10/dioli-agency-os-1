@@ -73,8 +73,32 @@ export async function proposeBrainUpdate(params: {
   return { id: rec.id };
 }
 
-export async function applyBrainUpdate(updateId: string): Promise<void> {
+/**
+ * ⛔ `workspaceId` OBRIGATÓRIO — da sessão, nunca do corpo (varredura de 28/08).
+ *
+ * A busca era `findUnique({ where: { id } })`: qualquer papel de agência
+ * aplicava a atualização de marca de um cliente de OUTRO inquilino. É escrita
+ * na ficha que a produção lê para escrever a peça do cliente.
+ */
+export async function applyBrainUpdate(updateId: string, workspaceId: string): Promise<void> {
   const update = await prisma.brainUpdate.findUnique({ where: { id: updateId } });
+
+  // ⛔ A POSSE É DERIVADA DO PEDIDO. `BrainUpdate` não carrega `workspaceId` —
+  // ele aponta `clientRequestId`, e é a solicitação que tem dono. Conferir aqui,
+  // e não confiar em quem chamou, é o que fecha a porta: sem isto qualquer papel
+  // de agência aplicava a atualização de marca de um cliente de OUTRO inquilino
+  // (varredura de 28/08), e a ficha de marca é o que a produção lê para escrever
+  // a peça do cliente.
+  //
+  // ⚠️ Silêncio de propósito: devolve como se não existisse, sem dizer que
+  // existe e é de outra conta — confirmar a existência já é vazamento.
+  if (update) {
+    const dono = await prisma.clientRequestDb.findFirst({
+      where: { id: update.clientRequestId, workspaceId },
+      select: { id: true },
+    });
+    if (!dono) throw new Error("Brain update not found");
+  }
   if (!update) throw new Error(`BrainUpdate ${updateId} not found`);
   // Idempotency guard — an already-applied update can never be applied twice.
   if (update.status === "applied") {
