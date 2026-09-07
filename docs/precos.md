@@ -127,13 +127,13 @@ projeto pode ser a primeira compra.
 
 | Serviço | Preço | Observação |
 |---|---|---|
-| Carrossel até 6 telas | R$ 290 | R$ 180 como excedente dentro do plano |
+| Carrossel até 6 telas | R$ 290 | R$ 90 como excedente dentro do plano (ver ressalva abaixo) |
 | Post único com arte e legenda | R$ 190 | |
 | Sequência de stories (3 telas) | R$ 190 | incluída a partir do Conteúdo |
-| Criativo de anúncio | R$ 320 | 3/mês no Crescimento |
+| Criativo de anúncio | R$ 320 | ⚠️ vendia "3/mês no Crescimento" — esse plano saiu em 26/08/2026; hoje só existe como item avulso |
 | Roteiro de reel | R$ 290 | 4/mês a partir do Conteúdo |
-| **Edição do vídeo do cliente (60s)** | **R$ 350** | sempre à parte · pacote de 4: R$ 1.200 |
-| **Vídeo gerado por IA (15s)** | **R$ 690** | sempre à parte · pacote de 4: R$ 2.400 |
+| **Edição do vídeo do cliente (60s)** | **R$ 350** | ✅ **TEM produtor, pode vender.** Confirmado em 30/08/2026: `montarReel` (`lib/agency/execution/artes.ts`), acionado por `despertador.ts`, chama `editarParaReel` (`lib/agency/media/video.ts`), que corta em 9:16 e normaliza o áudio (`loudnorm`) via `ffmpeg` de verdade. Ressalva: depende do binário `ffmpeg` existir no ambiente — sem ele, o editor devolve erro legível em vez de travar (`ffmpegDisponivel()`). Sempre à parte · pacote de 4: R$ 1.200 |
+| **Vídeo gerado por IA (15s)** | **R$ 690** | ⛔ **NÃO VENDÁVEL. Não cotar.** Apurado em 30/08/2026: não existe produtor no código para vídeo GERADO (só para edição de vídeo que o cliente já mandou, linha acima). `lib/agency/planos.ts` e `FORA_DE_TODO_PLANO` já dizem isso desde 24–25/08 ("a casa não produz vídeo hoje — em nenhum plano, em nenhuma forma"); esta linha da tabela por serviço tinha ficado para trás. Fica registrado em vez de apagado — quando houver quem produza, entra na tabela. Até lá, quem vender isto está vendendo o que a casa não entrega. |
 | Leitura do perfil do cliente | R$ 690 | incluída na entrada de todo plano |
 | Posicionamento de marca | R$ 3.900 | projeto, 3x |
 | Identidade visual | R$ 2.900 | projeto, 3x |
@@ -150,16 +150,30 @@ WhatsApp do cliente R$ 490/mês · SEO local R$ 690/mês.
 
 ## As regras sem as quais o preço não sobrevive
 
-- **Excedente:** peça além do contratado R$ 180; pedido avulso mínimo R$ 750.
+- **Excedente:** peça além do contratado R$ 90 (`PECA_EXTRA` em `lib/agency/planos.ts`);
+  pedido avulso mínimo R$ 750.
+  > ⚠️ **Divergência achada e corrigida em 30/08/2026:** esta linha dizia
+  > R$ 180, e a linha "Carrossel até 6 telas" (tabela acima) também dizia
+  > "R$ 180 como excedente dentro do plano". Não existe nenhum R$ 180 no código
+  > — `PECA_EXTRA = 90` é o único valor de peça excedente que a esteira
+  > conhece, sem distinção por tipo de peça. Corrigido para bater com o código;
+  > a linha do carrossel foi ajustada junto.
 - **Ajustes:** 2 rodadas por peça (3 a partir do Conteúdo). Aprovação em até 2
   dias úteis; passado isso a peça segue para a data agendada.
 - **Permanência:** 3 meses até o Presença, 6 do Conteúdo em diante. Pausa máxima
   de 30 dias por ciclo. Reajuste anual por IPCA.
-- **Desconto tem chão, e o chão é número.** Decidido em 05/08/2026, quando o CEO
-  definiu que o objetivo do comercial é FECHAR todo cliente sem prejuízo: cada
-  item tem um piso calculado (`lib/agency/comercial/negociacao.ts`), e a
-  mensalidade pode descer até ele — Ritmo R$ 229, Presença R$ 690, Conteúdo
-  R$ 1.190, Crescimento R$ 2.190.
+- **Desconto tem chão, e hoje o chão é o próprio preço de tabela.** Decidido em
+  05/08/2026, quando o CEO definiu que o objetivo do comercial é FECHAR todo
+  cliente sem prejuízo. Isso mudou em 27/08/2026: o desconto de 22% que existia
+  aqui (Ritmo R$ 229, Presença R$ 690, Conteúdo R$ 1.190, Crescimento R$ 2.190
+  — e o Crescimento nem existe mais) **não tinha sido autorizado por ninguém** e
+  foi removido. Hoje o piso vem de `lib/agency/financeiro/tabela-de-precos.ts`,
+  e ele só desce abaixo do preço cheio quando **duas coisas** existirem ao mesmo
+  tempo: uma faixa de desconto que o CEO autorizou por item, **e** o custo do
+  item medido de ponta a ponta (hoje só a IA é medida — gateway, infra, e-mail,
+  hora humana e impostos não são). Sem as duas, **desconto de mensalidade é
+  zero**: o SDR não consegue oferecer menos que o preço de tabela, e isso é
+  travado em código (`podeFechar` / `podeOfertar`), não por instrução.
   **A ordem das moedas de troca continua valendo, e ela é a proteção real:** a
   primeira coisa que se oferece é o que NÃO custa margem — prazo maior,
   pagamento à vista, menos rodadas de ajuste, contrato mais longo, autorização
@@ -173,13 +187,19 @@ WhatsApp do cliente R$ 490/mês · SEO local R$ 690/mês.
 
 ## A conta
 
+> ⚠️ **Corrigida em 30/08/2026.** Esta tabela trazia os preços ANTIGOS —
+> Ritmo R$ 297, Presença R$ 790, Conteúdo R$ 1.390 e um plano "Crescimento" de
+> R$ 2.590 que **não existe mais no código** (saiu em 26/08/2026, ver
+> `lib/agency/planos.ts`). Eram cópia da tabela de piso do SDR que já tinha
+> sido corrigida por lá — só este documento tinha ficado para trás. Os números
+> abaixo batem com "Os quatro degraus", que é a fonte (`lib/agency/planos.ts`).
+
 | Plano | Custo de IA/mês | Hora humana | Sobra antes da hora humana |
 |---|---|---|---|
 | Pulso R$ 49 | ≈ R$ 4 | nenhuma | R$ 45 |
-| Ritmo R$ 297 | ≈ R$ 22 | nenhuma | R$ 275 |
-| Presença R$ 790 | ≈ R$ 28 | a medir | R$ 762 |
-| Conteúdo R$ 1.390 | ≈ R$ 38 | a medir | R$ 1.352 |
-| Crescimento R$ 2.590 | ≈ R$ 52 | a medir | R$ 2.538 |
+| Ritmo R$ 290 | ≈ R$ 11 | nenhuma | R$ 279 |
+| Presença R$ 490 | ≈ R$ 19 | a medir | R$ 471 |
+| Conteúdo R$ 790 | ≈ R$ 33 | a medir | R$ 757 |
 
 **Fechado:** o custo de IA, contado por peça a partir do próprio sistema.
 **Hipótese:** a hora humana do Presença para cima — ninguém mediu.
