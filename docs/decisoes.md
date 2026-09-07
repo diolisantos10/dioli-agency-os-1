@@ -2063,3 +2063,72 @@ entrada do cliente.
 material, entrega, ciclo, recompra —, não só para o orçamento. A pergunta
 "quem avisa o destinatário?" passa a ser parte de toda caixa nova, junto com
 "quem escreve na caixa?".
+
+---
+
+## O DIA EM QUE A CASA SE RECUSOU A MESCLAR O QUE ELA MESMA JULGOU SEGURO
+
+**Decidido em** 2026-08-29 · **por** o Diretor, registrado pelo `pm` ·
+**origem:** a refutação da triagem de 28/08 (PR #383 e #388), a varredura de
+posse em duas rodadas (PRs #380, #385, #387) e a colisão de duas frentes na
+mesma cópia de trabalho.
+
+**A conclusão primeiro:** em 29/08 a casa abriu onze PRs e **não mesclou
+nenhum** — de propósito. No mesmo dia, **dois julgamentos de "isto é seguro"
+caíram ao serem medidos de verdade**: um deles tinha virado ordem de fechar
+três PRs, e um dos três carregava o conserto de um furo de isolamento entre
+inquilinos **vivo no deploy**. A decisão que atravessa domínios não é sobre
+nenhum desses consertos: é sobre **em que momento a casa converte julgamento em
+ato irreversível**.
+
+### As decisões que atravessam domínios
+
+- **NENHUM MERGE EM 29/08, NEM DO QUE FOI JULGADO SEGURO.** A assimetria é o
+  argumento inteiro: **merge é irreversível na prática** (o histórico segue,
+  outras frentes rebaseiam por cima, o deploy sai) e **auditoria é barata**.
+  Quando o custo de errar para um lado é uma tarde e para o outro é uma
+  reversão em cima de trabalho de terceiros, não se empata: espera-se. A regra
+  que sai daqui vale para qualquer ato irreversível da casa, não só para
+  merge — publicar, cobrar, enviar, revogar.
+- **A TRIAGEM DE 28/08 FOI REFUTADA E CORRIGIDA, NÃO APAGADA.** Documento que
+  se descobre errado ganha **bloco de refutação no topo** e mantém **a análise
+  antiga intacta abaixo**. Apagar levaria a lição junto — e a lição aqui é
+  cara: a medição foi feita dentro de uma cópia incompleta do repositório, e
+  ninguém percebeu porque a ferramenta **não distingue "medi e não há" de "não
+  consegui medir"**. Documento apagado não ensina isso a ninguém; documento
+  refutado ensina duas vezes.
+- **A ORDEM DE FECHAR #169, #170 E #172 ESTÁ SUSPENSA.** Ela foi dada sobre
+  premissa falsa. Ordem derivada de premissa que caiu não sobrevive à premissa,
+  mesmo que continue parecendo razoável — e o #169 conserta furo de inquilino
+  vivo. **Ordem suspensa se declara suspensa**; deixá-la de pé "porque ninguém
+  vai executar mesmo" é como a casa perde trabalho bom.
+- **A TRAVA DO CLONE RASO FOI AUTORIZADA E INSTALADA.** A casa passa a
+  **recusar concluir parentesco de branch em cópia incompleta**, em vez de
+  chutar. É a aplicação direta de "ausência de informação não é informação" a
+  uma ferramenta, e não a uma pessoa: o retorno vazio de uma medição não pode
+  significar duas coisas opostas. **Aviso, não bloqueio**, no caminho da
+  integração contínua — lá a cópia rasa é legítima, e barrar quebraria o
+  deploy da casa.
+- **CONSERTO QUE TOCA PAGAMENTO OU PARCERIA FICA ESCRITO, TESTADO E LACRADO
+  ATÉ PALAVRA HUMANA.** Duas metades, e as duas importam. **O Diretor não pode
+  autorizar** — a constituição do `seguranca` exige autorização humana, e o
+  Diretor não é humano. **E a espera não pode custar uma rodada de trabalho** —
+  por isso se escreve *antes* da palavra, para o intervalo entre o "pode" e a
+  proteção no ar ser de minutos. Rascunho lacrado é o formato: existe, não
+  mescla, e não some da fila.
+- **CADA FRENTE EM WORKTREE PRÓPRIA; `git add -A` E `git add .` PROIBIDOS.**
+  Em 29/08 duas frentes colidiram dentro da mesma cópia de trabalho. A
+  reivindicação coordena **quem** trabalha em quê; ela não protege contra
+  **uma cópia só** onde dois trabalhos se misturam no mesmo commit. São dois
+  mecanismos para dois problemas diferentes, e a casa precisava dos dois.
+
+**Por que é decisão de corredor:** as seis atravessam todo especialista desta
+casa. A primeira e a última mudam o rito de qualquer frente; a segunda muda o
+que se faz com documento errado em qualquer domínio; a terceira e a quarta
+valem para toda ferramenta que responda sobre estado do repositório; a quinta
+define o rito de tudo que toca dinheiro, e não só destas cinco rotas.
+
+**O que NÃO foi decidido aqui, e é do CEO:** o aceite dos PRs do dia, a
+autorização do rascunho lacrado que fecha as cinco rotas de pagamento e
+parceria, e a fronteira de preço da casa. Nenhum agente desta casa pode tomar
+essas três.
