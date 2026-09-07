@@ -384,10 +384,123 @@ export function nomeDoArquivo(responsabilidadeNormalizada: string): string {
   return `${responsabilidadeNormalizada.replace(/\//g, "-")}.json`;
 }
 
+/**
+ * `prisma/schema.prisma` — o único arquivo com régua de colisão POR MODELO,
+ * não por arquivo (ordem do Diretor Geral, 30/08/2026,
+ * `.despachos/F2-schema-colide-por-modelo.md`).
+ *
+ * ── POR QUE SÓ ESTE ARQUIVO ────────────────────────────────────────────────
+ * Medido em 30/08: três sessões diferentes reivindicaram o schema inteiro no
+ * mesmo dia — colunas de preço, conta de serviço do Diretor Geral, mesa de
+ * comando do SDR — em MODELOS diferentes, sem se tocarem de verdade. A trava
+ * por arquivo tratava o schema como recurso exclusivo e derrubava a CI da
+ * casa inteira por colisões que não existiam. `schema.prisma` é o único
+ * arquivo que quase toda frente precisa acrescentar algo — por isso é o
+ * único ponto de colisão crônico o bastante para justificar uma régua
+ * própria; os demais arquivos continuam colidindo por arquivo inteiro.
+ */
+const CAMINHO_SCHEMA_PRISMA = "prisma/schema.prisma";
+
+/**
+ * Separa `"prisma/schema.prisma#NomeDoModelo"` em arquivo + modelo. Devolve
+ * `null` quando o arquivo (a parte antes do `#`) não é exatamente o schema —
+ * é assim que a régua por modelo fica RESTRITA a este arquivo, e não vaza
+ * para qualquer caminho que alguém decida sufixar com `#`.
+ *
+ * `modelo: null` cobre dois casos que precisam continuar indistinguíveis
+ * para quem chama: (a) não há `#` no caminho — a reivindicação ANTIGA, de
+ * antes desta régua, que cita só `"prisma/schema.prisma"`; (b) há `#` mas
+ * nada depois dele. Os dois significam "não declarou modelo", e
+ * `seTocamNoSchema`, abaixo, decide o que fazer com isso.
+ */
+function partirCaminhoDeSchema(caminhoNormalizado: string): { modelo: string | null } | null {
+  const i = caminhoNormalizado.indexOf("#");
+  const arquivo = i === -1 ? caminhoNormalizado : caminhoNormalizado.slice(0, i);
+  if (arquivo !== CAMINHO_SCHEMA_PRISMA) return null;
+  const modeloBruto = i === -1 ? "" : caminhoNormalizado.slice(i + 1).trim();
+  return { modelo: modeloBruto.length > 0 ? modeloBruto : null };
+}
+
+/**
+ * PORTA DE ENTRADA (30/08/2026, `.despachos/F3-schema-exige-modelo.md`) —
+ * quais dos caminhos BRUTOS de `--arquivos` citam `prisma/schema.prisma` SEM
+ * declarar modelo. Lista vazia = tudo certo.
+ *
+ * ── POR QUE ISTO É PORTA, NÃO RÉGUA DE COLISÃO ──────────────────────────────
+ * `seTocamNoSchema`, acima, trata "pelo menos um lado sem modelo" como `false`
+ * — decisão deliberada do despacho F2: uma reivindicação sem modelo não colide
+ * com NADA, nem com outra também sem modelo, e isso é o que destravou as
+ * frentes vivas de 30/08. Mas essa compatibilidade é fail-OPEN: quem omite o
+ * modelo numa reivindicação NOVA simplesmente SOME da trava — nem colide, nem
+ * avisa. Corrigir mexendo em `seTocamNoSchema` reintroduziria o bloqueio que o
+ * F2 acabou de tirar das reivindicações JÁ GRAVADAS. Esta função não decide
+ * colisão nenhuma — só nomeia, para quem chama recusar ANTES de escrever, os
+ * caminhos que tentam entrar pela porta sem o modelo. Reivindicações antigas
+ * sem modelo não passam por aqui (isto só roda no comando `abrir`, sobre o que
+ * está SENDO digitado agora) e continuam exatamente como estavam: sem colidir.
+ *
+ * Pura: recebe os caminhos como vieram de `--arquivos` (já separados por
+ * vírgula, ainda crus) — sem I/O, sem rede, sem depender de `RAIZ`.
+ */
+export function caminhosDeSchemaSemModelo(caminhosBrutos: string[]): string[] {
+  return caminhosBrutos
+    .map(normalizarCaminho)
+    .filter((c) => {
+      const partido = partirCaminhoDeSchema(c);
+      return partido !== null && partido.modelo === null;
+    });
+}
+
+/**
+ * A régua por modelo — decide sozinha, sem cair de volta na régua de arquivo
+ * de sempre, sempre que os DOIS lados são `prisma/schema.prisma` (com ou sem
+ * modelo). Só devolve `null` (= "não é sobre o schema, decida por arquivo")
+ * quando pelo menos um dos dois caminhos é outro arquivo qualquer. Isto é o
+ * que garante as duas metades exigidas pela ficha de despacho:
+ *
+ *   • os dois com modelo, modelos DIFERENTES → `false` (não colide — a régua
+ *     grossa demais que causou o incidente de 30/08 deixa de existir aqui);
+ *   • os dois com modelo, MESMO modelo → `true` (continua colidindo — a
+ *     metade que, se faltasse, trocaria uma régua grossa por régua nenhuma).
+ *
+ * ── COMPATIBILIDADE COM RECLAMAÇÕES ANTIGAS (sem modelo) — E POR QUE `false`,
+ *    NÃO `null` ────────────────────────────────────────────────────────────
+ * Se QUALQUER um dos dois lados não declarou modelo (o formato de antes desta
+ * régua, ou um `#` vazio), esta função devolve `false` — nunca `true`, e
+ * NUNCA `null`. A ordem do Diretor Geral é literal: *"a colisão real é duas
+ * salas no mesmo modelo, e só essa deve travar"* — sem modelo declarado dos
+ * dois lados, não há como provar "mesmo modelo", então não há colisão a
+ * declarar. Cair para `null` (e daí para a régua de arquivo antiga, que trata
+ * o caminho inteiro como igualdade de string) reproduziria o EXATO defeito
+ * que este despacho existe para matar: medido em disco em 30/08, as três
+ * reivindicações reais do dia (`reivindicacoes/mesa-de-comando-diretriz-do-
+ * sdr.json`, `conta-de-servico-diretor-geral.json`,
+ * `esteira-preco-congelado-no-aceite.json`) citam TODAS `"prisma/schema.prisma"`
+ * sem modelo — e as duas ainda vivas colidiam sob a régua de arquivo antiga,
+ * exigindo três forças manuais (`forcadaPor`) no mesmo dia para um caso que a
+ * própria auditoria do Diretor confirmou não ser colisão nenhuma. A ficha é
+ * explícita: essas reivindicações "não podem... virar coringa que colide com
+ * tudo" — e um coringa bare colidindo com OUTRO bare, só por serem o mesmo
+ * arquivo, é exatamente esse coringa. `false` aqui não quebra nada (nenhuma
+ * reivindicação antiga passa a ser inválida) e não inventa proteção que a
+ * régua não consegue provar.
+ */
+function seTocamNoSchema(a: string, b: string): boolean | null {
+  const pa = partirCaminhoDeSchema(a);
+  const pb = partirCaminhoDeSchema(b);
+  if (!pa || !pb) return null; // pelo menos um lado não é o schema.prisma — régua de arquivo comum decide
+  if (pa.modelo === null || pb.modelo === null) return false; // pelo menos um lado não declarou modelo — não dá para provar colisão
+  return pa.modelo === pb.modelo;
+}
+
 /** Dois caminhos "se tocam" quando são iguais OU um é prefixo de diretório do
  *  outro — nunca quando um é só prefixo de TEXTO do outro (`lib/email` não
- *  pode colidir com `lib/email-templates`). */
+ *  pode colidir com `lib/email-templates`).
+ *
+ *  EXCEÇÃO: `prisma/schema.prisma#Modelo` — ver `seTocamNoSchema`, acima. */
 function seTocam(a: string, b: string): boolean {
+  const peloModelo = seTocamNoSchema(a, b);
+  if (peloModelo !== null) return peloModelo;
   if (a === b) return true;
   return a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
 }
@@ -413,6 +526,11 @@ export function estaViva(r: Reivindicacao, agora: Date, tetoHoras: number = TETO
  *   • mesma responsabilidade normalizada → colide (caso 2: nomes de arquivo
  *     diferentes, mesma pergunta respondida duas vezes);
  *   • sobreposição de arquivo (igual ou prefixo de pasta) → colide (casos 1 e 3).
+ *
+ * "Sobreposição de arquivo" tem UMA exceção, embutida em `seTocam`:
+ * `prisma/schema.prisma#Modelo` colide por MODELO, não pelo arquivo inteiro
+ * (30/08/2026, `.despachos/F2-schema-colide-por-modelo.md`) — dois modelos
+ * diferentes do schema não colidem; o mesmo modelo continua colidindo.
  *
  * Reivindicação encerrada nunca colide. Reivindicação velha entra em
  * `avisos`, nunca em `motivos` — ela NÃO bloqueia. A própria reivindicação do

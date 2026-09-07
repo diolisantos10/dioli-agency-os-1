@@ -16,6 +16,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  caminhosDeSchemaSemModelo,
   conferirColisao,
   estaViva,
   nomeDoArquivo,
@@ -229,5 +230,149 @@ describe("✅ conferirColisao — NÃO INVENTA problema no caso limpo (três PMs
     const r = conferirColisao(nova, [existente], AGORA);
     expect(r.colide).toBe(false);
     expect(r.avisos).toHaveLength(0);
+  });
+});
+
+// ── AS DUAS METADES DE `prisma/schema.prisma` COLIDIR POR MODELO ───────────
+//
+// Ordem do Diretor Geral, 30/08/2026 (`.despachos/F2-schema-colide-por-modelo.md`):
+// o schema deixa de colidir por ARQUIVO e passa a colidir por MODELO. Nomes
+// FICTÍCIOS de propósito — a ficha proíbe usar `ParceriaDoCliente` e
+// `Publication`, que têm frente viva de verdade.
+describe("⚖️ conferirColisao — prisma/schema.prisma colide por MODELO, não por arquivo inteiro", () => {
+  it("METADE 1 — modelos DIFERENTES do schema NÃO colidem (o caso limpo de 30/08: três sessões, três modelos)", () => {
+    const existente = reivindicacao({
+      quem: "sessao-a",
+      frente: "colunas de preço",
+      responsabilidade: "schema/colunas-de-preco",
+      arquivos: ["prisma/schema.prisma#ModeloDeTestePreco"],
+    });
+    const nova = {
+      quem: "sessao-b",
+      responsabilidade: "schema/conta-de-servico",
+      arquivos: ["prisma/schema.prisma#ModeloDeTesteContaDeServico"],
+    };
+
+    const r = conferirColisao(nova, [existente], AGORA);
+    expect(r.colide).toBe(false);
+    expect(r.motivos).toHaveLength(0);
+  });
+
+  it("METADE 2 — o MESMO modelo do schema continua colidindo, e o motivo nomeia o modelo", () => {
+    const existente = reivindicacao({
+      quem: "sessao-a",
+      frente: "colunas de preço",
+      responsabilidade: "schema/colunas-de-preco",
+      arquivos: ["prisma/schema.prisma#ModeloDeTestePreco"],
+    });
+    const nova = {
+      quem: "sessao-b",
+      responsabilidade: "schema/outro-ajuste-no-mesmo-modelo",
+      arquivos: ["prisma/schema.prisma#ModeloDeTestePreco"],
+    };
+
+    const r = conferirColisao(nova, [existente], AGORA);
+    expect(r.colide).toBe(true);
+    expect(r.motivos.join(" ")).toContain("ModeloDeTestePreco");
+    expect(r.quemColidiu).toEqual(["sessao-a"]);
+  });
+
+  it("compatibilidade — reivindicação ANTIGA sem modelo (bare) não vira coringa contra uma nova com modelo", () => {
+    const existenteBare = reivindicacao({
+      quem: "sessao-a",
+      frente: "reivindicação de antes desta régua",
+      responsabilidade: "schema/reivindicacao-antiga",
+      arquivos: ["prisma/schema.prisma"], // formato ANTIGO, sem "#modelo"
+    });
+    const nova = {
+      quem: "sessao-b",
+      responsabilidade: "schema/colunas-de-preco",
+      arquivos: ["prisma/schema.prisma#ModeloDeTestePreco"],
+    };
+
+    const r = conferirColisao(nova, [existenteBare], AGORA);
+    expect(r.colide).toBe(false);
+  });
+
+  it("compatibilidade — duas reivindicações ANTIGAS, ambas bare, NÃO colidem mais entre si (é o caso real de 30/08: sem modelo declarado, não dá para provar 'mesmo modelo')", () => {
+    // Fixture inspirada no caso REAL medido em disco em 30/08/2026:
+    // `reivindicacoes/mesa-de-comando-diretriz-do-sdr.json` e
+    // `conta-de-servico-diretor-geral.json` citam as DUAS só "prisma/schema.prisma"
+    // (sem "#modelo") e colidiam sob a régua de arquivo antiga — apesar de a
+    // auditoria do Diretor ter confirmado que acrescentavam modelos distintos.
+    const existenteBare = reivindicacao({
+      quem: "sessao-a",
+      frente: "reivindicação antiga 1",
+      responsabilidade: "schema/antiga-1",
+      arquivos: ["prisma/schema.prisma"],
+    });
+    const novaBare = {
+      quem: "sessao-b",
+      responsabilidade: "schema/antiga-2",
+      arquivos: ["prisma/schema.prisma"],
+    };
+
+    const r = conferirColisao(novaBare, [existenteBare], AGORA);
+    expect(r.colide).toBe(false);
+  });
+
+  it("fora do schema.prisma, a régua por arquivo inteiro continua valendo — nada mais foi afrouxado", () => {
+    const existente = reivindicacao({
+      quem: "sessao-a",
+      frente: "outra frente qualquer",
+      responsabilidade: "outra/frente",
+      arquivos: ["lib/agency/outro-arquivo.ts"],
+    });
+    const nova = {
+      quem: "sessao-b",
+      responsabilidade: "mais-uma/frente",
+      arquivos: ["lib/agency/outro-arquivo.ts"],
+    };
+
+    expect(conferirColisao(nova, [existente], AGORA).colide).toBe(true);
+  });
+});
+
+// ── A PORTA DE ENTRADA: `caminhosDeSchemaSemModelo` ─────────────────────────
+//
+// Ficha `.despachos/F3-schema-exige-modelo.md`, 30/08/2026: a compatibilidade
+// acima (metades "compatibilidade" do describe anterior) é fail-OPEN de
+// propósito — sem modelo não colide com NADA, nem com outra sem modelo. Isto
+// aqui NÃO é a régua de colisão: é a função pura que a PORTA
+// (`scripts/reivindicar.mts`, comando `abrir`) usa para recusar ANTES de
+// escrever. As duas convivem: a régua acima continua idêntica (nenhum destes
+// testes toca `conferirColisao`), só a entrada fecha.
+describe("🚪 caminhosDeSchemaSemModelo — a porta que o comando `abrir` usa antes de escrever", () => {
+  it("aponta prisma/schema.prisma SEM modelo", () => {
+    expect(caminhosDeSchemaSemModelo(["prisma/schema.prisma"])).toEqual(["prisma/schema.prisma"]);
+  });
+
+  it("aponta prisma/schema.prisma com '#' vazio — mesma falta de prova que sem '#' nenhum", () => {
+    expect(caminhosDeSchemaSemModelo(["prisma/schema.prisma#"])).toEqual(["prisma/schema.prisma#"]);
+    // Devolve o caminho COMO O OPERADOR DIGITOU, com o "#" solto: a mensagem de
+    // recusa mostra a ele o proprio erro, em vez de uma versao limpa que ele nao
+    // reconhece. Eco do que foi digitado ensina; eco normalizado confunde.
+  });
+
+  it("NÃO aponta prisma/schema.prisma#Modelo — modelo declarado", () => {
+    expect(caminhosDeSchemaSemModelo(["prisma/schema.prisma#ModeloDeTeste"])).toEqual([]);
+  });
+
+  it("NÃO aponta arquivo comum, mesmo sem '#'", () => {
+    expect(caminhosDeSchemaSemModelo(["lib/qualquer.ts"])).toEqual([]);
+  });
+
+  it("lista mista: só o que é o schema sem modelo entra na lista", () => {
+    expect(
+      caminhosDeSchemaSemModelo(["lib/qualquer.ts", "prisma/schema.prisma", "prisma/schema.prisma#ModeloDeTeste"]),
+    ).toEqual(["prisma/schema.prisma"]);
+  });
+
+  it("tolera caminho cru, não normalizado ('./prisma/schema.prisma/')", () => {
+    expect(caminhosDeSchemaSemModelo(["./prisma/schema.prisma/"])).toEqual(["prisma/schema.prisma"]);
+  });
+
+  it("lista vazia para lista vazia", () => {
+    expect(caminhosDeSchemaSemModelo([])).toEqual([]);
   });
 });

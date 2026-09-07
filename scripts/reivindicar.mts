@@ -70,6 +70,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   calcularAncoraDeSessao,
+  caminhosDeSchemaSemModelo,
   caminhosDoStatusPorcelain,
   conferirColisao,
   derivarIdentidade,
@@ -845,6 +846,40 @@ function comandoAbrir(argv: string[]): void {
     process.exit(1);
   }
 
+  // ── PORTA DE ENTRADA (30/08/2026, `.despachos/F3-schema-exige-modelo.md`) ──
+  // Exige o MODELO em toda reivindicação NOVA que cite "prisma/schema.prisma"
+  // — validação pura sobre os argumentos crus, ANTES de qualquer rede ou
+  // disco (ancora de sessão, fetch do remoto, working tree). NÃO é forçável
+  // por "--forcar": "--forcar" existe para seguir apesar de uma COLISÃO
+  // encontrada contra outra reivindicação viva; isto aqui não é colisão, é
+  // formato — o mesmo tipo de exigência que já barra "abrir" sem "--frente"
+  // ou sem "--arquivos", acima.
+  //   ⛔ Isto NÃO mexe na régua de colisão (`seTocamNoSchema` /
+  // `partirCaminhoDeSchema`, em `lib/coordenacao/reivindicacoes.ts`) — as
+  // reivindicações JÁ GRAVADAS sem modelo continuam existindo, e continuam
+  // sem colidir com nada, exatamente como o despacho F2 deixou. Só a PORTA
+  // fecha: quem tenta abrir uma reivindicação NOVA sem modelo é recusado
+  // antes de escrever uma linha.
+  const arquivosBrutosLista = arquivosBrutos.split(",").map((a) => a.trim()).filter(Boolean);
+  const semModelo = caminhosDeSchemaSemModelo(arquivosBrutosLista);
+  if (semModelo.length > 0) {
+    console.error('🚫 "prisma/schema.prisma" exige o MODELO — não escrevi, commitei nem empurrei nada:');
+    for (const c of semModelo) console.error(`   - ${c}`);
+    console.error(
+      "A colisão do schema é POR MODELO (despacho F2, 30/08/2026): sem o modelo declarado, esta reivindicação " +
+        'NÃO colidiria com nada — nem com outra também sem modelo — e sumiria da trava sem avisar ninguém. ' +
+        'Diga qual modelo você está mudando, no formato "prisma/schema.prisma#NomeDoModelo".',
+    );
+    console.error("   Exemplo real: prisma/schema.prisma#ParceriaDoCliente");
+    const arquivosCorrigidos = arquivosBrutosLista
+      .map((a) => (a === "prisma/schema.prisma" ? "prisma/schema.prisma#<NomeDoModelo>" : a))
+      .join(",");
+    console.error(
+      `Comando corrigido:  npm run reivindicar -- abrir --frente "${frente}" --responsabilidade ${responsabilidade} --arquivos ${arquivosCorrigidos}`,
+    );
+    process.exit(1);
+  }
+
   // ── FURO 1 do laudo de qualidade (rodada 5): "abrir" em modo DEGRADADO
   // (sem âncora de sessão no ambiente) RECUSA por padrão. "abrir" é TOMAR
   // POSSE — e posse com uma identidade que já produziu os dois falsos
@@ -922,7 +957,9 @@ function comandoAbrir(argv: string[]): void {
     }
   }
 
-  const arquivos = arquivosBrutos.split(",").map((a) => a.trim()).filter(Boolean);
+  // Reaproveita a mesma lista já separada na porta de entrada, acima — nunca
+  // reparte a string duas vezes.
+  const arquivos = arquivosBrutosLista;
   const nova = { quem, responsabilidade, arquivos };
 
   // ── ASSIMETRIA DELIBERADA (ver o espelho desta nota em `comandoConferir`) ──

@@ -183,3 +183,74 @@ describe("✅ o sentinela NÃO INVENTA problema no caso limpo", () => {
     ).toBe(true);
   });
 });
+
+// ── prisma/schema.prisma COLIDE POR MODELO, NÃO POR ARQUIVO (30/08/2026) ───
+//
+// `.despachos/F2-schema-colide-por-modelo.md`. Nomes de modelo FICTÍCIOS —
+// a ficha proíbe usar `ParceriaDoCliente` e `Publication` (frente viva de
+// verdade). As duas metades, no MESMO sentinela que roda em `npm test`:
+describe("⚖️ o sentinela — prisma/schema.prisma colide por MODELO", () => {
+  it("VERDE — duas frentes vivas em MODELOS DIFERENTES do schema: não é colisão (o caso do dia 30/08)", () => {
+    const pasta = pastaTemporaria();
+    gravar(pasta, "a.json", {
+      ...BASE,
+      id: "schema/colunas-de-preco",
+      quem: "sessao-a",
+      responsabilidade: "schema/colunas-de-preco",
+      arquivos: ["prisma/schema.prisma#ModeloDeTestePreco"],
+    });
+    gravar(pasta, "b.json", {
+      ...BASE,
+      id: "schema/conta-de-servico",
+      quem: "sessao-b",
+      responsabilidade: "schema/conta-de-servico",
+      arquivos: ["prisma/schema.prisma#ModeloDeTesteContaDeServico"],
+    });
+
+    const r = conferirRegistroNoDisco(pasta, AGORA);
+    expect(r.ok, `não deveria colidir: ${r.problemas.join(" | ")}`).toBe(true);
+  });
+
+  it("VERMELHO — duas frentes vivas no MESMO modelo do schema: continua colidindo, e nomeia o modelo", () => {
+    const pasta = pastaTemporaria();
+    gravar(pasta, "a.json", {
+      ...BASE,
+      id: "schema/colunas-de-preco",
+      quem: "sessao-a",
+      responsabilidade: "schema/colunas-de-preco",
+      arquivos: ["prisma/schema.prisma#ModeloDeTestePreco"],
+    });
+    gravar(pasta, "b.json", {
+      ...BASE,
+      id: "schema/outro-ajuste-no-mesmo-modelo",
+      quem: "sessao-b",
+      responsabilidade: "schema/outro-ajuste-no-mesmo-modelo",
+      arquivos: ["prisma/schema.prisma#ModeloDeTestePreco"],
+    });
+
+    const r = conferirRegistroNoDisco(pasta, AGORA);
+    expect(r.ok).toBe(false);
+    expect(r.problemas.join(" ")).toContain("ModeloDeTestePreco");
+  });
+
+  it("compatibilidade — uma reivindicação ANTIGA bare (sem modelo) não vira coringa contra uma nova com modelo", () => {
+    const pasta = pastaTemporaria();
+    gravar(pasta, "a.json", {
+      ...BASE,
+      id: "schema/reivindicacao-antiga",
+      quem: "sessao-a",
+      responsabilidade: "schema/reivindicacao-antiga",
+      arquivos: ["prisma/schema.prisma"], // formato ANTIGO, sem "#modelo"
+    });
+    gravar(pasta, "b.json", {
+      ...BASE,
+      id: "schema/colunas-de-preco",
+      quem: "sessao-b",
+      responsabilidade: "schema/colunas-de-preco",
+      arquivos: ["prisma/schema.prisma#ModeloDeTestePreco"],
+    });
+
+    const r = conferirRegistroNoDisco(pasta, AGORA);
+    expect(r.ok, `não deveria colidir: ${r.problemas.join(" | ")}`).toBe(true);
+  });
+});
