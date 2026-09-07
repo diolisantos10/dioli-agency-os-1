@@ -163,11 +163,11 @@ describe("a resposta do cliente é escutada, e a casa anda", () => {
     expect(db.contentRequest.update).not.toHaveBeenCalled();
   });
 
-  it("pedido de outro cliente é 403, e não diz se existe", async () => {
+  it("pedido de outro cliente é 404, e não diz se existe (nunca 403 — oráculo de enumeração)", async () => {
     db.contentRequest.findFirst.mockResolvedValue(null);
     const r = await responderPergunta({ clientId: "intruso", pedidoId: "p1", opcaoId: "pacote" });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.codigo).toBe(403);
+    if (!r.ok) expect(r.codigo).toBe(404);
     expect(db.contentRequest.update).not.toHaveBeenCalled();
   });
 

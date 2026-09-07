@@ -227,7 +227,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       project: { select: { clientRequestId: true } },
     },
   }).catch(() => null);
-  if (!pedido) return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
+  // 404, nunca 403: o `where` acima já combina id + status + posse
+  // (`project.clientId: dono.clientId`) — "não existe" e "existe mas é de
+  // outro cliente" chegam aqui pelo MESMO caminho e saem com o MESMO corpo.
+  // 403 confirmaria ao chamador que o pedidoId existe, virando oráculo de
+  // enumeração (convenção da casa: ver `app/api/agency/clients/[id]/marca/route.ts`).
+  if (!pedido) return NextResponse.json({ error: "Pedido não encontrado" }, { status: 404 });
 
   try {
     await prisma.$transaction([

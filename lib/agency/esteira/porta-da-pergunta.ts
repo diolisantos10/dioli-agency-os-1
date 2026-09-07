@@ -179,7 +179,13 @@ export async function responderPergunta(input: {
   }).catch(() => null);
 
   // "Não é seu" e "não existe" saem iguais: a distinção já é o vazamento.
-  if (!pedido) return { ok: false, erro: "Acesso negado", codigo: 403 };
+  //
+  // ⚠️ 404, NUNCA 403 (07/09/2026). O comentário acima já dizia a coisa certa e
+  // o código fazia o contrário: **403 confirma que o id EXISTE** e só não é
+  // seu — é o oráculo de enumeração que a convenção da casa proíbe. A busca já
+  // é escopada por `clientId`, então "não achei" e "não é seu" são a mesma
+  // porta fechada, e a resposta tem de ser a mesma.
+  if (!pedido) return { ok: false, erro: "Pedido não encontrado", codigo: 404 };
 
   const pergunta = lerPergunta(pedido.pendingQuestionJson);
   if (!pergunta) {

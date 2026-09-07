@@ -280,10 +280,10 @@ describe("decisão do cliente propaga status aos posts do card", () => {
 // ── 3. Posse: o card aparece para o dono e NUNCA para outro ─────────────────
 
 describe("posse por clientId — dono derivado do token, sem vazamento", () => {
-  it("token de OUTRO cliente não decide o card da Foocci → 403", async () => {
+  it("token de OUTRO cliente não decide o card da Foocci → 404, nunca 403 (oráculo de enumeração)", async () => {
     validatePortalAccess.mockResolvedValue({ valid: true, record: { clientRequestId: null, clientId: "cli-outro" } });
     const res = await decidir(reqDecisao({ action: "approve" }));
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
     expect(updateApprovalStatus).not.toHaveBeenCalled();
     expect(db.socialPost.updateMany).not.toHaveBeenCalled();
   });
