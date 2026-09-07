@@ -120,3 +120,48 @@ por processo existe agora
 (`__tests__/coordenacao/reivindicar-guarda-antes-de-escrever.test.ts`) e a
 mutação foi vista vermelha. **Confira o remoto depois de rodar o comando** — não
 confie só na mensagem impressa.
+
+---
+
+## ✅ MEDIÇÃO DE 29/08 23:07 — o que JÁ está confirmado em produção
+
+| Fato | Como foi medido, sem credencial nenhuma |
+|---|---|
+| **O PR #400 está NO AR** | `/portal/invalid` — página que este PR criou e que antes não existia — passou de **404 → 200** às 23:07:07 UTC. Detector de deploy que não precisa de segredo: usa o próprio trabalho como sonda. |
+| **`PILOTO_SECRET` está provisionada** | `GET /api/piloto/diagnostico` sem chave e com chave errada → **401 `{"error":"chave inválida"}`**, **não 503**. O 503 é o ramo de "segredo não configurado". |
+| **A rota falha fechada** | Chave ausente e chave errada dão a **mesma** resposta opaca, sem revelar qual das duas foi. |
+
+> ⚠️ **CORREÇÃO DE UM ALERTA MEU:** eu havia levantado "provisionar `PILOTO_SECRET`
+> como variável própria" como pendência de segurança. **Ela já está provisionada**
+> — consta na lista de variáveis do serviço e a rota devolve 401, não 503.
+> O agravante do fallback para `CRON_SECRET` **não está ativo**. Alerta retirado.
+> *Ressalva honesta:* não é possível distinguir "variável com valor" de "variável
+> vazia caindo no fallback" por fora, porque as duas dão 401. O que se sabe é que
+> **algum** segredo está configurado e a rota está fechada.
+
+## ⛔ O QUE AINDA BLOQUEIA — e é uma coisa só
+
+**Falta o VALOR de `PILOTO_SECRET` para rodar a medição.**
+
+Este ambiente **perdeu o acesso ao Railway no meio do turno**: sem MCP, sem CLI
+(`command -v railway` → vazio) e sem `RAILWAY_TOKEN`/`PILOTO_SECRET` no ambiente.
+Não dá para ler nem para trocar a chave daqui.
+
+**`PILOTO_SECRET` também NÃO está nos segredos do repositório** — os workflows só
+referenciam `CRON_SECRET` e `RAILWAY_TOKEN` (`grep -rhoE "secrets\.[A-Z_]+"
+.github/workflows/`). E o fallback não ajuda: o código é
+`PILOTO_SECRET || CRON_SECRET`, então com a primeira configurada o `CRON_SECRET`
+**não** abre a rota.
+
+### Por que NÃO construí um contorno
+Seria possível criar um workflow que lê a chave de dentro do runner e imprime só
+o agregado — é o padrão de `cliente-oculto-do-titulo.yml` e `prova-da-mira.yml`.
+**Não foi feito de propósito:** o log deste repositório é **público**, o contorno
+usaria `RAILWAY_TOKEN` (que autoriza escrita), e ele mesmo precisaria de PR + CI +
+merge — ou seja, custaria a **mesma** espera que ele tenta evitar, com risco novo.
+*Mecanismo novo com token forte, sem revisão, para economizar uma linha de comando
+é como se compra o próximo incidente.*
+
+### O caminho de dois passos
+1. Rodar o comando da seção "3. Medir e responder" acima com a chave do painel.
+2. Colar o JSON de volta. A leitura já está mapeada — não precisa de mais nada.
