@@ -9,7 +9,6 @@ import {
   MARCA_DA_PROPOSTA_AJUSTADA,
   INICIO_DA_JANELA,
   type LinhaDeAprovacaoBruta,
-  type LinhaDePedidoBruta,
   type LinhaDePagamentoBruta,
 } from "@/lib/agency/comercial/preco-cheio-apos-negociacao";
 
@@ -74,24 +73,20 @@ describe("o valor lido é o que a PESSOA viu, não um recálculo", () => {
 });
 
 describe("a janela: de 25/08 até agora — as DUAS metades", () => {
-  const pedidos: LinhaDePedidoBruta[] = [{ id: "req-1", businessName: "Foocci" }];
   const pagamentos: LinhaDePagamentoBruta[] = [];
 
   it("negociação DENTRO da janela aparece", () => {
     const r = negociacoesEmPrecoCheio(
       [aprovacao({ createdAt: new Date("2026-08-26T00:00:00.000Z") })],
-      pedidos,
       pagamentos,
     );
     expect(r).toHaveLength(1);
     expect(r[0]!.clientRequestId).toBe("req-1");
-    expect(r[0]!.negocio).toBe("Foocci");
   });
 
   it("negociação FORA da janela (antes de 25/08) NÃO aparece", () => {
     const r = negociacoesEmPrecoCheio(
       [aprovacao({ createdAt: new Date("2026-08-20T00:00:00.000Z") })],
-      pedidos,
       pagamentos,
     );
     expect(r).toHaveLength(0);
@@ -100,7 +95,6 @@ describe("a janela: de 25/08 até agora — as DUAS metades", () => {
   it("pedido SEM negociação (department proposal, texto original) NÃO aparece", () => {
     const r = negociacoesEmPrecoCheio(
       [aprovacao({ reviewNote: null })],
-      pedidos,
       pagamentos,
     );
     expect(r).toHaveLength(0);
@@ -109,7 +103,6 @@ describe("a janela: de 25/08 até agora — as DUAS metades", () => {
   it("a borda do início da janela é INCLUSIVA", () => {
     const r = negociacoesEmPrecoCheio(
       [aprovacao({ createdAt: INICIO_DA_JANELA })],
-      pedidos,
       pagamentos,
     );
     expect(r).toHaveLength(1);
@@ -120,7 +113,6 @@ describe("pagamento — a existência da linha é a prova, nunca um status", () 
   it("com PagamentoConfirmado para o mesmo pedido → pago: true, com data e valor", () => {
     const r = negociacoesEmPrecoCheio(
       [aprovacao()],
-      [{ id: "req-1", businessName: "Foocci" }],
       [{ clientRequestId: "req-1", confirmadoEm: new Date("2026-08-27T00:00:00.000Z"), valorCentavos: 79000 }],
     );
     expect(r[0]!.pago).toBe(true);
@@ -129,7 +121,7 @@ describe("pagamento — a existência da linha é a prova, nunca um status", () 
   });
 
   it("sem PagamentoConfirmado → pago: false, pagoEm: null", () => {
-    const r = negociacoesEmPrecoCheio([aprovacao()], [{ id: "req-1", businessName: "Foocci" }], []);
+    const r = negociacoesEmPrecoCheio([aprovacao()], []);
     expect(r[0]!.pago).toBe(false);
     expect(r[0]!.pagoEm).toBeNull();
   });
@@ -137,17 +129,29 @@ describe("pagamento — a existência da linha é a prova, nunca um status", () 
   it("pagamento de OUTRO pedido não vaza para este", () => {
     const r = negociacoesEmPrecoCheio(
       [aprovacao()],
-      [{ id: "req-1", businessName: "Foocci" }],
       [{ clientRequestId: "req-999", confirmadoEm: new Date(), valorCentavos: 1 }],
     );
     expect(r[0]!.pago).toBe(false);
   });
 });
 
-describe("pedido não encontrado no lote lido não inventa nome", () => {
-  it("businessName ausente do lote → placeholder declarado, não nome chutado", () => {
-    const r = negociacoesEmPrecoCheio([aprovacao()], [], []);
-    expect(r[0]!.negocio).toBe("(negócio não encontrado)");
+// ─────────────────────────────────────────────────────────────────────────────
+// A GUARDA DE PII (`seguranca`, 07/09/2026, F4-auditoria-sem-nome.md) — a
+// ficha original desta auditoria autorizava devolver `businessName` junto com
+// o id. Essa autorização caiu contra a guarda mais velha da rota que chama
+// este módulo (`__tests__/plataforma/diagnostico-mede-e-nao-escreve.test.ts`):
+// o segredo da rota trafega em `?chave=`, que aparece em log de proxy/CDN.
+// A asserção NEGATIVA é a que protege — `clientRequestId` sai, nome NÃO sai.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("nenhum nome de negócio sai daqui — só o clientRequestId", () => {
+  it("a linha devolvida não carrega nenhuma propriedade de nome", () => {
+    const r = negociacoesEmPrecoCheio([aprovacao()], []);
+    expect(r[0]!.clientRequestId).toBe("req-1");
+    expect(r[0]).not.toHaveProperty("negocio");
+    expect(r[0]).not.toHaveProperty("businessName");
+    expect(Object.keys(r[0]!).sort()).toEqual(
+      ["clientRequestId", "negociadoEm", "pago", "pagoEm", "valorNaPropostaCentavos", "valorPagoCentavos"].sort(),
+    );
   });
 });
 
@@ -158,10 +162,6 @@ describe("o resumo agrega antes da lista", () => {
         aprovacao({ clientRequestId: "req-1" }),
         aprovacao({ clientRequestId: "req-2", reviewNote: textoDaPropostaAjustada("Outra", 490) }),
       ],
-      [
-        { id: "req-1", businessName: "Foocci" },
-        { id: "req-2", businessName: "Outra" },
-      ],
       [{ clientRequestId: "req-1", confirmadoEm: new Date("2026-08-27"), valorCentavos: 79000 }],
     );
     expect(retrato.total).toBe(2);
@@ -171,7 +171,7 @@ describe("o resumo agrega antes da lista", () => {
   });
 
   it("lote sem nenhuma negociação: retrato é ZERO, e zero é resultado — não erro", () => {
-    const retrato = retratoDoLote([], [], []);
+    const retrato = retratoDoLote([], []);
     expect(retrato).toEqual({ total: 0, pagos: 0, naoPagos: 0, linhas: [] });
   });
 });
@@ -193,13 +193,8 @@ describe("cenário plantado: um afetado dentro da janela, um fora, um sem negoci
       // proposta normal, nunca negociou (mesmo department, sem a marca)
       { clientRequestId: "sem-negociacao", department: "proposal", reviewNote: null, createdAt: new Date("2026-08-29T00:00:00.000Z") },
     ];
-    const pedidos: LinhaDePedidoBruta[] = [
-      { id: "afetado", businessName: "Cliente Afetado" },
-      { id: "fora-da-janela", businessName: "Cliente Antigo" },
-      { id: "sem-negociacao", businessName: "Cliente Sem Negociação" },
-    ];
 
-    const r = negociacoesEmPrecoCheio(aprovacoes, pedidos, []);
+    const r = negociacoesEmPrecoCheio(aprovacoes, []);
     expect(r.map((l) => l.clientRequestId)).toEqual(["afetado"]);
   });
 });

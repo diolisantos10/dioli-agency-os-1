@@ -67,9 +67,15 @@
 // rota só lê `ApprovalRequest` (department "proposal") e `PagamentoConfirmado`
 // e chama o módulo — nenhuma decisão de negócio aqui.
 //
-// Nome do negócio e id são devolvidos aqui de propósito: o CEO pediu "quem",
-// e o próprio despacho autoriza os dois. Nada além disso — sem telefone,
-// e-mail ou frase de conversa.
+// ⚠️ CORRIGIDO em 07/09/2026 (`seguranca`, `.despachos/F4-auditoria-sem-nome.md`):
+// a ficha original desta seção dizia que "nome do negócio e id são
+// devolvidos aqui de propósito... o próprio despacho autoriza os dois". Essa
+// autorização estava errada e foi revertida — a guarda de PII desta rota é
+// mais velha e vence: o segredo trafega em `?chave=`, que aparece em log de
+// proxy/CDN, e uma trava não se afrouxa porque quem pediu tinha pressa.
+// Só sai `client_request_id`. Quem tem a lista de ids abre o painel, com
+// sessão, e vê o nome — como deve ser. Nada de nome, telefone, e-mail ou
+// frase de conversa.
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
@@ -197,7 +203,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const precoCheioAposNegociacao = retratoDoPrecoCheio(
       aprovacoesDeProposta as LinhaDeAprovacaoBruta[],
-      linhas.map((l) => ({ id: l.id, businessName: l.businessName })),
       pagamentosConfirmados as LinhaDePagamentoBruta[],
     );
 
@@ -232,9 +237,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       // AUDITORIA DE 30/08/2026 (F1-auditoria-preco-cheio.md, ordem do
       // Diretor Geral): quem pediu ajuste de preço, desde que a tabela de
       // preço fechado (25/08) tornou a condição de `negotiateProposal`
-      // impossível de satisfazer, e recebeu o preço cheio de volta. Nome do
-      // negócio e id são AUTORIZADOS aqui, por decisão do CEO no despacho —
-      // nunca telefone, e-mail ou frase de conversa.
+      // impossível de satisfazer, e recebeu o preço cheio de volta.
+      //
+      // ⚠️ CORRIGIDO em 07/09/2026 (`seguranca`): só `client_request_id` sai
+      // — nunca nome do negócio, telefone, e-mail ou frase de conversa. Ver o
+      // comentário de correção no topo do arquivo.
       //
       // ⚠️ Isto é o INSTRUMENTO que lê a lista, rodando neste ambiente sem
       // credencial de produção. A LISTA REAL só existe quando esta rota
@@ -245,7 +252,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         nao_pagos: precoCheioAposNegociacao.naoPagos,
         casos: precoCheioAposNegociacao.linhas.map((l) => ({
           client_request_id: l.clientRequestId,
-          negocio: l.negocio,
           valor_na_proposta_centavos: l.valorNaPropostaCentavos,
           negociado_em: l.negociadoEm,
           pago: l.pago,

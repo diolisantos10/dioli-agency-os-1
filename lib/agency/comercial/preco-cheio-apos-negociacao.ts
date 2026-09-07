@@ -51,11 +51,20 @@
 // valor negociado — mas o módulo não afirma isso por inferência: ele lê o que
 // está escrito.
 //
-// ═══ O QUE NUNCA SAI DAQUI ═══════════════════════════════════════════════════
+// ═══ O QUE NUNCA SAI DAQUI (corrigido em 07/09/2026, `seguranca`) ═══════════
 //
-// Nada além de: id do pedido, nome do negócio (autorizado pelo CEO para esta
-// auditoria — ver o despacho), valor, data, e se há pagamento confirmado
-// ligado ao pedido. Sem telefone, sem e-mail, sem frase de conversa.
+// A ficha original desta auditoria (`.despachos/F1-auditoria-preco-cheio.md`)
+// autorizava devolver `businessName` junto com o id, por decisão do Diretor.
+// **Essa autorização estava errada** — a rota que chama este módulo
+// (`app/api/piloto/diagnostico/route.ts`) já declara no próprio cabeçalho
+// "nenhum nome de prospect", e o segredo dela trafega em `?chave=`, que
+// aparece em log de proxy/CDN. Quem capturar a chave passaria a ler nome de
+// cliente, não só contagem — uma trava não se afrouxa porque quem pediu tinha
+// pressa. Guarda: `__tests__/plataforma/diagnostico-mede-e-nao-escreve.test.ts`.
+//
+// Nada além de: id do pedido (`clientRequestId` — quem, com precisão, para
+// quem já tem sessão no painel), valor, data, e se há pagamento confirmado
+// ligado ao pedido. Sem nome, sem telefone, sem e-mail, sem frase de conversa.
 
 /** A marca que `negotiateProposal` grava — e SÓ ela — quando renegocia. */
 export const MARCA_DA_PROPOSTA_AJUSTADA = "Proposta ajustada — ";
@@ -79,13 +88,6 @@ export type LinhaDeAprovacaoBruta = {
   createdAt: Date;
 };
 
-/** Um `ClientRequestDb`, como a rota já o lê para outras seções deste mesmo
- *  diagnóstico — reaproveitado, não uma segunda query. */
-export type LinhaDePedidoBruta = {
-  id: string;
-  businessName: string;
-};
-
 /** Um `PagamentoConfirmado`, como a rota o lê do banco. A EXISTÊNCIA da linha
  *  é a prova de pagamento — nunca um status derivado. */
 export type LinhaDePagamentoBruta = {
@@ -95,10 +97,9 @@ export type LinhaDePagamentoBruta = {
 };
 
 export type LinhaDeCobrancaNegociada = {
+  /** "Quem" com precisão, sem PII: quem tem a lista de ids abre o painel,
+   *  com sessão, e vê o nome — como deve ser. */
   clientRequestId: string;
-  /** `"(negócio não encontrado)"` quando o pedido não está mais no lote lido —
-   *  nunca inventa nome. */
-  negocio: string;
   /** O valor que está escrito na linha "Total" do `reviewNote`, em CENTAVOS.
    *  `null` quando o texto não tem o formato esperado — declarado, não
    *  chutado em zero. */
@@ -157,20 +158,18 @@ export function valorDaLinhaDeTotal(reviewNote: string): number | null {
  * O retrato: toda proposta renegociada dentro da janela, com quem, quanto,
  * quando e se pagou.
  *
- * Fail-closed na entrada: `aprovacoes`, `pedidos` e `pagamentos` vazios ou
- * ausentes devolvem lista vazia — porque É uma lista vazia (não houve o que
- * juntar), nunca porque o módulo escondeu um erro. Quem decide "a leitura
- * falhou, não é zero" é o CHAMADOR (a rota), antes de chegar aqui — este
- * módulo não sabe distinguir "o banco não respondeu" de "não achei nada", e
- * não deve fingir que sabe.
+ * Fail-closed na entrada: `aprovacoes` e `pagamentos` vazios ou ausentes
+ * devolvem lista vazia — porque É uma lista vazia (não houve o que juntar),
+ * nunca porque o módulo escondeu um erro. Quem decide "a leitura falhou, não
+ * é zero" é o CHAMADOR (a rota), antes de chegar aqui — este módulo não sabe
+ * distinguir "o banco não respondeu" de "não achei nada", e não deve fingir
+ * que sabe.
  */
 export function negociacoesEmPrecoCheio(
   aprovacoes: LinhaDeAprovacaoBruta[],
-  pedidos: LinhaDePedidoBruta[],
   pagamentos: LinhaDePagamentoBruta[],
   inicio: Date = INICIO_DA_JANELA,
 ): LinhaDeCobrancaNegociada[] {
-  const nomeDoPedido = new Map(pedidos.map((p) => [p.id, p.businessName]));
   const pagamentoDoPedido = new Map(pagamentos.map((p) => [p.clientRequestId, p]));
 
   return aprovacoes
@@ -180,7 +179,6 @@ export function negociacoesEmPrecoCheio(
       const pagamento = pagamentoDoPedido.get(a.clientRequestId);
       return {
         clientRequestId: a.clientRequestId,
-        negocio: nomeDoPedido.get(a.clientRequestId) ?? "(negócio não encontrado)",
         valorNaPropostaCentavos: valorDaLinhaDeTotal(a.reviewNote),
         negociadoEm: a.createdAt,
         pago: Boolean(pagamento),
@@ -201,11 +199,10 @@ export type RetratoDePrecoCheio = {
  *  diário do piloto ("existe ou não existe" primeiro). */
 export function retratoDoLote(
   aprovacoes: LinhaDeAprovacaoBruta[],
-  pedidos: LinhaDePedidoBruta[],
   pagamentos: LinhaDePagamentoBruta[],
   inicio: Date = INICIO_DA_JANELA,
 ): RetratoDePrecoCheio {
-  const linhas = negociacoesEmPrecoCheio(aprovacoes, pedidos, pagamentos, inicio);
+  const linhas = negociacoesEmPrecoCheio(aprovacoes, pagamentos, inicio);
   return {
     total: linhas.length,
     pagos: linhas.filter((l) => l.pago).length,
