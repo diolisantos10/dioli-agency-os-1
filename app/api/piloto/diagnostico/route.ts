@@ -53,6 +53,15 @@
 // Como sempre nesta rota: só leitura (`findMany`), respeita `LIMITE`, e
 // **nunca** o token inteiro — só os 8 primeiros caracteres (`retrato-dos-convites.ts`).
 //
+// ⚠️ CORRIGIDO em 07/09/2026 (`seguranca`, `.despachos/F5-duplicado-sem-nome.md`):
+// `clientes_de_nome_colidente` devolvia `nome` do cliente — na mesma rota cuja
+// chave trafega em `?chave=` e aparece em log de proxy/CDN. A pergunta "há
+// cadastro duplicado, e qual tem parceria viva?" não exige o nome na saída: o
+// agrupamento por nome normalizado continua acontecendo DENTRO de
+// `montarRetratoDosConvites`; o que sai é só id, `temParceriaViva` e o
+// tamanho do grupo (`retrato-dos-convites.ts`). Quem tem os ids abre o
+// painel, com sessão, e vê o nome lá.
+//
 // ─── SEÇÃO `preco_cheio_apos_negociacao` (30/08/2026) — DINHEIRO DE CLIENTE ─
 //
 // Ordem do Diretor Geral (`.despachos/F1-auditoria-preco-cheio.md`): quem foi

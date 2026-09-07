@@ -323,6 +323,89 @@ describe("(g) a colisão de nome é por normalização, não por igualdade crua"
 });
 
 // ════════════════════════════════════════════════════════════════════════════
+// (h) CORRIGIDO em 07/09/2026 (`seguranca`, `.despachos/F5-duplicado-sem-nome.md`):
+// o grupo de nome colidente devolvia `nome` (cru) e `nomeNormalizado`, na
+// mesma rota cuja chave (`?chave=`) trafega em URL e aparece em log de
+// proxy/CDN. Calcula-se com o nome (o agrupamento); não se emite o nome.
+// ════════════════════════════════════════════════════════════════════════════
+describe("(h) o grupo de nome colidente calcula com o nome e não o emite", () => {
+  it("nem `nome` nem `nomeNormalizado` sobrevivem à saída — checado por Object.keys, não por campo isolado", () => {
+    const clientesBrutos = [
+      { id: "cli_a_lixo", name: "FOOCCI" },
+      { id: "cli_b_com_parceria", name: "foocci" },
+    ];
+    const retrato = montarRetratoDosConvites([], [], clientesBrutos, AGORA);
+
+    expect(retrato.gruposDeNomeColidente).toHaveLength(1);
+    const grupo = retrato.gruposDeNomeColidente[0]!;
+
+    // asserção negativa por Object.keys — pega tanto "nome" quanto qualquer
+    // renomeação do mesmo campo (o desvio que a auditoria de cobrança já viu).
+    expect(Object.keys(grupo)).not.toContain("nome");
+    expect(Object.keys(grupo)).not.toContain("nomeNormalizado");
+    for (const cliente of grupo.clientes) {
+      expect(Object.keys(cliente)).not.toContain("nome");
+      expect(Object.keys(cliente)).not.toContain("nomeNormalizado");
+    }
+
+    // e o VALOR do nome não sobrevive em nenhum canto da estrutura serializada.
+    const bruto = JSON.stringify(retrato);
+    expect(bruto).not.toContain("FOOCCI");
+    expect(bruto).not.toContain("foocci");
+  });
+
+  it("MUTAÇÃO DE PROPÓSITO — repor `nome` no cliente do grupo faz a asserção da guarda acusar", () => {
+    const clientesBrutos = [
+      { id: "cli_a_lixo", name: "FOOCCI" },
+      { id: "cli_b_com_parceria", name: "foocci" },
+    ];
+    const retrato = montarRetratoDosConvites([], [], clientesBrutos, AGORA);
+    const grupo = retrato.gruposDeNomeColidente[0]!;
+
+    // O código de produção, hoje, NÃO tem `nome` em `cliente` (é a asserção
+    // acima, verde). Aqui simulamos, de propósito, o defeito que este
+    // despacho fechou — alguém repondo `nome` na saída de um cliente do
+    // grupo — e provamos que a MESMA asserção usada como guarda (`Object.keys`
+    // não contém "nome") vira VERMELHA para este objeto.
+    const clienteComDefeitoReposto = { ...grupo.clientes[0]!, nome: clientesBrutos[0]!.name };
+
+    expect(
+      () => expect(Object.keys(clienteComDefeitoReposto)).not.toContain("nome"),
+      "a guarda precisa ACUSAR quando o campo `nome` volta — se não lançar, a guarda está cega",
+    ).toThrow();
+  });
+
+  it("a pergunta do cadastro duplicado continua respondida sem o nome: ids do grupo + quem tem parceria viva + tamanho", () => {
+    const CLIENT_A = "cli_foocci_a_lixo";
+    const CLIENT_B = "cli_foocci_b_com_parceria";
+    const clientesBrutos = [
+      { id: CLIENT_A, name: "FOOCCI" },
+      { id: CLIENT_B, name: "FOOCCI" },
+    ];
+    const parceriasBrutas = [{ clientId: CLIENT_B, revogadaEm: null, validaAte: DEPOIS }];
+
+    const retrato = montarRetratoDosConvites([], parceriasBrutas, clientesBrutos, AGORA);
+
+    expect(retrato.gruposDeNomeColidente).toHaveLength(1);
+    const grupo = retrato.gruposDeNomeColidente[0]!;
+
+    // 1. tamanho do grupo
+    expect(grupo.tamanho).toBe(2);
+    expect(grupo.tamanho).toBe(grupo.clientes.length);
+
+    // 2. ids do grupo — quem tem a lista sabe QUAIS cadastros colidem, mesmo
+    //    sem o nome, porque abre o painel com sessão para ver o nome lá.
+    expect(grupo.clientes.map((c) => c.id).sort()).toEqual([CLIENT_A, CLIENT_B].sort());
+
+    // 3. quem tem parceria viva — a causa do caso do Marcos continua visível.
+    const a = grupo.clientes.find((c) => c.id === CLIENT_A);
+    const b = grupo.clientes.find((c) => c.id === CLIENT_B);
+    expect(a?.temParceriaViva, "A é o cadastro sem parceria — a causa do caso").toBe(false);
+    expect(b?.temParceriaViva, "B carrega a parceria viva").toBe(true);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
 // decidirConvite: a régua pura, isolada — reforça que a ordem é a documentada
 // ════════════════════════════════════════════════════════════════════════════
 describe("decidirConvite: a ordem é token_desconhecido → revogado → vencido → parceria_nao_esta_viva", () => {
