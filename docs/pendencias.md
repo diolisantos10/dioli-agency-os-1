@@ -130,18 +130,42 @@ comportamento sem revisão e sem CI.** A regra da casa é "nunca empurre direto 
 branch de deploy" — e a ferramenta oficial da casa faz exatamente isso, em
 silêncio.
 
-### O que fazer (nenhuma iniciada — é conserto de ferramenta, precisa de decisão)
+### O que fazer — ✅ A AÇÃO 1, QUE FALTAVA, FOI FEITA EM 30/08/2026
 
-1. Empurrar **só o commit da reivindicação**, não o `HEAD` inteiro — por exemplo
-   criando o commit sobre `origin/<branch>` e empurrando esse objeto, nunca `HEAD:`.
-2. **Recusar** quando o HEAD tiver commits não empurrados além do da
-   reivindicação, dizendo o que faria — recusa barata, dano caro.
-3. Reavaliar o `--no-verify`: ele desliga a única trava que existia.
+1. ✅ Empurrar **só o commit da reivindicação**, não o `HEAD` inteiro — criando o
+   commit sobre `origin/<branch>` e empurrando esse objeto, nunca `HEAD:`.
+   **Feito** (`construirCommitSoDaReivindicacao`, em `scripts/reivindicar.mts`):
+   o que sobe é um commit de plumbing com `origin/<branch>` como **único pai** e
+   só o arquivo do registro de diferença. Empurrar um SHA empurra **todos os
+   ancestrais dele** — era por isso que o `${sha}:<branch>` do PR #378, com o SHA
+   do HEAD, ainda era `HEAD:` com outro nome, e por que só a guarda impedia o
+   estrago.
+2. ✅ Recusar quando o push levar carona — feito em 28/08 (PR #378) e mantido,
+   agora medindo **a ref que sobe** em vez do branch de quem chamou.
+3. ⚠️ `--no-verify`: **fica, com a justificativa escrita no código** (deadlock
+   medido em 16/08 — o gancho pre-push chama `conferir`, que barra o push pela
+   própria reivindicação que ele está empurrando). Deixou de ser a única defesa.
 
-### A lição operacional, até isso ser consertado
+### A lição operacional — ⚠️ REVOGADA EM 30/08/2026
 
-⚠️ **Não rode `npm run reivindicar` com trabalho não empurrado no branch atual.**
-Empurre o seu PR primeiro, ou rode o comando a partir de um branch limpo.
+~~Não rode `npm run reivindicar` com trabalho não empurrado no branch atual.~~
+
+**Pode rodar de dentro do seu branch de PR — é o fluxo da casa.** Enquanto a
+guarda media `origin/<branch>..HEAD`, uma frente nascida em branch de PR não
+conseguia **nem se registrar nem se encerrar**; e como `encerrar` é a saída
+legítima de uma colisão de reivindicação, a colisão ficava **insolúvel de dentro
+do fluxo correto**. Guarda que barra a saída de emergência não protege — ensina
+a contornar.
+
+O que a guarda protegia continua protegido, e agora por construção: o objeto
+empurrado não tem ancestral nenhum do seu branch para levar de carona. Medido no
+remoto, não na mensagem, em
+`__tests__/coordenacao/reivindicacao-em-branch-de-pr.test.ts`.
+
+O `git pull --rebase` da retentativa saiu junto: se a base andou, o commit é
+**reconstruído** sobre a base nova. Um comando de coordenação não reorganiza o
+branch de quem o chama — e com frentes nascendo em branch de PR, aquele rebase
+reescreveria o PR inteiro de quem chamou para empurrar um arquivo de registro.
 ## 🔴 28/08/2026 — ORDEM DO CEO: departamento financeiro por produto (não feita)
 
 **Ordem repassada pelo Diretor do Foocci em 28/08.** Palavras do CEO: *"Todo

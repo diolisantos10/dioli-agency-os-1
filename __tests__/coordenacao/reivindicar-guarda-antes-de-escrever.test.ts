@@ -35,13 +35,25 @@
 // não existe, e `RAIZ` continua sendo calculada exatamente como antes.
 //
 // ── O QUE ESTE ARQUIVO PROVA ────────────────────────────────────────────────
-// 1. No caminho que HOJE mentiria (branch com commit alheio à frente do
-//    remoto): nenhum arquivo novo em disco, nenhum commit novo, nenhum push
-//    — `git log` do clone local e do remoto BARE, antes e depois, idênticos.
-// 2. A recusa continua dizendo "nada foi escrito, commitado ou empurrado" —
-//    e agora essa frase é MEDIDA como verdadeira, não lida como promessa.
-// 3. O caminho feliz (branch alinhada) continua escrevendo, commitando E
-//    empurrando de verdade — a trava não amoleceu.
+// 1. Quando o comando RECUSA, a recusa não mente: nenhum arquivo novo em
+//    disco, nenhum commit novo, nenhum push — `git log` do clone local e do
+//    remoto BARE, antes e depois, idênticos. A frase "nada foi escrito,
+//    commitado ou empurrado" é MEDIDA como verdadeira, não lida como promessa.
+// 2. O caminho feliz continua escrevendo, commitando E empurrando de verdade —
+//    a trava não amoleceu.
+//
+// ── ⚠️ 30/08/2026 — O CENÁRIO DO PRIMEIRO `it()` MUDOU DE LADO ──────────────
+// Até aqui, o caso usado para exercitar a RECUSA era "branch com um commit que
+// o remoto não tem". Ele deixou de ser recusa: era a guarda medindo o BRANCH de
+// quem chamou em vez do que o PUSH carrega, e isso barrava toda frente nascida
+// em branch de PR — `encerrar` inclusive, que é a saída legítima de uma
+// colisão. Ver o cabeçalho de `reivindicacao-em-branch-de-pr.test.ts`.
+//
+// O cenário FICOU no arquivo, com o sinal trocado: ele agora prova que passar
+// não custou a proteção — o commit não empurrado do branch NÃO chega ao remoto.
+// A prova de que a recusa não mente mudou para um caminho que ainda recusa (a
+// colisão de reivindicação), porque o valor deste arquivo nunca foi o cenário:
+// era medir o disco e o git em vez de acreditar na mensagem.
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
@@ -124,22 +136,17 @@ afterEach(() => {
   rmSync(raiz, { recursive: true, force: true });
 });
 
-describe("abrir: o branch NÃO alinhado — o caminho que hoje mentiria", () => {
-  it("nenhum arquivo, nenhum commit, nenhum push — e a mensagem que promete isso é verdadeira", () => {
-    // Simula "trabalho anterior não empurrado": exatamente o que
-    // `soLevaAReivindicacao` existe para pegar — o branch chegaria ao push
-    // levando um commit ALÉM da reivindicação.
+describe("abrir: o branch à frente da base — o caso que recusava, e o que ele custa agora", () => {
+  it("passa, e o commit não empurrado do branch NÃO vai junto para o remoto", () => {
+    // "Trabalho anterior não empurrado": era este cenário que a guarda pegava
+    // — e ela pegava medindo o BRANCH, não o push. Hoje ele passa; o que não
+    // pode mudar é o EFEITO, e é o efeito que este `it()` mede.
     writeFileSync(join(local, "trabalho-anterior.txt"), "algo que não é a reivindicação\n", "utf8");
     git(local, ["add", "trabalho-anterior.txt"]);
     git(local, ["commit", "-m", "trabalho anterior, ainda não empurrado"]);
 
-    const logLocalAntes = logDe(local, "main");
     const logRemotoAntes = logDe(remoto, "main");
-    expect(logLocalAntes.split("\n")).toHaveLength(2); // estado inicial + trabalho anterior
     expect(logRemotoAntes.split("\n")).toHaveLength(1); // só o estado inicial
-
-    const caminhoDaReivindicacao = join(local, "reivindicacoes", "teste-guarda-antes-de-escrever.json");
-    expect(existsSync(caminhoDaReivindicacao)).toBe(false);
 
     const { code, saida } = rodarReivindicar(local, [
       "abrir",
@@ -149,21 +156,73 @@ describe("abrir: o branch NÃO alinhado — o caminho que hoje mentiria", () => 
       "--arquivos", "arquivo-fake-da-frente.ts",
     ]);
 
-    // 1. Recusou.
-    expect(code).not.toBe(0);
-    expect(saida).toContain("reivindicação NÃO empurrada");
-    expect(saida).toContain("nada foi escrito, commitado ou empurrado");
+    // 1. Passou — a frente conseguiu se registrar de onde ela nasce.
+    expect(code, saida).toBe(0);
+    expect(saida).toContain("✅ Reivindicado");
+    expect(existsSync(join(local, "reivindicacoes", "teste-guarda-antes-de-escrever.json"))).toBe(true);
 
-    // 2. ⛔ A TRAVA, MEDIDA — não lida na mensagem, CONFERIDA no disco e no git.
-    //    Nenhum arquivo de reivindicação nasceu…
-    expect(existsSync(caminhoDaReivindicacao)).toBe(false);
-    //    …nenhum commit novo no clone local (só os dois de antes desta chamada)…
-    expect(logDe(local, "main")).toBe(logLocalAntes);
-    //    …e nada chegou ao remoto BARE — a `git log` dele é IDÊNTICA a antes.
+    // 2. ⛔ E A PROTEÇÃO, MEDIDA NO REMOTO BARE — não lida na mensagem.
+    //    O commit de trabalho que ainda não tinha sido empurrado continua sem
+    //    ter sido empurrado: o único assunto novo lá é a reivindicação.
+    const assuntosNoRemoto = logDe(remoto, "main").split("\n");
+    expect(assuntosNoRemoto).toHaveLength(2); // estado inicial + a reivindicação
+    expect(assuntosNoRemoto.join("\n")).toContain("reivindica: frente de teste");
+    expect(
+      assuntosNoRemoto.join("\n"),
+      "o commit de trabalho subiu de carona — é o incidente de 28/08 outra vez",
+    ).not.toContain("trabalho anterior, ainda não empurrado");
+
+    // 3. E o arquivo dele não existe na ponta do remoto.
+    const arquivosNoRemoto = git(remoto, ["ls-tree", "-r", "--name-only", "main"]).split("\n");
+    expect(arquivosNoRemoto).not.toContain("trabalho-anterior.txt");
+  });
+});
+
+describe("abrir: quando ele RECUSA, a promessa continua sendo verdade", () => {
+  it("colisão: nenhum arquivo, nenhum commit, nenhum push — medido, não lido", () => {
+    // O caminho de recusa que continua vivo e é o mais comum de todos: outra
+    // sessão já reivindicou a responsabilidade. A frase da recusa promete que
+    // nada foi gravado; aqui essa frase é CONFERIDA no disco e no git.
+    const primeira = rodarReivindicar(local, [
+      "abrir",
+      "--branch", "main",
+      "--frente", "a primeira sessão chegou antes",
+      "--responsabilidade", "frente-disputada",
+      "--arquivos", "lib/disputado.ts",
+    ]);
+    expect(primeira.code, primeira.saida).toBe(0);
+
+    // Uma SEGUNDA sessão (outro worktree ⇒ outra identidade derivada) tenta a
+    // mesma responsabilidade.
+    const outroWorktree = join(raiz, "local-2");
+    git(raiz, ["clone", remoto, outroWorktree]);
+    git(outroWorktree, ["checkout", "main"]);
+
+    const logLocalAntes = logDe(outroWorktree, "main");
+    const logRemotoAntes = logDe(remoto, "main");
+    const caminhoDaReivindicacao = join(outroWorktree, "reivindicacoes", "frente-disputada.json");
+
+    const { code, saida } = rodarReivindicar(outroWorktree, [
+      "abrir",
+      "--branch", "main",
+      "--frente", "a segunda sessão, cega para a primeira",
+      "--responsabilidade", "frente-disputada",
+      "--arquivos", "lib/disputado.ts",
+    ]);
+
+    // 1. Recusou, e disse que não gravou nada.
+    expect(code).not.toBe(0);
+    expect(saida).toContain("não gravei nada");
+
+    // 2. ⛔ A promessa, MEDIDA. O arquivo da primeira sessão veio no clone;
+    //    o que não pode ter acontecido é a SEGUNDA ter reescrito ou commitado
+    //    coisa alguma.
+    expect(readFileSync(caminhoDaReivindicacao, "utf8")).toContain("a primeira sessão chegou antes");
+    expect(logDe(outroWorktree, "main")).toBe(logLocalAntes);
     expect(logDe(remoto, "main")).toBe(logRemotoAntes);
 
-    // 3. E a mensagem citou o comando de saída de verdade (não deixou beco sem saída).
-    expect(saida).toContain("git checkout -B");
+    // 3. E a recusa não deixou beco sem saída: `encerrar` é oferecido primeiro.
+    expect(saida).toContain("npm run reivindicar -- encerrar --responsabilidade");
   });
 });
 

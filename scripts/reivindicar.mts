@@ -63,8 +63,9 @@
  * mais como prova de posse. Detalhe completo no bloco abaixo.
  */
 
-import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { execFileSync, spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -85,7 +86,9 @@ import { lerReivindicacoesDoDisco } from "../lib/coordenacao/leitura-do-registro
 import {
   vereditoDoPortao, refsDaEntradaPadrao, PASTA_QUE_PASSA_DIRETO,
 } from "../lib/coordenacao/portao-de-push.ts";
-import { soLevaAReivindicacao } from "../lib/coordenacao/so-o-commit-da-reivindicacao.ts";
+import {
+  oQuePushCarrega, soLevaAReivindicacao, type EstadoDoPush,
+} from "../lib/coordenacao/so-o-commit-da-reivindicacao.ts";
 
 // RAIZ é sempre o repositório real onde este arquivo vive — SALVO quando um
 // teste automatizado pede explicitamente, via REIVINDICAR_RAIZ_DE_TESTE, para
@@ -160,21 +163,81 @@ function gitOuNulo(args: string[]): string | null {
 }
 
 /**
- * QUANTOS COMMITS ESTE BRANCH LEVARIA ALÉM DA REIVINDICAÇÃO?
+ * O COMMIT QUE O PUSH VAI CARREGAR — construído SOBRE `origin/<branch>`, com
+ * APENAS o arquivo da reivindicação dentro. Devolve o SHA, ou `null` se não deu
+ * para construir (base ilegível, arquivo sumido) — e aí ninguém empurra nada.
  *
- * Mede contra `origin/<branch>` DEPOIS do fetch que `abrir`/`encerrar` já
- * fizeram. Falhou a leitura → `mediu: false`, e a régua recusa: *"não sei o que
- * iria junto" nunca vira "então vai"*.
+ * ══ POR QUE ISTO EXISTE (30/08/2026) ═══════════════════════════════════════
+ * `docs/pendencias.md`, ação 1 de 28/08, palavra por palavra: *"empurrar só o
+ * commit da reivindicação, não o `HEAD` inteiro — por exemplo criando o commit
+ * sobre `origin/<branch>` e empurrando esse objeto, nunca `HEAD:`."* É isto.
+ *
+ * O push antigo levava o HEAD (por SHA, mas o SHA do HEAD — e empurrar um SHA
+ * empurra todos os ancestrais dele, então era `HEAD:` com outro nome). A única
+ * coisa que impedia o trabalho do branch de subir junto era a guarda RECUSAR o
+ * push inteiro — o que consertava o dano barrando também quem tinha razão.
+ * Construindo o commit aqui, "só a reivindicação sobe" deixa de ser uma promessa
+ * conferida por uma régua e passa a ser uma propriedade da coisa empurrada:
+ * o commit tem UM pai (`origin/<branch>`) e UM caminho diferente da base.
+ *
+ * ⚠️ NADA AQUI TOCA O WORKING TREE NEM O ÍNDICE DA SESSÃO. `read-tree`/
+ * `update-index`/`write-tree` rodam contra um ÍNDICE TEMPORÁRIO
+ * (`GIT_INDEX_FILE`), e `commit-tree` é plumbing puro: não move HEAD, não faz
+ * checkout, não mexe no que a sessão tem em andamento. Um comando de
+ * coordenação que reorganiza o branch de quem o chamou é o defeito de 28/08
+ * outra vez, um andar acima.
  */
-function medirOQuePushLevaria(branch: string): { commitsAlemDaReivindicacao: number; titulos: string[]; mediu: boolean } {
-  const bruto = gitOuNulo(["log", "--oneline", `origin/${branch}..HEAD`]);
-  if (bruto === null) return { commitsAlemDaReivindicacao: 0, titulos: [], mediu: false };
-  const titulos = bruto.split("\n").map((l) => l.trim()).filter(Boolean);
-  return { commitsAlemDaReivindicacao: titulos.length, titulos, mediu: true };
+function construirCommitSoDaReivindicacao(branch: string, caminhoRelativo: string, mensagem: string): string | null {
+  const base = gitOuNulo(["rev-parse", "--verify", `origin/${branch}^{commit}`]);
+  if (base === null) return null;
+
+  // O conteúdo vem do DISCO — o arquivo que `abrir`/`encerrar` acabaram de
+  // escrever —, nunca do HEAD. Assim o objeto empurrado não depende, em ponto
+  // nenhum, do que o branch da sessão tem ou deixa de ter.
+  const blob = gitOuNulo(["hash-object", "-w", "--", join(RAIZ, caminhoRelativo)]);
+  if (blob === null) return null;
+
+  const indiceTemporario = join(tmpdir(), `reivindicar-indice-${process.pid}-${Date.now()}`);
+  const comIndiceTemporario = (args: string[]): string | null => {
+    try {
+      return execFileSync("git", args, {
+        cwd: RAIZ,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+        env: { ...process.env, GIT_INDEX_FILE: indiceTemporario },
+      }).trim();
+    } catch {
+      return null;
+    }
+  };
+
+  try {
+    if (comIndiceTemporario(["read-tree", base]) === null) return null;
+    if (comIndiceTemporario(["update-index", "--add", "--cacheinfo", `100644,${blob},${caminhoRelativo}`]) === null) return null;
+    const arvore = comIndiceTemporario(["write-tree"]);
+    if (arvore === null) return null;
+    return gitOuNulo(["commit-tree", arvore, "-p", base, "-m", mensagem]);
+  } finally {
+    rmSync(indiceTemporario, { force: true });
+  }
 }
 
 /**
- * O PORTÃO, COMO OS COMANDOS O CHAMAM — e ele roda ANTES de tocar o disco.
+ * O QUE ESTE PUSH CARREGA ALÉM DA REIVINDICAÇÃO?
+ *
+ * ⚠️ ATÉ 30/08/2026 ESTA FUNÇÃO MEDIA `origin/<branch>..HEAD` — a pergunta
+ * ERRADA. Ver o bloco "A REGRA ESTAVA CERTA; A PERGUNTA É QUE ESTAVA ERRADA" em
+ * `lib/coordenacao/so-o-commit-da-reivindicacao.ts`. Agora mede a REF QUE VAI
+ * SER EMPURRADA — o commit construído acima —, que é o que de fato pode levar
+ * carona para o deploy. A régua que julga o resultado não mudou uma linha.
+ */
+function medirOQuePushLevaria(branch: string, refDoPush: string): EstadoDoPush {
+  return oQuePushCarrega(gitOuNulo(["log", "--oneline", `origin/${branch}..${refDoPush}`]));
+}
+
+/**
+ * DÁ PARA CONSTRUIR UM PUSH QUE SÓ LEVA A REIVINDICAÇÃO? — a conferência
+ * BARATA, que roda ANTES de tocar o disco.
  *
  * ⚠️ A POSIÇÃO É METADE DO CONSERTO. A primeira versão conferia dentro de
  * `commitarEEmpurrar`, que roda DEPOIS do `writeFileSync` — a recusa saía com a
@@ -182,10 +245,34 @@ function medirOQuePushLevaria(branch: string): { commitsAlemDaReivindicacao: num
  * exercitando o comando de verdade, não lendo o código: a recusa mentia.
  *
  * Recusa que mente sobre o próprio efeito é pior que recusa nenhuma — quem lê
- * confia e não limpa. Agora ela roda antes de escrever, e a frase é verdade.
+ * confia e não limpa. Por isso ela roda antes de escrever, e a frase é verdade.
+ *
+ * O que ela ainda pega, depois do conserto de 30/08: a METADE FAIL-CLOSED. Sem
+ * conseguir ler `origin/<branch>` não há base sobre a qual construir o commit
+ * da reivindicação — e "não sei o que iria junto" nunca vira "então vai".
+ * Ela deixou de barrar por "o seu branch está à frente do deploy", que nunca
+ * foi motivo para recusar um REGISTRO: é motivo para não empurrar o BRANCH, e
+ * o branch deixou de ser o que sobe.
  */
-function exigirBranchAlinhado(branch: string): void {
-  const veredito = soLevaAReivindicacao(medirOQuePushLevaria(branch));
+function exigirBaseDeCoordenacaoLegivel(branch: string): void {
+  const base = gitOuNulo(["rev-parse", "--verify", `origin/${branch}^{commit}`]);
+  const mediu = base !== null;
+  exigirQueOPushSoLeveAReivindicacao(
+    { commitsAlemDaReivindicacao: 0, titulos: [], mediu },
+    "(nada foi escrito, commitado ou empurrado — o disco está como estava.)",
+  );
+}
+
+/**
+ * O PORTÃO — a régua pura consultada, e a recusa que INTERROMPE.
+ *
+ * `oQueJaAconteceu` é obrigatório de propósito: cada ponto de chamada está num
+ * momento diferente da operação, e uma recusa que descreve o momento ERRADO é
+ * exatamente o defeito da ficha B1 (a trava que mentia sobre o próprio efeito).
+ * Quem chama sabe o que já foi feito; é quem chama que escreve a frase.
+ */
+function exigirQueOPushSoLeveAReivindicacao(estado: EstadoDoPush, oQueJaAconteceu: string): void {
+  const veredito = soLevaAReivindicacao(estado);
   if (veredito.pode) return;
   // ⚠️ IMPRIME E SAI, no padrão das outras recusas deste arquivo (🚫 +
   // `process.exit(1)`) — e NÃO `throw`. Medido exercitando: o `try/catch` de
@@ -193,7 +280,7 @@ function exigirBranchAlinhado(branch: string): void {
   // como STACK TRACE de Node na cara de quem rodou o comando. Recusa que sai
   // como stack não é lida: ela parece defeito da ferramenta, não decisão dela.
   console.error(`🚫 reivindicação NÃO empurrada: ${veredito.motivo}`);
-  console.error("   (nada foi escrito, commitado ou empurrado — o disco está como estava.)");
+  console.error(`   ${oQueJaAconteceu}`);
   process.exit(1);
 }
 
@@ -233,122 +320,91 @@ function lerReivindicacoesRemotas(branch: string): Reivindicacao[] {
   });
 }
 
-/** O formato que `execFileSync` lança quando o processo falha e `stdio` tem
- *  `pipe` em stdout/stderr: além de `message`, o erro carrega `stdout` e
- *  `stderr` como string (porque passamos `encoding: "utf8"`). */
-type ErroDeProcesso = { message?: string; stdout?: string; stderr?: string };
+// ⚠️ AQUI MORAVAM `ErroDeProcesso` e `diagnosticarFalhaDoRebase` — o tradutor
+// que explicava por que o `git pull --rebase` do push tinha falhado (tree sujo
+// no próprio worktree × conflito de verdade × causa desconhecida).
+//
+// Os dois saíram em 30/08/2026 junto com o rebase que eles serviam. O push da
+// reivindicação deixou de precisar que o HEAD descenda do remoto: ele leva um
+// commit CONSTRUÍDO sobre `origin/<branch>` (ver
+// `construirCommitSoDaReivindicacao`), e quando a base anda o commit é
+// reconstruído, não rebaseado. Sem rebase não há falha de rebase para
+// diagnosticar — e código morto que descreve um mecanismo removido é pior que
+// nenhum comentário: ele ensina errado.
+//
+// O que o rebase resolvia continua resolvido, por outro caminho:
+//   • "a branch andou entre o fetch e o push" → releitura do remoto +
+//     reconstrução do commit sobre a base nova, em `commitarEEmpurrar`;
+//   • "encerrar não pode exigir working tree limpo" (DEFEITO 1 de 16/08, e o
+//     motivo do `rebase.autoStash=true`) → agora sai de graça: nada no caminho
+//     do push toca o working tree. O registro do mecanismo antigo, e o teste
+//     que o mediu, seguem em
+//     `__tests__/coordenacao/encerrar-com-tree-sujo.test.ts`.
 
-/** Traduz a falha do `git pull --rebase` na causa REAL, medida na saída do
- *  próprio git — nunca advinhada. Antes deste conserto, TODA falha de rebase
- *  virava "provável outra sessão pegou a mesma responsabilidade", mesmo
- *  quando a causa era trivial (working tree sujo no PRÓPRIO worktree, sem
- *  nenhuma outra sessão envolvida). Trava que diagnostica errado ensina quem
- *  lê a desconfiar dela — e trava em que ninguém confia é trava que some.
+/** Registra a reivindicação em DOIS lugares, e são lugares diferentes de
+ *  propósito:
  *
- *  `comandoParaRepetir` é a linha EXATA, pronta para colar, que refaz o
- *  comando que estava rodando quando o rebase falhou — FURO 3, ponto 1, do
- *  laudo de qualidade da rodada 5: antes, esta mensagem sempre dizia "rode
- *  'npm run reivindicar -- abrir' de novo", inclusive quando quem estava
- *  rodando era `encerrar` — mandando quem estava ENCERRANDO para o comando
- *  ERRADO. Quem chama (`commitarEEmpurrar`) já sabe se é `abrir` ou
- *  `encerrar`; é ela quem decide o texto certo. */
-function diagnosticarFalhaDoRebase(erro: unknown, branch: string, comandoParaRepetir: string): string {
-  const bruto = erro as ErroDeProcesso;
-  const saida = `${bruto.stderr ?? ""}\n${bruto.stdout ?? ""}`.trim();
-  const detalhe = saida || (erro instanceof Error ? erro.message : String(erro));
-  const comumATodas =
-    `O commit local ainda existe; resolva à mão ("git rebase --abort" desfaz) e rode "${comandoParaRepetir}" de novo depois.`;
-
-  // (a) O git recusa "pull --rebase" com working tree sujo — isto acontece no
-  // PRÓPRIO worktree, sem nenhuma outra sessão por perto. É a causa mais
-  // comum e a mais fácil de confirmar sem adivinhar nada.
-  if (/cannot pull with rebase/i.test(detalhe) || /you have unstaged changes/i.test(detalhe) || /error: your local changes/i.test(detalhe)) {
-    return (
-      `"git pull --rebase origin ${branch}" falhou porque HÁ TRABALHO NÃO COMMITADO no seu próprio worktree — ` +
-      `isto NÃO é colisão com outra sessão. Commite (ou "git stash") o que está solto e rode "${comandoParaRepetir}" de novo. ` +
-      `Detalhe: ${detalhe}`
-    );
-  }
-
-  // (b) Conflito de merge de verdade — aqui sim pode ser outra sessão mexendo
-  // no MESMO arquivo, porque o rebase chegou a tentar aplicar o commit e as
-  // duas versões não conciliam.
-  if (/CONFLICT/i.test(detalhe)) {
-    return (
-      `"git pull --rebase origin ${branch}" falhou com CONFLITO DE VERDADE (provável outra sessão na mesma responsabilidade). ${comumATodas} ` +
-      `Detalhe: ${detalhe}`
-    );
-  }
-
-  // (c) Qualquer outra causa: mostramos a saída crua em vez de inventar um
-  // motivo. Regra da casa — nunca afirmar causa que não foi medida.
-  return (
-    `"git pull --rebase origin ${branch}" falhou por um motivo que não reconheço — mostrando a saída crua em vez de adivinhar causa. ${comumATodas} ` +
-    `Detalhe: ${detalhe}`
-  );
-}
-
-/** Escreve o arquivo local da reivindicação, `git add` + `git commit`, e
- *  tenta o `git push`. Se o push falhar por a branch remota ter andado,
- *  reconfere a colisão contra o estado NOVO do remoto antes de repetir —
- *  nunca empurra às cegas depois de um rebase. */
+ *  1. **No branch da sessão** (`git add` + `git commit --only`): o arquivo não
+ *     fica solto no working tree e viaja junto com o PR de quem abriu a frente.
+ *     O dono precisa ENXERGAR a própria reivindicação — foi exatamente isso que
+ *     faltou no incidente da ficha B1 (registro vivo no remoto, invisível para
+ *     quem o abriu).
+ *  2. **Na branch de coordenação**, e ali SÓ ele: um commit construído sobre
+ *     `origin/<branch>` com o arquivo dentro (`construirCommitSoDaReivindicacao`).
+ *     É o que a coordenação lê, e é a única fonte que duas sessões isoladas
+ *     compartilham.
+ *
+ *  Se o push for recusado porque a branch de coordenação andou, o commit é
+ *  RECONSTRUÍDO sobre a base nova — depois de reconferir a colisão contra o
+ *  remoto atualizado. Nunca empurra às cegas. */
 function commitarEEmpurrar(
   caminhoRelativo: string,
   mensagem: string,
   branch: string,
   nova: Pick<Reivindicacao, "quem" | "responsabilidade" | "arquivos">,
-  // Propaga o `--forcar` original para a reconferência pós-rebase. Sem isto,
-  // uma sessão que forçou de propósito e precisou rebasear por uma corrida
+  // Propaga o `--forcar` original para a reconferência da retentativa. Sem isto,
+  // uma sessão que forçou de propósito e precisou reconstruir por uma corrida
   // seria barrada na retentativa mesmo tendo decidido, com motivo registrado,
   // seguir apesar da colisão — o force perderia efeito no pior momento.
   permitirColisaoNaReconferencia = false,
-  // A linha EXATA para colar caso o rebase falhe — ver o comentário grande em
-  // `diagnosticarFalhaDoRebase` (FURO 3, ponto 1): `abrir` e `encerrar`
-  // precisam de comandos DIFERENTES aqui, e só quem chamou sabe qual é.
+  // A linha EXATA para colar caso a retentativa falhe (FURO 3, ponto 1):
+  // `abrir` e `encerrar` precisam de comandos DIFERENTES aqui, e só quem chamou
+  // sabe qual é.
   comandoParaRepetir: string,
-  // ── DEFEITO 1 (medido em 16/08/2026, EXERCITANDO o comando de verdade —
-  // não lendo o código) ────────────────────────────────────────────────────
-  // A mensagem de colisão por esquema antigo (`explicarEsquemaAntigo`, acima)
-  // manda quem foi barrado rodar "encerrar" e depois "abrir" de novo, NO MEIO
-  // do próprio trabalho. Isso é correto — mas quando o `git push` direto é
-  // recusado (a branch andou) e este passo tenta `git pull --rebase`, o git
-  // RECUSA rebasear com o working tree sujo, mesmo que a sujeira não tenha
-  // NADA a ver com o arquivo da reivindicação. `abrir` já tem um escape
-  // explícito para isso (`--mesmo-com-trabalho-em-andamento`, conferido ANTES
-  // de escrever qualquer coisa) — `encerrar` não tinha NENHUM, e por
-  // definição quem chama "encerrar" está no meio do trabalho: a saída
-  // recomendada batia numa segunda parede, exatamente para o único público
-  // que ela existe para ajudar.
-  //   A escolha de desenho: NÃO copiar o escape explícito do `abrir`
-  // (`--algo-em-andamento`) para o `encerrar`. "Encerrar" não toma posse nem
-  // escreve código — é o ato MENOS perigoso do comando inteiro (só REMOVE uma
-  // reivindicação já registrada); pedir uma flag de confirmação para o ato
-  // menos arriscado reintroduz a MESMA fricção que se está consertando, só
-  // adiada por um passo — e ninguém além do próprio autor da reivindicação
-  // consegue encerrá-la de qualquer forma (`comandoEncerrar` só localiza pelo
-  // slug da responsabilidade). Em vez disso, o `git pull --rebase` deste
-  // passo roda com `rebase.autoStash=true` quando `autostashNoRebase` é
-  // verdadeiro: o git GUARDA (stash) o que está solto, rebaseia, e DEVOLVE
-  // (pop) automaticamente — sem exigir tree limpo e sem perder nada do
-  // trabalho em andamento. Isto ataca a CAUSA (rebase exige tree limpo) em
-  // vez de pedir para quem chama provar, de novo, que sabe o que está
-  // fazendo.
-  //   Só `encerrar` passa `true` aqui — `abrir` nunca passa, e continua
-  // exigindo tree limpo (ou `--mesmo-com-trabalho-em-andamento` explícito)
-  // ANTES de commitar: `abrir` está TOMANDO POSSE de uma frente nova, e é lá
-  // que o rigor pertence. Isto não afrouxa a COLISÃO em si — a reconferência
-  // contra o remoto atualizado, logo abaixo, roda exatamente igual, com ou
-  // sem autostash.
-  autostashNoRebase = false,
 ): void {
-  // ═══ SEGUNDA TRAVA (28/08/2026) ══════════════════════════════════════════
+  // ── O OBJETO QUE VAI SUBIR — CONSTRUÍDO ANTES DE QUALQUER COMMIT LOCAL ────
+  // Assim o que sobe não depende, em ponto nenhum, do que o branch da sessão
+  // tem ou deixa de ter; e uma recusa aqui ainda pode dizer a verdade sobre o
+  // que já aconteceu ("o arquivo está no disco; nada foi commitado").
+  const construirOPushDaReivindicacao = (): string => {
+    const sha = construirCommitSoDaReivindicacao(branch, caminhoRelativo, mensagem);
+    if (sha === null) {
+      throw new Error(
+        `não consegui construir o commit da reivindicação sobre origin/${branch}, e sem ele o push levaria o branch inteiro — que é justamente o que não pode. ` +
+          `Nada foi empurrado. Confira o acesso ao remoto e rode "${comandoParaRepetir}" de novo.`,
+      );
+    }
+    return sha;
+  };
+
+  let sha = construirOPushDaReivindicacao();
+
+  // ═══ SEGUNDA TRAVA (28/08/2026 — medindo a coisa certa desde 30/08) ══════
   //
-  // `abrir` e `encerrar` já chamaram `exigirBranchAlinhado` ANTES de escrever o
-  // arquivo — é lá que a recusa é barata e honesta. Esta aqui existe porque um
-  // caminho novo pode chegar a este ponto sem passar por lá, e o dano deste
-  // ponto em diante é irreversível: um push para o deploy não se desfaz.
-  // Duas travas para o mesmo dano, de propósito.
-  exigirBranchAlinhado(branch);
+  // `abrir` e `encerrar` já chamaram `exigirBaseDeCoordenacaoLegivel` ANTES de
+  // escrever o arquivo — é lá que a recusa é barata e honesta. Esta aqui existe
+  // porque um caminho novo pode chegar a este ponto sem passar por lá, e o dano
+  // deste ponto em diante é irreversível: um push para a branch compartilhada
+  // não se desfaz. Duas travas para o mesmo dano, de propósito.
+  //
+  // ⚠️ E ESTA MEDE O OBJETO QUE SOBE, não o branch de quem chamou. É aqui que a
+  // proteção de 28/08 continua inteira: se alguém, um dia, trocar
+  // `construirCommitSoDaReivindicacao` de volta por "o SHA do HEAD", esta linha
+  // vê os commits do branch entrando de carona e RECUSA, nomeando cada um.
+  exigirQueOPushSoLeveAReivindicacao(
+    medirOQuePushLevaria(branch, sha),
+    "(o arquivo está no disco; nada foi commitado nem empurrado.)",
+  );
 
   git(["add", caminhoRelativo]);
   // ⛔ `--only <caminho>` — MEDIDO EM 28/08/2026, EXERCITANDO O COMANDO.
@@ -379,55 +435,50 @@ function commitarEEmpurrar(
   // (`conferirColisao` em `abrir`, ou a leitura de `existentes` em
   // `encerrar`) — pedir para o gancho conferir de NOVO é conferência dupla, e
   // conferência dupla contra o próprio commit que a gente está tentando subir
-  // só pode dar falso positivo. `abrir` já recusou colisão ANTES de escrever
-  // qualquer coisa; `encerrar` só REMOVE reivindicação, nunca adiciona risco.
-  // Nenhum dos dois precisa do gancho para se auto-policiar.
-  // ⛔ O SHA DO COMMIT, NUNCA `HEAD:` — defesa em profundidade.
+  // só pode dar falso positivo.
+  // ⛔ O SHA DO COMMIT CONSTRUÍDO, NUNCA `HEAD:`.
   //
-  // O portão acima já garantiu que não há mais nada no branch; empurrar o SHA
-  // garante que, se um dia o portão falhar ou for contornado, o que sobe ainda
-  // é UM commit nomeado, e não "tudo o que o HEAD tiver". Duas travas para o
-  // mesmo dano, de propósito: esta linha é a que não depende de ninguém ter
-  // medido nada.
+  // Desde 30/08/2026 este `sha` não é mais o do HEAD: é o do commit que tem
+  // `origin/<branch>` como único pai e só o arquivo da reivindicação de
+  // diferença. Empurrar um SHA empurra todos os ancestrais dele — era por isso
+  // que `${sha}:${branch}` com o SHA do HEAD ainda era `HEAD:` com outro nome, e
+  // por que só a guarda impedia o estrago. Agora a garantia é estrutural: não
+  // existe ancestral para levar de carona.
   //
   // ⚠️ `--no-verify` FICA, e a justificativa é a de sempre (deadlock medido em
   // 16/08: o gancho pre-push chama `conferir`, que lê a MESMA responsabilidade
   // que este comando acabou de gravar, e barra o push pela própria
   // reivindicação que ele está empurrando). O que mudou é que ele deixou de ser
-  // a ÚNICA defesa: antes, desligar o gancho era desligar tudo; agora o portão
-  // acima roda sempre, e ele é mais preciso que o gancho para este risco
-  // específico — o gancho confere COLISÃO, não o que o push carrega.
-  const tentarPush = () => {
-    const sha = git(["rev-parse", "HEAD"]);
-    return execFileSync("git", ["push", "--no-verify", "origin", `${sha}:${branch}`], { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  };
+  // a ÚNICA defesa: o portão acima roda sempre, e ele é mais preciso que o
+  // gancho para este risco específico — o gancho confere COLISÃO, não o que o
+  // push carrega.
+  const tentarPush = (sha: string) =>
+    execFileSync("git", ["push", "--no-verify", "origin", `${sha}:${branch}`], { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
 
   try {
-    tentarPush();
+    tentarPush(sha);
     return;
   } catch {
-    console.log(`   push recusado — a branch ${branch} andou. Rebaseando…`);
+    console.log(`   push recusado — a branch ${branch} andou. Reconstruindo o commit sobre a base nova…`);
   }
 
-  try {
-    // Ver o comentário grande no parâmetro `autostashNoRebase`, acima
-    // (DEFEITO 1): só `encerrar` pede autostash — `abrir` continua exigindo
-    // tree limpo antes de chegar até aqui.
-    const argsDoRebase = autostashNoRebase
-      ? ["-c", "rebase.autoStash=true", "pull", "--rebase", "origin", branch]
-      : ["pull", "--rebase", "origin", branch];
-    execFileSync("git", argsDoRebase, { cwd: RAIZ, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  } catch (e) {
-    throw new Error(diagnosticarFalhaDoRebase(e, branch, comandoParaRepetir));
-  }
-
-  // Depois do rebase, reconfere contra o remoto ATUALIZADO — de novo, `git
-  // fetch` primeiro, porque o rebase só trouxe o que já estava no remoto NO
-  // MOMENTO do fetch anterior; alguém pode ter empurrado de novo enquanto o
-  // rebase rodava.
+  // ── A RETENTATIVA: RECONSTRUIR SOBRE A BASE NOVA, NUNCA REBASEAR ──────────
+  //
+  // ⚠️ AQUI MORAVA UM `git pull --rebase origin <branch de coordenação>` (com
+  // `rebase.autoStash=true` no caso do `encerrar`). Ele fazia sentido enquanto o
+  // que subia era o HEAD: para empurrar o HEAD é preciso que ele descenda do
+  // remoto. Agora que o que sobe é um commit construído sobre a base, o rebase
+  // deixou de ser necessário — e, com `abrir`/`encerrar` rodando de dentro de
+  // branches de PR, passou a ser PERIGOSO: rebasear a branch de trabalho de quem
+  // chamou em cima da branch de coordenação reescreve o PR dessa pessoa, sem
+  // ninguém pedir, para conseguir empurrar UM arquivo de registro. Comando de
+  // coordenação não reorganiza o trabalho de quem o chama.
+  //
+  // Se a base andou, constrói-se sobre a base nova. Sem stash, sem exigir tree
+  // limpo, sem tocar em nada da sessão.
   const busca = buscarRemoto(branch);
   if (!busca.ok) {
-    throw new Error(`rebase deu certo mas não consegui reconferir o remoto antes de empurrar de novo (${busca.erro}). Nada foi empurrado — rode de novo.`);
+    throw new Error(`não consegui reler origin/${branch} para empurrar de novo (${busca.erro}). Nada foi empurrado — rode "${comandoParaRepetir}" de novo.`);
   }
   // `conferirColisao` já ignora reivindicações do mesmo `quem` — inclusive a
   // que estamos abrindo/encerrando agora, se por algum motivo ela já tiver
@@ -436,14 +487,19 @@ function commitarEEmpurrar(
   const reconferencia = conferirColisao(nova, existentesAgora, new Date());
   if (reconferencia.colide && !permitirColisaoNaReconferencia) {
     throw new Error(
-      `depois do rebase, a reivindicação colide com quem chegou primeiro:\n` + reconferencia.motivos.map((m) => `   - ${m}`).join("\n") + `\nNada foi empurrado.`,
+      `enquanto isto rodava a branch andou, e a reivindicação passou a colidir com quem chegou primeiro:\n` + reconferencia.motivos.map((m) => `   - ${m}`).join("\n") + `\nNada foi empurrado.`,
     );
   }
   if (reconferencia.colide && permitirColisaoNaReconferencia) {
-    console.log("   ⚠️  ainda colide depois do rebase, mas --forcar segue valendo — empurrando mesmo assim.");
+    console.log("   ⚠️  ainda colide depois da releitura, mas --forcar segue valendo — empurrando mesmo assim.");
   }
 
-  tentarPush();
+  sha = construirOPushDaReivindicacao();
+  exigirQueOPushSoLeveAReivindicacao(
+    medirOQuePushLevaria(branch, sha),
+    "(o commit local do registro existe no seu branch; NADA foi empurrado.)",
+  );
+  tentarPush(sha);
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -992,8 +1048,8 @@ function comandoAbrir(argv: string[]): void {
   mkdirSync(PASTA_REIVINDICACOES, { recursive: true });
   const caminhoAbsoluto = join(PASTA_REIVINDICACOES, nomeArquivo);
   // ⛔ ANTES de escrever: a recusa promete que nada foi tocado, e a promessa
-  // tem de ser verdade. Ver `exigirBranchAlinhado`.
-  exigirBranchAlinhado(branch);
+  // tem de ser verdade. Ver `exigirBaseDeCoordenacaoLegivel`.
+  exigirBaseDeCoordenacaoLegivel(branch);
   writeFileSync(caminhoAbsoluto, `${JSON.stringify(reivindicacao, null, 2)}\n`, "utf8");
 
   try {
@@ -1260,15 +1316,16 @@ function comandoEncerrar(argv: string[]): void {
   const nomeArquivo = nomeDoArquivo(id);
   const caminhoRelativo = join("reivindicacoes", nomeArquivo);
   // ⛔ ANTES de escrever — mesma razão do `abrir`.
-  exigirBranchAlinhado(branch);
+  exigirBaseDeCoordenacaoLegivel(branch);
   writeFileSync(join(RAIZ, caminhoRelativo), `${JSON.stringify(encerrada, null, 2)}\n`, "utf8");
 
   try {
-    // `autostashNoRebase: true` — só "encerrar" passa isto (ver DEFEITO 1 no
-    // parâmetro `autostashNoRebase` de `commitarEEmpurrar`): encerrar não
-    // toma posse nem escreve código, então não há por que exigir tree limpo
-    // dele quando o rebase precisa rodar.
-    commitarEEmpurrar(caminhoRelativo, `encerra: ${alvo.frente}`, branch, { quem: alvo.quem, responsabilidade: alvo.responsabilidade, arquivos: alvo.arquivos }, false, comandoParaRepetir, true);
+    // O antigo 7º argumento (`autostashNoRebase: true`) saiu em 30/08/2026: o
+    // push da reivindicação não rebaseia mais nada, então não há tree limpo a
+    // exigir nem stash a fazer. O que aquele parâmetro protegia — "encerrar é
+    // chamado NO MEIO do trabalho, e tree sujo é o estado normal de quem o
+    // chama" — passou a ser propriedade do caminho inteiro, não um escape.
+    commitarEEmpurrar(caminhoRelativo, `encerra: ${alvo.frente}`, branch, { quem: alvo.quem, responsabilidade: alvo.responsabilidade, arquivos: alvo.arquivos }, false, comandoParaRepetir);
   } catch (e) {
     console.error(`🚫 ${e instanceof Error ? e.message : String(e)}`);
     process.exit(1);

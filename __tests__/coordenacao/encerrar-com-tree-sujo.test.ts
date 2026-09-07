@@ -31,6 +31,24 @@
 // é o ato MENOS perigoso do comando inteiro, e exigir tree limpo dele era
 // rigor no lugar errado.
 //
+// ── ⚠️ 30/08/2026 — O MECANISMO DESCRITO ACIMA SAIU DO SCRIPT ─────────────
+// `commitarEEmpurrar` não rebaseia mais nada, então não há `autostashNoRebase`
+// nem `git pull --rebase` em `scripts/reivindicar.mts`. O push da reivindicação
+// passou a levar um commit CONSTRUÍDO sobre `origin/<branch>` (só o arquivo do
+// registro dentro), e quando a base anda o commit é RECONSTRUÍDO sobre a base
+// nova — nunca rebaseando a branch de quem chamou, que desde a ordem do CEO é
+// uma branch de PR com trabalho dentro. Ver
+// `__tests__/coordenacao/reivindicacao-em-branch-de-pr.test.ts`.
+//
+// O DEFEITO 1 continua resolvido, e melhor: "encerrar" não exige working tree
+// limpo porque NADA no caminho do push toca o working tree — deixou de ser um
+// escape (`rebase.autoStash=true`) e passou a ser propriedade do desenho.
+//
+// Este arquivo FICA como o registro medido daquela decisão: ele exercita git
+// puro (não o script), e é ele que documenta por que o rebase era uma parede
+// para quem chamava "encerrar" no meio do trabalho. Se alguém trouxer o rebase
+// de volta, é aqui que está escrito o que aconteceu da última vez.
+//
 // ── POR QUE ESTE TESTE NÃO INVOCA "scripts/reivindicar.mts" DIRETO ────────
 // O script fixa `RAIZ` a partir do PRÓPRIO caminho do arquivo (o repositório
 // real desta casa) e usa `cwd: RAIZ` em TODO comando git — não há como

@@ -25,3 +25,18 @@ npm run reivindicar -- listar                     # o que está vivo, o que est�
 contra `origin/<branch>` e faz `git push` na hora — se ficar só no seu commit
 local, a próxima sessão que fizer `git fetch` não vê nada, e a colisão
 acontece do mesmo jeito que aconteceria sem esta pasta.
+
+**Rode de dentro do seu branch de PR — é o lugar certo.** Desde 30/08/2026 o
+push da reivindicação leva um commit construído sobre `origin/<branch>` com só o
+arquivo do registro dentro: o trabalho do seu branch **não vai junto**, e o seu
+branch **não é rebaseado** para isso acontecer. Antes disso a ferramenta media o
+seu branch em vez do que o push carregava, e recusava — o que trancava também o
+`encerrar`, que é a saída legítima de uma colisão. O registro fica nos dois
+lugares de propósito: um commit no **seu** branch (para você enxergar a sua
+própria frente, e para ela viajar no PR) e o commit-só-do-registro na **branch de
+coordenação**, que é a única fonte que duas sessões isoladas compartilham.
+
+**Colidiu?** A saída é `encerrar` — e quem encerra é o **dono** da frente
+(`quem`), não quem colidiu com ela. Se a frente já terminou, o dono encerra e a
+pasta volta a ficar limpa; se as duas ainda estão vivas, é conversa entre as duas
+sessões, não conserto de arquivo alheio.
