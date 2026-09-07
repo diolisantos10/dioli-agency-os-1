@@ -37,6 +37,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, isAgencyRole } from "@/lib/auth/session";
 import { deveBloquearMutacaoCrossSite } from "@/lib/security/navegacao-cross-site";
+import { clienteDoWorkspace, naoEncontrado } from "@/lib/auth/posse-de-workspace";
 import {
   cunharConviteDeParceria, revogarConviteDeParceria,
 } from "@/lib/agency/comercial/convite-de-parceria";
@@ -65,9 +66,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (g.erro) return g.erro;
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+  const clientId = texto(body.clientId);
+
+  // POSSE ANTES DA ESCRITA. `clientId` vazio segue para a função de biblioteca,
+  // que recusa com `sem_cliente` (400) — a mesma resposta de hoje.
+  if (clientId && !(await clienteDoWorkspace(clientId, g.session!.workspaceId))) {
+    return naoEncontrado();
+  }
 
   const r = await cunharConviteDeParceria({
-    clientId: texto(body.clientId),
+    clientId,
     expiraEm: texto(body.expiraEm) || null,
     observacao: texto(body.observacao) || null,
     // O DONO SAI DA SESSÃO. Sempre.

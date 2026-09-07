@@ -38,6 +38,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, isAgencyRole } from "@/lib/auth/session";
 import { deveBloquearMutacaoCrossSite } from "@/lib/security/navegacao-cross-site";
+import { clienteDoWorkspace, naoEncontrado } from "@/lib/auth/posse-de-workspace";
 import {
   autorizarParceriaDoCliente, revogarParceriaDoCliente,
 } from "@/lib/agency/financeiro/parceria-do-parceiro";
@@ -68,9 +69,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (g.erro) return g.erro;
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+  const clientId = texto(body.clientId);
+
+  // POSSE ANTES DA ESCRITA. `clientId` vazio segue para a função de biblioteca
+  // sem esta checagem — ela mesma recusa com `sem_cliente` (400), a mesma
+  // resposta de hoje. Não é 404 porque não é uma questão de posse: é campo
+  // ausente, e a mensagem de recusa não pode mudar.
+  if (clientId && !(await clienteDoWorkspace(clientId, g.session!.workspaceId))) {
+    return naoEncontrado();
+  }
 
   const r = await autorizarParceriaDoCliente({
-    clientId: texto(body.clientId),
+    clientId,
     autorizadaPor: texto(body.autorizadaPor),
     validaAte: texto(body.validaAte),
     escopo: texto(body.escopo),
@@ -108,6 +118,10 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
 
   const clientId = texto(new URL(req.url).searchParams.get("clientId"));
   if (!clientId) return NextResponse.json({ ok: false, error: "Informe o clientId." }, { status: 400 });
+
+  // POSSE ANTES DA ESCRITA. Vem depois da validação de "presente" — o 400 de
+  // campo ausente continua sendo 400; só o vizinho vira 404.
+  if (!(await clienteDoWorkspace(clientId, g.session!.workspaceId))) return naoEncontrado();
 
   const revogou = await revogarParceriaDoCliente(clientId);
   return NextResponse.json({
