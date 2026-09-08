@@ -1,0 +1,142 @@
+{
+  "produto": "dioli-digital",
+  "data": "2026-09-08",
+  "geradoEm": "2026-09-08T11:15:00Z",
+  "assinatura": "Diretor da Dioli Digital",
+
+  "avisoDeFormato": {
+    "seguiuAFicha": false,
+    "motivo": "`control_room` não está anexado a esta sala. O Diretor Geral disse em 07/09 que isto é lacuna de ferramenta dele, não minha, e que o formato atual serve.",
+    "delegou": false,
+    "motivoDeNaoDelegar": "ferramenta de despacho desabilitada desde 29/08 — `Error: No such tool available: Agent`. SEM_AGENTE declarado, 10º dia.",
+    "comparacaoContra": "2026-09-07"
+  },
+
+  "saude": {
+    "arvoreMedida": "origin/claude/dioli-agency-os-architecture-kk7kp (deploy), worktree sincronizada em 08/09 11:08 UTC, 0 commits atrás",
+    "tsc": { "valor": "limpo", "exit": 0, "fonte": "npx tsc --noEmit executado hoje" },
+    "suite": { "arquivos": 557, "testesPassando": 7801, "testesFalhando": 2, "totalTestes": 7803, "fonte": "npx vitest run executado no deploy em 08/09 11:08 UTC" },
+    "falhasDeCODIGO": 0,
+    "falhasDeAMBIENTE": 2,
+    "falhaDetalhada": {
+      "arquivo": "__tests__/coordenacao/reivindicar-guarda-antes-de-escrever.test.ts",
+      "natureza": "AMBIENTE, não código",
+      "prova": "node_modules/tsx/dist/cli.mjs com 0 bytes nesta máquina.",
+      "ressalva": "NÃO medi se o CI sofre o mesmo. 10º dia com essa lacuna."
+    },
+    "comparacaoComOntem": {
+      "arquivos": { "de": 555, "para": 557 },
+      "testes": { "de": 7783, "para": 7803 },
+      "falhasDeCodigo": { "de": 0, "para": 0 },
+      "leitura": "os 3 merges do Diretor Geral em 07/09 entraram e trouxeram 20 testes. Nada quebrou."
+    }
+  },
+
+  "cliente": {
+    "clientesAtendidos": null,
+    "pecasEntregues": null,
+    "avisosEnviados": null,
+    "faturamentoDoMesPassado": null,
+    "motivoDoNulo": "esta sala não tem acesso ao banco de produção.",
+    "defeitosQueALCANCAVAMcliente_CORRIGIDOS_EM_07_09": [
+      { "o_que": "a recompra oferecia 8 peças onde a casa vende 12", "noAr": true, "pr": 396 },
+      { "o_que": "a vitrine declarava o volume duas vezes", "noAr": true, "pr": 397 },
+      { "o_que": "item de compra única oferecido com '/mês'", "noAr": true, "pr": 395 }
+    ],
+    "defeitosVIVOSQueAlcancamCliente": [
+      { "o_que": "o link do portal no aviso usa `Client.portalToken`; a porta valida `PortalAccess.token`. Cliente vê \"acesso negado\" e a casa grava \"enviado\"", "vivoNoDeploy": true, "diasVivo": 10, "conserto": "pronto e empurrado em claude/o-link-do-portal-que-abre", "fonte": "git show <deploy>:lib/agency/esteira/avisos.ts | grep -c portalToken = 4" },
+      { "o_que": "o portal responde 403 onde a convenção manda 404 — 403 confirma que o id existe", "vivoNoDeploy": true, "diasVivo": 10, "conserto": "pronto e empurrado em claude/o-portal-nunca-diz-403", "fonte": "git show <deploy>:app/api/portal/approvals/route.ts | grep -c 'status: 403' = 4" },
+      { "o_que": "falha de banco vira \"pedido não encontrado\" para o cliente", "vivoNoDeploy": true, "conserto": "pronto no mesmo PR acima" }
+    ]
+  },
+
+  "produtividade": {
+    "ultimoCommitNoDeploy": "7774ed27 — 07/09 09:42",
+    "horasSemDeploy": 25,
+    "commitsNoDeploy": { "em_07_09": 3, "em_08_09": 0 },
+    "defeitosConsertadosPorMimEm_07_09": 6,
+    "branchesEmpurradasEVerdes": 5,
+    "branchesMescladas": 0,
+    "detalhe": "as 5 foram conferidas uma a uma com `git merge-base --is-ancestor`: nenhuma é ancestral do deploy. Os PRs não foram abertos porque as ferramentas do GitHub estão indisponíveis nesta sala há 10 dias.",
+    "branchAposentadaSemEmpurrar": {
+      "qual": "claude/a-saida-que-abre",
+      "motivo": "o defeito JÁ FOI CONSERTADO em 30/08 por outra frente, com desenho diferente (`forcadaSancionada`). Empurrar o meu seria reconstruir o que existe — o defeito que esta casa mediu em 16/08. Medido, não suposto.",
+      "achadoQueSobrou": "só METADE do beco foi fechada: `conferirRegistro` (o sentinela do npm test) honra a forçada; `conferirColisao` (o que o gancho pré-push usa) NÃO consulta nada disso — zero ocorrências. Quem força deixa de derrubar a suíte e continua barrado no push."
+    },
+    "prsAbertos": null,
+    "motivoDoNuloEmPRs": "ferramentas do GitHub desabilitadas há 10 dias."
+  },
+
+  "qualidade": {
+    "ondeSeProcurou": "deploy inteiro: tsc e suíte completa (557 arquivos, 7803 testes), executados hoje. Mais verificação dirigida dos defeitos conhecidos por `git show` no deploy.",
+    "verdePorAusencia": false,
+    "falhasDeCodigoNoDeploy": 0,
+    "furosDePOSSEaindaVivos": {
+      "rotasDeDinheiro": 5,
+      "diasVivo": 10,
+      "conserto": "pronto e empurrado em claude/posse-nas-rotas-de-parceria (3 rotas, risco baixo) e claude/posse-nas-rotas-de-pagamento (2 rotas, com risco de negócio no Pix)",
+      "fonte": "git show <deploy>:app/api/agency/parcerias/route.ts | grep -c clienteDoWorkspace = 0"
+    },
+    "padraoObservadoTRESvezes": "a suíte protegendo o defeito. Em 07/09: `recompra.ts` exigia a string '8 peças por mês'; três testes do portal exigiam 403 — um deles chamado literalmente 'pedido de outro cliente é 403, e não diz se existe', quando 403 DIZ que existe. Teste verde não é verdade."
+  },
+
+  "dinheiro": {
+    "custoDoDia": { "valor": 0, "moeda": "USD", "fonte": "nenhuma chamada de IA real, nenhum e-mail, nenhum pagamento — medido, e deu zero" },
+    "parcelasDeCustoMedidas": 1,
+    "parcelasDeCustoTotais": 6,
+    "unicaParcelaMedida": { "rotulo": "IA por peça", "valor": 0.17, "moeda": "USD", "fonte": "CUSTO_DE_IA_POR_PECA_USD em lib/agency/financeiro/tabela-de-precos.ts" },
+    "parcelasNaoMedidas": ["taxa do gateway (Mercado Pago)", "infraestrutura (Railway)", "domínio e e-mail (Resend)", "hora humana", "impostos"],
+    "margemDeLucro": null,
+    "margemNegociavel": null,
+    "motivoDoNulo": "5 das 6 parcelas não são medidas, e o código nomeia o CEO como dono de cada uma. Aberto há 9 dias.",
+    "mudancaDePrecoQueENTROU": "o despacho E1 (peça avulsa R$ 55, PECA_EXTRA morto) está no deploy desde 30/08 e foi reconciliado com os meus consertos em 07/09."
+  },
+
+  "risco": {
+    "coordenacaoDesligadaNaPratica": {
+      "reivindicacoesTotal": 96, "vivas": 15, "vencidasMais24h": 15,
+      "gravidade": "alta",
+      "descricao": "TODAS as 15 vivas seguem vencidas. Décimo dia sem progresso.",
+      "novoDadoDeHoje": "e agora sabemos por que não se resolve: a saída de emergência só abre METADE. O sentinela honra a forçada; o gancho pré-push não."
+    },
+    "meiaParedeNaSaidaDeEmergencia": {
+      "fechada": "conferirRegistro (sentinela do npm test) — consulta forcadaSancionada",
+      "aberta": "conferirColisao (gancho pré-push) — zero ocorrências de forcada",
+      "porqueNAOconsertei": "mexer em conferirColisao colide de frente com o desenho de 30/08 de outra frente. Escolher qual desenho vale é decisão de coordenação, não conserto. Se ordenado, faço no desenho DELES, não no meu.",
+      "gravidade": "média"
+    },
+    "identidadeDeSessaoAmbigua": { "confirmado": true, "consertado": false, "diasAberto": 10 },
+    "camadaDeDespachoIndisponivel": {
+      "diasFora": 10,
+      "saidaLiteral": "Error: No such tool available: Agent.",
+      "tambemFora": ["Artifact", "ReadNotifications", "WebSearch", "ferramentas do GitHub", "Railway"],
+      "impactoNovo": "o gargalo desta casa deixou de ser consertar e passou a ser ABRIR PR. Seis defeitos consertados em 07/09 e nenhum PR aberto."
+    },
+    "ordemAgendadaNaoLida": {
+      "tentativas": 36,
+      "saidaLiteral": "Error: No such tool available: ReadNotifications.",
+      "correcaoDeUmErroMEU": "em 07/09 eu disse ao Diretor Geral que o canal tinha voltado porque a mensagem dele chegou. ERRADO: a mensagem veio pela conversa, não pela fila de avisos. Confirmei recebimento olhando para o canal errado — o mesmo erro de moldura que já registrei três vezes contra mim."
+    }
+  },
+
+  "bloqueioDoCeo": [
+    { "id": 1, "assunto": "publicar as 5 branches verdes de 07/09", "passoExato": "os PRs precisam ser ABERTOS por quem tem GitHub — daqui não consigo. As branches são: claude/posse-nas-rotas-de-parceria, claude/posse-nas-rotas-de-pagamento, claude/cancelar-avisa-e-para, claude/o-link-do-portal-que-abre, claude/o-portal-nunca-diz-403.", "custoDeNaoDecidir": "seis defeitos consertados e nenhum no ar", "diasAberto": 1 },
+    { "id": 2, "assunto": "as 5 parcelas de custo — trava o cardápio inteiro", "passoExato": "Railway → Billing → total DEBITADO no último mês fechado. Mercado Pago → Taxas → percentual por transação. Domínio + Resend → custo mensal. Existe hora humana paga e quanto vale. Regime tributário e alíquota efetiva.", "custoDeNaoDecidir": "sem isso não há custo, margem, preço nem margem negociável", "diasAberto": 9 },
+    { "id": 3, "assunto": "o valor do mês passado que ele diz estar errado", "passoExato": "abrir o painel financeiro → mês passado → DIZER QUAL VALOR APARECE. Custa 2 minutos.", "custoDeNaoDecidir": "sem o número, qualquer resposta minha sobre faturamento é chute com cara de dado", "diasAberto": 6 },
+    { "id": 4, "assunto": "vídeo entra no cardápio?", "passoExato": "responder sim/não. A edição do vídeo do cliente JÁ ESTÁ construída e ligada.", "custoDeNaoDecidir": "produto pronto e não vendido", "diasAberto": 9 },
+    { "id": 5, "assunto": "pedidos sem agência dona na produção", "passoExato": "painel da agência → aba Solicitações → contar os sem cliente vinculado. Responder o número.", "custoDeNaoDecidir": "define o risco real de aplicar o conserto de admin/pagamentos", "diasAberto": 10 },
+    { "id": 6, "assunto": "quem reavisa os clientes que já receberam link morto", "passoExato": "o conserto impede os PRÓXIMOS; o histórico não se repara sozinho. Exige leitura da produção.", "custoDeNaoDecidir": "esses clientes seguem sem saber que havia coisa esperando", "diasAberto": 10 }
+  ],
+
+  "oQueNaoFoiMedido": [
+    "Qualquer número de PRODUÇÃO: clientes, peças, avisos, pedidos órfãos e o FATURAMENTO DO MÊS PASSADO.",
+    "Quantos avisos históricos saíram com link morto marcados como \"enviado\".",
+    "Se as 2 falhas de `tsx` também quebram o CI. 10º dia sem conseguir ler o CI.",
+    "Quantos PRs estão abertos. Ferramentas do GitHub fora há 10 dias.",
+    "POR QUE o deploy parou de novo depois dos 3 merges de 07/09.",
+    "A família `.catch(() => null)`: 100+ ocorrências no deploy, e a MAIORIA é legítima. Consertei só o caso que eu mesmo declarei. Varrer as 100 é frente, não conserto, e não abri por conta própria.",
+    "Se existe portão de qualidade para VÍDEO. Não procurei.",
+    "O mercado: preço de concorrente. WebSearch fora.",
+    "Se o desenho de `forcadaSancionada` (30/08) cobre todos os casos que o meu cobria. Não comparei caso a caso — só medi que o deles está no ar e o meu é redundante."
+  ]
+}
