@@ -1,8 +1,8 @@
 ---
 titulo: "Content Posting API — Photo Post (/v2/post/publish/content/init/)"
 url: https://developers.tiktok.com/doc/content-posting-api-reference-photo-post
-capturado_em: 2026-09-07
-hash: 539972c9c8dc0746
+capturado_em: 2026-09-08
+hash: 9747c6724bac1c58
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -611,7 +611,6 @@ internal_error
 
 TikTok server or network error. Try again later.
 
-Was this document helpful?
 On this page
 Overview
 Request

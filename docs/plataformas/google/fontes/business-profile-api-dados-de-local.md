@@ -1,7 +1,7 @@
 ---
 titulo: "Business Profile APIs — trabalhar com dados de ficha/local"
 url: https://developers.google.com/my-business/content/location-data?hl=pt-br
-capturado_em: 2026-09-07
+capturado_em: 2026-09-08
 hash: cea430d57b4798e4
 ---
 

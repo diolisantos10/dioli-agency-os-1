@@ -1,8 +1,8 @@
 ---
 titulo: "Developer Guidelines (TikTok for Developers)"
 url: https://developers.tiktok.com/doc/our-guidelines-developer-guidelines
-capturado_em: 2026-09-07
-hash: 532ec2d3c9a330ef
+capturado_em: 2026-09-08
+hash: cc0a3840dcbb643e
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -82,7 +82,6 @@ Community Guidelines
 
 You are responsible for adhering to all policies and guidelines. TikTok reserves the right to reject your application for any reason, including failure to follow the guidelines mentioned in this document.
 
-Was this document helpful?
 On this page
 App review process
 Submission requirements

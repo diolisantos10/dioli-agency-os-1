@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — autorização, escopos e níveis de acesso (Limited/Full)"
 url: https://developers.facebook.com/documentation/ads-commerce/marketing-api/get-started/authorization
-capturado_em: 2026-09-07
+capturado_em: 2026-09-08
 hash: a98dfd9a55cfc4c2
 ---
 

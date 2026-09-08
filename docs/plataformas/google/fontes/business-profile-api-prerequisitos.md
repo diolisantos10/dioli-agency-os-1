@@ -1,7 +1,7 @@
 ---
 titulo: "Business Profile APIs — pré-requisitos e aprovação de acesso"
 url: https://developers.google.com/my-business/content/prereqs?hl=pt-br
-capturado_em: 2026-09-07
+capturado_em: 2026-09-08
 hash: 1afd14de3f071d58
 ---
 

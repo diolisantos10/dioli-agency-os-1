@@ -1,8 +1,8 @@
 ---
 titulo: "Content Posting API — Query Creator Info (/v2/post/publish/creator_info/query/: opções de privacidade, toggles e cota diária do criador)"
 url: https://developers.tiktok.com/doc/content-posting-api-reference-query-creator-info
-capturado_em: 2026-09-07
-hash: 561f17ee5649fa06
+capturado_em: 2026-09-08
+hash: 4723ff225f81b588
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -334,7 +334,6 @@ Your request is blocked due to exceeding the API rate limit.
 
 TikTok server or network error. Try again later.
 
-Was this document helpful?
 On this page
 Overview
 Request

@@ -1,8 +1,8 @@
 ---
 titulo: "Display API — List Videos (/v2/video/list/, métricas de like/comment/share/view)"
 url: https://developers.tiktok.com/doc/tiktok-api-v2-video-list
-capturado_em: 2026-09-07
-hash: ddc661866ef3ccaf
+capturado_em: 2026-09-08
+hash: 94f9dd7f035ae956
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -238,7 +238,6 @@ Example
    }
 }
 
-Was this document helpful?
 On this page
 Overview
 Request

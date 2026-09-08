@@ -1,8 +1,8 @@
 ---
 titulo: "Content Posting API — Media Transfer Guide (FILE_UPLOAD x PULL_FROM_URL, chunks, formatos e limites de mídia)"
 url: https://developers.tiktok.com/doc/content-posting-api-media-transfer-guide
-capturado_em: 2026-09-07
-hash: ef50f7d3918c46e4
+capturado_em: 2026-09-08
+hash: 10630d7f62f4e258
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -596,7 +596,6 @@ Size restrictions
 	
 Maximum of 20MB for each image
 
-Was this document helpful?
 On this page
 File upload
 Work with chunks

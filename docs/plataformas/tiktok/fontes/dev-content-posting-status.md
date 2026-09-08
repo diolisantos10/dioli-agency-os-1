@@ -1,8 +1,8 @@
 ---
 titulo: "Content Posting API — Get Post Status (/v2/post/publish/status/fetch/ e códigos de erro)"
 url: https://developers.tiktok.com/doc/content-posting-api-reference-get-video-status
-capturado_em: 2026-09-07
-hash: ceee855172ae52f6
+capturado_em: 2026-09-08
+hash: 895fb0ef7d3b47aa
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -418,7 +418,6 @@ TikTok TnS team determines the publishing request is risky, so the publishing at
 
 Retry should not be done.
 
-Was this document helpful?
 On this page
 Content Status Overview
 Fetch Status endpoint

@@ -1,8 +1,8 @@
 ---
 titulo: "Scopes Overview — como escopo é pedido, aprovado e autorizado pelo usuário"
 url: https://developers.tiktok.com/doc/scopes-overview
-capturado_em: 2026-09-07
-hash: 5a5fce56a2eb7788
+capturado_em: 2026-09-08
+hash: e205eded64b8d603
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -38,7 +38,6 @@ Scopes Reference
 
 You can find the list of available scopes and their explanation on the scopes reference page.
 
-Was this document helpful?
 On this page
 Managing scopes
 User authorization

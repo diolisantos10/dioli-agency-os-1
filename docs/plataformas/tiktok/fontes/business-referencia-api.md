@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — API Reference (índice completo dos endpoints v1.3)"
 url: https://business-api.tiktok.com/portal/docs/api-reference/v1.3
-capturado_em: 2026-09-07
+capturado_em: 2026-09-08
 hash: e23f19df46937243
 ---
 

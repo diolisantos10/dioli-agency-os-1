@@ -1,8 +1,8 @@
 ---
 titulo: "Login Kit Overview — o OAuth 2.0 do TikTok"
 url: https://developers.tiktok.com/doc/login-kit-overview
-capturado_em: 2026-09-07
-hash: ad345449f6a584f7
+capturado_em: 2026-09-08
+hash: 962a14d5f1821566
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -49,7 +49,6 @@ The token endpoint is the same regardless of platform as long as you're on the c
 PKCE applies to desktop, iOS, and Android but not web. Web relies on the state token for request-forgery protection and keeps the client secret server-side; the confidential-client model makes PKCE unnecessary there. The three PKCE platforms are "public" clients where a secret can't be safely embedded, so the code_verifier/challenge pair does that job instead.
 There's also a QR code authorization flow (the seventh doc you listed) — it's a variant mainly for desktop/TV-style contexts where the user scans a code with their phone to authorize, rather than a redirect.
 The token exchange and refresh logic is identical enough across platforms that it's worth building that server-side piece once as a shared service, then treating the four client flows as thin front-ends that all funnel a code (+ code_verifier where applicable) into it.
-Was this document helpful?
 On this page
 How TikTok Login Kit works
 General workflow

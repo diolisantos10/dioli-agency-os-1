@@ -1,8 +1,8 @@
 ---
 titulo: "Content Posting API — Get Started (TikTok for Developers)"
 url: https://developers.tiktok.com/doc/content-posting-api-get-started
-capturado_em: 2026-09-07
-hash: 9019ef2be0b08dc5
+capturado_em: 2026-09-08
+hash: 6ea5e09b11c04c94
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -226,7 +226,6 @@ Response:
      }
 }
 
-Was this document helpful?
 On this page
 Prerequisites
 Post directly to TikTok

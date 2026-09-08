@@ -1,8 +1,8 @@
 ---
 titulo: "Content Posting API — Initialize Video Upload (/v2/post/publish/inbox/video/init/, 6 req/min por token)"
 url: https://developers.tiktok.com/doc/content-posting-api-reference-upload-video
-capturado_em: 2026-09-07
-hash: 6a4830f47bbc4292
+capturado_em: 2026-09-08
+hash: 803f889c4a67d527
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -479,7 +479,6 @@ curl --location --request PUT 'https://open-upload.tiktokapis.com/video/?upload_
 --header 'Content-Type: video/mp4' \
 --data '@/path/to/file/example.mp4'
 
-Was this document helpful?
 On this page
 Overview
 Initialize Video Upload

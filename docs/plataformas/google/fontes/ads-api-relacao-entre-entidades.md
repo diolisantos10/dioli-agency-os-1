@@ -1,8 +1,8 @@
 ---
 titulo: "Google Ads API — relação entre entidades (conta → campanha → grupo → anúncio)"
 url: https://developers.google.com/google-ads/api/docs/concepts/entity-relationships?hl=pt-br
-capturado_em: 2026-09-07
-hash: a478ec6d82dee17e
+capturado_em: 2026-09-08
+hash: bca81f077a978fad
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -30,7 +30,7 @@ Sou um analista de dados (ou função semelhante) e quero baixar relatórios do 
 Sou um desenvolvedor de MMM e quero baixar dados de anúncios do Google Ads para desenvolvimento de MMM.	Use a MMM Data Platform. Embora muitos anunciantes usem a API Google Ads para extrair dados, isso não é ideal para o desenvolvimento da MMM.
 Quero gerenciar o Google Ads em massa, mas não quero escrever nenhum código.	Use regras automatizadas, uploads em massa, ou o Google Ads Editor.
 Avançar
-Início rápido
+Guia de integração
 Isso foi útil?
 Envie comentários
 

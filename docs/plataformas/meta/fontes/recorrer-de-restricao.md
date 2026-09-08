@@ -1,7 +1,7 @@
 ---
 titulo: "Central de Ajuda — Solicitar análise de restrição de publicidade"
 url: https://www.facebook.com/business/help/530209463124901
-capturado_em: 2026-09-07
+capturado_em: 2026-09-08
 hash: b8536746aa221ffa
 ---
 

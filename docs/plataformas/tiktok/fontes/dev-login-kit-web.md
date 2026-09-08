@@ -1,8 +1,8 @@
 ---
 titulo: "Login Kit for Web — fluxo de autorização no servidor (redirect, code, state)"
 url: https://developers.tiktok.com/doc/login-kit-web
-capturado_em: 2026-09-07
-hash: 39fd2b685dd69ea3
+capturado_em: 2026-09-08
+hash: 6ae101391aec88ad
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -267,7 +267,6 @@ Using the code appended to your redirect_uri, you can obtain access_token for th
 
 See Manage User Access Tokens for related endpoints.
 
-Was this document helpful?
 On this page
 Prerequisites
 Register your app

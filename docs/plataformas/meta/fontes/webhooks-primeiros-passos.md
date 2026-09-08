@@ -1,7 +1,7 @@
 ---
 titulo: "Webhooks — primeiros passos (endpoint, verify token, assinatura X-Hub)"
 url: https://developers.facebook.com/docs/graph-api/webhooks/getting-started
-capturado_em: 2026-09-07
+capturado_em: 2026-09-08
 hash: d6745b02b9e9b238
 ---
 

@@ -1,8 +1,8 @@
 ---
 titulo: "Display API — Overview (/v2/user/info/, /v2/video/list/, /v2/video/query/)"
 url: https://developers.tiktok.com/doc/display-api-overview
-capturado_em: 2026-09-07
-hash: 16e80f7453d077eb
+capturado_em: 2026-09-08
+hash: c22758b93f4a42b4
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -45,7 +45,6 @@ Next Steps
 
 Get Started with Display API
 
-Was this document helpful?
 On this page
 Components
 Permissions

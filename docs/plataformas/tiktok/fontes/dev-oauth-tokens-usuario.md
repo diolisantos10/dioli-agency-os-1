@@ -1,8 +1,8 @@
 ---
 titulo: "OAuth — User Access Token Management (validade do access token e do refresh token)"
 url: https://developers.tiktok.com/doc/oauth-user-access-token-management
-capturado_em: 2026-09-07
-hash: 6da18b77ba71039c
+capturado_em: 2026-09-08
+hash: 254971181463f6ed
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -489,7 +489,6 @@ If the request is not successful, an error response body will be returned in the
     "log_id": "202206221854370101130062072500FFA2"
 }
 
-Was this document helpful?
 On this page
 1. Fetch an access token using an authorization code
 Endpoint

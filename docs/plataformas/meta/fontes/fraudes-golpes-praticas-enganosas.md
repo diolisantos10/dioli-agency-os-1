@@ -1,7 +1,7 @@
 ---
 titulo: "Padrões da Comunidade — Fraude, golpes e práticas enganosas"
 url: https://transparency.meta.com/pt-br/policies/community-standards/fraud-and-scams/
-capturado_em: 2026-09-07
+capturado_em: 2026-09-08
 hash: df286372e9c3a4ce
 ---
 

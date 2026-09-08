@@ -1,8 +1,8 @@
 ---
 titulo: "Content Posting API — Direct Post (creator_info, init, privacidade, disclosure comercial)"
 url: https://developers.tiktok.com/doc/content-posting-api-reference-direct-post
-capturado_em: 2026-09-07
-hash: 8309cf5d3c50a474
+capturado_em: 2026-09-08
+hash: 7c803249f348c98a
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -626,7 +626,6 @@ curl --location --request PUT 'https://open-upload.tiktokapis.com/upload/?upload
 --header 'Content-Length: 30567100'\
 --header 'Content-Type: video/mp4' \
 --data '@/path/to/file/example.mp4'
-Was this document helpful?
 On this page
 Overview
 Initialize the posting request

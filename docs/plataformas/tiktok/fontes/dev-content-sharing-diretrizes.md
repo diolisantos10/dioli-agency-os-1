@@ -1,8 +1,8 @@
 ---
 titulo: "Content Sharing Guidelines — auditoria de app e restrições (TikTok for Developers)"
 url: https://developers.tiktok.com/doc/content-sharing-guidelines
-capturado_em: 2026-09-07
-hash: 0ce7985a981d16ec
+capturado_em: 2026-09-08
+hash: 5e5321d4fe08f731
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -124,7 +124,6 @@ c. FILE_UPLOAD should be used when the to-be-posted video is on the users' devic
 
 d. If video resources are already on API Clients' servers, do not use FILE_UPLOAD; use PULL_FROM_URL instead.
 
-Was this document helpful?
 On this page
 Watermark Guidelines
 Direct Post API - Developer Guidelines

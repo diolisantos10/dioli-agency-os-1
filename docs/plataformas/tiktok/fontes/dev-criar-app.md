@@ -1,8 +1,8 @@
 ---
 titulo: "Getting Started — Create an App: conta de desenvolvedor, organização, registro, Sandbox e submissão à revisão"
 url: https://developers.tiktok.com/doc/getting-started-create-an-app
-capturado_em: 2026-09-07
-hash: b3c24267095d4375
+capturado_em: 2026-09-08
+hash: e5991cca0bb579b6
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -141,7 +141,6 @@ Not approved: After reviewing your app, we determined it did not meet our criter
 
 Once your app is approved and live, any subsequent changes must be submitted for review and approved to appear in the live release.
 
-Was this document helpful?
 On this page
 Prerequisites
 Connect your app

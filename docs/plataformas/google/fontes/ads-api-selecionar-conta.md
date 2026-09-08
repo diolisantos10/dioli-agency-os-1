@@ -1,8 +1,8 @@
 ---
 titulo: "Google Ads API — selecionar conta e hierarquia MCC"
 url: https://developers.google.com/google-ads/api/docs/get-started/select-account?hl=pt-br
-capturado_em: 2026-09-07
-hash: cf90f661f4da0314
+capturado_em: 2026-09-08
+hash: cf10f20671678add
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -134,12 +134,12 @@ A dependência do Maven é:
 <dependency>
   <groupId>com.google.api-ads</groupId>
   <artifactId>google-ads</artifactId>
-  <version>44.0.0</version>
+  <version>45.0.0</version>
 </dependency>
 
 A dependência do Gradle é:
 
-implementation 'com.google.api-ads:google-ads:44.0.0'
+implementation 'com.google.api-ads:google-ads:45.0.0'
 
 Também recomendamos o uso da lista de materiais (BOM, na sigla em inglês) da API Google Ads para gerenciar as versões de dependência. Consulte o guia da BOM para instruções.
 
@@ -196,7 +196,7 @@ GetCampaigns.java
 Se você encontrar erros ao fazer sua primeira chamada, consulte Resolver erros da API para orientações sobre como solucionar problemas.
 
 Anterior
-Introdução
+Guia de integração
 Avançar
 Tratar erros
 Isso foi útil?
@@ -204,4 +204,4 @@ Envie comentários
 
 Exceto em caso de indicação contrária, o conteúdo desta página é licenciado de acordo com a Licença de atribuição 4.0 do Creative Commons, e as amostras de código são licenciadas de acordo com a Licença Apache 2.0. Para mais detalhes, consulte as políticas do site do Google Developers. Java é uma marca registrada da Oracle e/ou afiliadas.
 
-Última atualização 2026-08-03 UTC.
+Última atualização 2026-09-08 UTC.

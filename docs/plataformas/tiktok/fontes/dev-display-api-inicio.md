@@ -1,8 +1,8 @@
 ---
 titulo: "Display API — Get Started (leitura de perfil e de vídeos do usuário autorizado)"
 url: https://developers.tiktok.com/doc/display-api-get-started
-capturado_em: 2026-09-07
-hash: ad9c00171d0fd087
+capturado_em: 2026-09-08
+hash: 6c404d78a0ff5f35
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -182,7 +182,6 @@ Example response:
 }
 Open a web view with the url embed_link to consume the video on user clicks. Users can now view TikTok videos on your platform to know more about the author.
 
-Was this document helpful?
 On this page
 Before You Start
 Authorization

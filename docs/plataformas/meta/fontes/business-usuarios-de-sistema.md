@@ -1,7 +1,7 @@
 ---
 titulo: "Business — System Users (usuários do sistema, tokens que não expiram)"
 url: https://developers.facebook.com/docs/business-management-apis/system-users
-capturado_em: 2026-09-07
+capturado_em: 2026-09-08
 hash: 750cc2bf2e70ba7a
 ---
 
