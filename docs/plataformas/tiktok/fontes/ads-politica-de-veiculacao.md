@@ -1,8 +1,8 @@
 ---
 titulo: "TikTok Ad Serving Policy"
 url: https://ads.tiktok.com/help/article/ad-serving-policy?lang=en
-capturado_em: 2026-09-08
-hash: f715c72cc055667c
+capturado_em: 2026-09-09
+hash: 57d5a76d6024fa78
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -187,6 +187,7 @@ Advertiser/Agency shall pay 50% of the actual ad consumption amount to TikTok if
 
 ​Advertiser/Agency shall pay 50% of the actual ad consumption amount to TikTok if any change is made to a special date ad order earlier than 14 calendar days (including the day of the scheduled ad flight date). If any unilateral change is made less than 14 calendar days (including the day of the scheduled ad flight date), Advertiser/Agency shall pay 100% of the actual ad consumption amount to TikTok.
 
+*Was the information helpful?
 Related Articles
  Ad format and functionality
  TikTok Advertising Policies

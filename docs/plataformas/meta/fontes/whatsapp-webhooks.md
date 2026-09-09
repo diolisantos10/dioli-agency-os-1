@@ -1,8 +1,8 @@
 ---
 titulo: "WhatsApp Cloud API — webhooks (eventos de mensagem e status)"
 url: https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/overview
-capturado_em: 2026-09-08
-hash: b4e14b683157f74f
+capturado_em: 2026-09-09
+hash: 60a7ba9fa845be3f
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -14,8 +14,8 @@ webhooks do WhatsApp
 Updated: 26 de jun de 2026
 Copiar para LLM
 Ver como Markdown
-Este documento descreve os webhooks e como eles são usados pela Plataforma do WhatsApp Business.
-Os webhooks são pedidos HTTP com cargas JSON que os servidores da Meta enviam para um servidor indicado por você. A Plataforma do WhatsApp Business usa webhooks para informar você sobre mensagens recebidas, o status de mensagens enviadas, eventos de ligação e outras informações importantes, como alterações no status da conta, atualizações de recursos de mensagens e mudanças nas pontuações de qualidade de modelos.
+Este documento descreve os webhooks e como eles são usados ​​pela Plataforma do WhatsApp Business.
+Os webhooks são pedidos HTTP com payloads JSON que os servidores da Meta enviam para um servidor indicado por você. A Plataforma do WhatsApp Business usa webhooks para informar você sobre mensagens recebidas, o status de mensagens enviadas, eventos de ligação e outras informações importantes, como alterações no status da conta, atualizações de recursos de mensagens e mudanças nas pontuações de qualidade de modelos.
 Por exemplo, este é um webhook que descreve uma mensagem enviada por um usuário do WhatsApp para uma empresa:
 {
   "object": "whatsapp_business_account",
@@ -62,7 +62,7 @@ Para receber webhooks, é preciso criar e configurar um ponto de extremidade de 
 Caso você ainda não queira criar seu próprio ponto de extremidade, é possível criar um ponto de extremidade de webhook de teste que registra as cargas do webhook no console. No entanto, antes de usar o app em ambiente de produção, você precisa criar seu próprio ponto de extremidade.
 Permissões
 Você precisa das seguintes permissões para receber webhooks:
-whatsapp_business_messaging — para webhooks de mensagens e ligações
+whatsapp_business_messaging: para webhooks de mensagens e ligações
 whatsapp_business_management: para todos os outros webhooks
 Caso você seja um desenvolvedor direto, utilize o usuário do sistema para conceder essas permissões ao app ao gerar o token do sistema.
 Caso seja um parceiro e precise dessas permissões para fornecer serviços adequados aos clientes, você deverá receber aprovação para acesso avançado às permissões por meio da Análise do App. Depois disso, os clientes comerciais poderão conceder essas permissões ao seu app durante a integração.
@@ -91,9 +91,9 @@ business_capability_update
 	
 O webhook business_capability_update notifica você sobre alterações de capacidade da conta do WhatsApp Business ou do portfólio empresarial (limites de mensagens, limites de número de telefone etc.).
 
-calls
+ligações
 	
-O webhook calls envia uma notificação sobre os eventos de ligações iniciadas pelo usuário e iniciadas pela empresa, como quando uma ligação é conectada ou encerrada.
+O webhook ligações envia notificações sobre eventos de ligações iniciadas pelo usuário e de ligações iniciadas pela empresa, como quando uma ligação é conectada ou encerrada.
 
 history
 	
@@ -151,12 +151,12 @@ user_preferences
 	
 O webhook user_preferences notifica você sobre as alterações nas preferências de mensagens de marketing de um usuário do WhatsApp.
 Como substituir webhooks
-Você pode usar um ponto de extremidade de webhook alternativo para alguns campos de webhooks na sua conta do WhatsApp Business (WABA) ou número de telefone comercial. Um endpoint alternativo pode ser útil para fins de teste ou se você for um parceiro e quiser usar pontos de extremidade de webhook únicos para cada um dos seus clientes integrados.
+Você pode usar um ponto de extremidade de webhook alternativo para alguns campos de webhooks na sua conta do WhatsApp Business (WABA) ou número de telefone comercial. Um ponto de extremidade alternativo pode ser útil para fins de teste ou se você for um parceiro e quiser usar pontos de extremidade de webhook únicos para cada um dos seus clientes integrados.
 Consulte o documento Substituições de webhook para saber como substituir webhooks.
 Tamanho da carga
 As cargas de webhook podem ter até 3 MB.
 Falha na entrega do webhook
-Se uma solicitação de webhook para seu endpoint receber um código de status HTTP diferente de 200 ou se o webhook não puder ser entregue por outro motivo, a Meta fará novas tentativas de entrega com frequência decrescente até que a solicitação seja concluída com sucesso por até 7 dias.
+Se uma solicitação de webhook para seu endpoint receber um código de status HTTP diferente de 200 ou se o webhook não puder ser entregue por outro motivo, a Meta fará novas tentativas de entrega com frequência decrescente até que a solicitação seja concluída com sucesso, por até sete dias.
 Essas tentativas serão enviadas a todos os apps que assinaram os webhooks (e os campos relacionados) na conta do WhatsApp Business. Essas novas tentativas podem fazer com que as notificações de webhook sejam duplicadas.
 TLS mútuo
 Os webhooks são compatíveis com o protocolo TLS mútuo (mTLS) para aumentar a segurança. Para saber como habilitar e usar o mTLS, consulte o documento mTLS para webhooks da Graph API.

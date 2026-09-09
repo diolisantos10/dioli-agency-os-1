@@ -1,7 +1,7 @@
 ---
 titulo: "Business Profile APIs — implementar OAuth"
 url: https://developers.google.com/my-business/content/implement-oauth?hl=pt-br
-capturado_em: 2026-09-08
+capturado_em: 2026-09-09
 hash: 473567c6fe128dce
 ---
 

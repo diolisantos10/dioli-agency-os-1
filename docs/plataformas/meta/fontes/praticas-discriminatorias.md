@@ -1,7 +1,7 @@
 ---
 titulo: "Padrões de Publicidade — Práticas discriminatórias"
 url: https://transparency.meta.com/pt-br/policies/ad-standards/unacceptable-content/discriminatory-practices/
-capturado_em: 2026-09-08
+capturado_em: 2026-09-09
 hash: ab13e6c523e9391d
 ---
 

@@ -1,7 +1,7 @@
 ---
 titulo: "TikTok Developer Data Sharing Agreement (tratamento de dados de usuário pela integração)"
 url: https://www.tiktok.com/legal/page/global/tiktok-data-sharing-agreement/en
-capturado_em: 2026-09-08
+capturado_em: 2026-09-09
 hash: 0c8d3e55d266542d
 ---
 

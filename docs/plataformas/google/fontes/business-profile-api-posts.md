@@ -1,7 +1,7 @@
 ---
 titulo: "Business Profile APIs — posts locais (localPosts)"
 url: https://developers.google.com/my-business/content/posts-data?hl=pt-br
-capturado_em: 2026-09-08
+capturado_em: 2026-09-09
 hash: 9e7d4c90d3875fec
 ---
 

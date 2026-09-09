@@ -1,8 +1,8 @@
 ---
 titulo: "TikTok Advertising Policies — Weight Management and Body Image"
 url: https://ads.tiktok.com/help/article/tiktok-ads-policy-weight-management
-capturado_em: 2026-09-08
-hash: 5e9f9d527b8d6bf4
+capturado_em: 2026-09-09
+hash: c71bd9ee79b86fa5
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -140,6 +140,7 @@ Claims that looking a certain way will make individuals more desirable, successf
 
 Claims that body appearance determines a person’s confidence, self-esteem, emotional wellbeing, desirability, popularity, or social standing
 
+*Was the information helpful?
 Content
 Principle
 Weight Management

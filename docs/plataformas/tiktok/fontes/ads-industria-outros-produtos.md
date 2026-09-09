@@ -1,7 +1,7 @@
 ---
 titulo: "TikTok Advertising Policies — Other Products and Services"
 url: https://ads.tiktok.com/help/article/tiktok-ads-policy-other-products-and-services
-capturado_em: 2026-09-08
+capturado_em: 2026-09-09
 hash: 6c15dd9cf9afdcfe
 ---
 

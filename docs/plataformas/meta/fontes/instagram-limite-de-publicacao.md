@@ -1,7 +1,7 @@
 ---
 titulo: "Instagram — limite de publicação em 24h (content_publishing_limit)"
 url: https://developers.facebook.com/documentation/instagram-platform/instagram-graph-api/reference/ig-user/content_publishing_limit
-capturado_em: 2026-09-08
+capturado_em: 2026-09-09
 hash: db77b712a67442bc
 ---
 

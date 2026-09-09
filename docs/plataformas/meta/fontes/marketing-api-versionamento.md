@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — versionamento e ciclo de vida das versões"
 url: https://developers.facebook.com/documentation/ads-commerce/marketing-api/overview/versioning
-capturado_em: 2026-09-08
+capturado_em: 2026-09-09
 hash: 2afadc6bb59e848d
 ---
 

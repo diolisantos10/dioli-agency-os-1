@@ -1,7 +1,7 @@
 ---
 titulo: "Instagram — Messaging API (mensagens diretas)"
 url: https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/messaging-api
-capturado_em: 2026-09-08
+capturado_em: 2026-09-09
 hash: 062127edcc30d7a2
 ---
 
