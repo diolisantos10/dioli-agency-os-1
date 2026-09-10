@@ -140,6 +140,19 @@ const db = {
 };
 vi.mock("@/lib/db/client", () => ({ prisma: db }));
 
+// ── O PORTÃO DE MARCA (15/08/2026) — POR QUE ESTE DUBLÊ EXISTE ──────────────
+// `escadaFiltraEntregas` passou a consultar a régua de marca antes do degrau
+// (ordem do CEO: "marca sem régua, peça não sai"). Com o prisma dublado, a
+// leitura da ficha falha e o fail-closed reteria TUDO — mascarando o que este
+// arquivo mede. Só o VEREDITO é dublado; o resto do módulo continua real.
+// O portão tem prova própria, com as duas metades, em
+// `__tests__/esteira/portao-de-marca-na-entrega.test.ts`.
+vi.mock("@/lib/agency/esteira/contrato-de-marca", async (original) => ({
+  ...(await original<typeof import("@/lib/agency/esteira/contrato-de-marca")>()),
+  portaoDeMarca: vi.fn(async () => ({ pode: true, motivo: "" })),
+}));
+
+
 // Permissivo de propósito: cada teste decide o que a IA responde, e a forma da
 // resposta muda por chamada (classificação, peça, parecer do juiz).
 const generate = vi.fn<(...a: unknown[]) => Promise<unknown>>();

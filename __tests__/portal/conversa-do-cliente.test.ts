@@ -7,8 +7,9 @@
 //
 // Este arquivo anda a corrente inteira, e anda as duas metades de cada coisa:
 //   • cliente COM solicitação e cliente DIRETO conseguem enviar;
-//   • a leitura une as duas chaves — histórico antigo (só clientRequestId) e
-//     mensagem nova (clientId) aparecem na MESMA conversa;
+//   • a leitura filtra SÓ por `clientId` — a união com `clientRequestId`
+//     morreu (furo 1, 15/08/2026): era ela que deixava vazar, para o dono
+//     NOVO de uma solicitação re-apontada, a conversa do dono ANTIGO;
 //   • mensagem de um cliente NUNCA entra no filtro de outro;
 //   • o lado da equipe abre por clientId, e workspace alheio não abre;
 //   • acesso sem dono nenhum não é mais 404 mudo: é 409 explicado, e a tela
@@ -92,19 +93,24 @@ describe("cliente COM solicitação", () => {
     expect(data.clientRequestId).toBe("cr1");
   });
 
-  it("a leitura UNE as duas chaves — o histórico das 11 escritas antigas continua visível", async () => {
+  // ⚠️ FURO 1 (conserto portado de origin/fix/portal-conversa-de-outro-cliente,
+  // 15/08/2026): a leitura NÃO une mais as duas chaves. A união pelo lado da
+  // solicitação era o que deixava vazar, para o dono NOVO de uma solicitação
+  // re-apontada, a conversa do dono ANTIGO — ver `montarFiltro` em
+  // `app/api/messages/conversa.ts` e
+  // `__tests__/consertos-presos/conversa-nao-vaza-entre-clientes.test.ts`.
+  it("a leitura filtra só por clientId — a união por clientRequestId morreu de propósito", async () => {
     await GET(get("?token=tok"));
-    expect(db.portalMessage.findMany.mock.calls[0]![0].where).toEqual({
-      OR: [{ clientId: "cli1" }, { clientRequestId: { in: ["cr1", "cr0"] } }],
-    });
+    expect(db.portalMessage.findMany.mock.calls[0]![0].where).toEqual({ clientId: "cli1" });
   });
 
-  it("ao abrir, marca como lidas as mensagens da EQUIPE — no mesmo escopo unido", async () => {
+  it("ao abrir, marca como lidas as mensagens da EQUIPE — no mesmo filtro cercado", async () => {
     await GET(get("?token=tok"));
     const where = db.portalMessage.updateMany.mock.calls[0]![0].where;
     expect(where.authorRole).toBe("team");
     expect(where.readByClient).toBe(false);
-    expect(where.OR).toEqual([{ clientId: "cli1" }, { clientRequestId: { in: ["cr1", "cr0"] } }]);
+    expect(where.clientId).toBe("cli1");
+    expect(JSON.stringify(where)).not.toContain("clientRequestId");
   });
 });
 
@@ -122,14 +128,18 @@ describe("isolamento entre clientes", () => {
     expect(data.clientRequestId).not.toBe("cr-de-outro");
   });
 
-  it("prospect (solicitação SEM cliente) fica preso à própria solicitação — nunca a um clientId nulo", async () => {
+  it("prospect (solicitação SEM cliente) fica preso à própria solicitação — nunca a um clientId nulo solto", async () => {
     db.clientRequestDb.findUnique.mockResolvedValue({ id: "cr-prospect", clientId: null });
     const prospect = await conversaDaSolicitacao("cr-prospect");
-    expect(prospect.filtro).toEqual({ clientRequestId: { in: ["cr-prospect"] } });
+    // ⚠️ Furo 1: o ramo do prospect ganhou cerca. `{ clientId: null }` como
+    // CHAVE SOLTA casaria com toda mensagem órfã do banco — vazamento entre
+    // clientes. Como EXIGÊNCIA dentro de um `AND`, ao lado da solicitação, ele
+    // restringe: só volta o que ainda não tem dono nenhum.
+    expect(prospect.filtro).toEqual({
+      AND: [{ clientRequestId: { in: ["cr-prospect"] } }, { clientId: null }],
+    });
     expect(prospect.ancora).toEqual({ clientId: null, clientRequestId: "cr-prospect" });
-    // `{ clientId: null }` casaria com TODA mensagem órfã do banco — vazamento
-    // entre clientes. A chave nula nunca entra no filtro.
-    expect(JSON.stringify(prospect.filtro)).not.toContain("clientId");
+    expect(prospect.filtro).not.toEqual({ clientId: null });
   });
 
   it("cliente sem nada (nem solicitação, nem id) tem filtro NULO — não lê o banco inteiro", async () => {

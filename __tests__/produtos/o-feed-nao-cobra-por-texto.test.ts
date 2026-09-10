@@ -175,12 +175,48 @@ async function abrirClienteFicticio(nome: string): Promise<ClienteDeTeste> {
     data: {
       workspaceId, name: nomeFicticio, industry: "Alimentação",
       email: `${nome.replace(/\W+/g, "-").toLowerCase()}@teste.invalid`,
+      // ── A MARCA PRECISA ESTAR CONSTITUÍDA (15/08/2026) ──────────────────────
+      // A peça de feed sai de `design-criativo-social`, do departamento
+      // "design" — um dos dois que `portaoDeMarca` passou a barrar sem os
+      // cinco campos exigidos (`contrato-de-marca.ts`, `ficha-de-marca.ts:395`).
+      // Sem isto, `escadaFiltraEntregas` retinha a peça por marca não
+      // constituída, e este arquivo mediria esse motivo em vez do que ele
+      // existe para medir. O portão de marca tem prova própria, com as duas
+      // metades, em `__tests__/consertos-presos/portao-de-marca-na-entrega.test.ts`.
       brandBrain: {
         create: {
           primaryColor: "#7A1F1F", secondaryColor: "#E8C89A",
           typography: "serifada", tone: "próximo, de bairro, sem exagero",
+          purposeAndPromise: "Comida de bairro, feita na hora, para quem mora perto.",
+          audienceRelation: "Fala com o vizinho, de igual para igual.",
+          voicePairsJson: JSON.stringify([
+            { dizemos: "Hoje o molho ficou pronto de manhã.", naoDizemos: "Desfrute da nossa iguaria premium." },
+          ]),
+          lexiconJson: JSON.stringify({ sempre: ["cantina do bairro"], nunca: ["gourmet"] }),
+          ownerAndHierarchyJson: JSON.stringify({ dono: "dono da casa", aprova: "dono da casa" }),
+          referencesJson: JSON.stringify({
+            aprovadas: ["post da panela fumegando no balcão"],
+            reprovadas: ["post com jargão de rede de fast-food"],
+          }),
         },
       },
+    },
+  });
+  await prisma.brainArtifact.create({
+    data: {
+      clientId: cliente.id,
+      department: "proibicoes-do-cliente",
+      canvasId: "proibicoes",
+      canvasJson: JSON.stringify({
+        itens: [
+          { frase: "nunca citar concorrente pelo nome", termos: ["concorrente"], origem: "briefing" },
+          { frase: "nunca usar a palavra 'gourmet'", termos: ["gourmet"], origem: "briefing" },
+          { frase: "nunca prometer entrega no mesmo dia", termos: ["entrega", "mesmo dia"], origem: "briefing" },
+        ],
+      }),
+      version: 1,
+      status: "approved",
+      approvedBy: "registro automático (briefing)",
     },
   });
   const solicitacao = await prisma.clientRequestDb.create({

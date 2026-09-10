@@ -134,15 +134,27 @@ describe("detector de parados — estado + SLA, nunca impressão", () => {
 });
 
 describe("retomar — PM/Diretor, por correlação, idempotente", () => {
-  function armazemDeRetomada(efeitosMortos: string[]) {
+  const CASA = "ws-da-casa";
+
+  function armazemDeRetomada(efeitosMortos: string[], opcoes: { daCasa?: boolean } = {}) {
+    const daCasa = opcoes.daCasa ?? true;
     let fila = [...efeitosMortos];
     const retomadas: Array<{ correlationId: string; efeitos: number }> = [];
+    const posseConsultada: Array<{ correlationId: string; workspaceId: string }> = [];
+    const devolucoes: Array<{ correlationId: string; ids: string[] }> = [];
     const armazem: ArmazemDeRetomada = {
+      async correlacaoDoWorkspace(correlationId, workspaceId) {
+        posseConsultada.push({ correlationId, workspaceId });
+        return daCasa;
+      },
       async efeitosParaRetomar() { return fila; },
-      async devolverParaFila(ids) { fila = fila.filter((id) => !ids.includes(id)); },
+      async devolverParaFila(correlationId, ids) {
+        devolucoes.push({ correlationId, ids });
+        fila = fila.filter((id) => !ids.includes(id));
+      },
       async registrarRetomada(correlationId, _ator, efeitos) { retomadas.push({ correlationId, efeitos }); },
     };
-    return { armazem, retomadas, filaRestante: () => fila };
+    return { armazem, retomadas, filaRestante: () => fila, posseConsultada, devolucoes };
   }
 
   it("staff NÃO retoma; master, diretor e PM retomam", () => {
@@ -155,7 +167,7 @@ describe("retomar — PM/Diretor, por correlação, idempotente", () => {
 
   it("retomada devolve os mortos à fila — as MESMAS linhas, nada duplicado", async () => {
     const { armazem, retomadas, filaRestante } = armazemDeRetomada(["e1", "e2"]);
-    const r = await retomarProcesso("c-1", PERFIL_DO_PAPEL.project_manager, "u-pm", armazem, AGORA);
+    const r = await retomarProcesso("c-1", PERFIL_DO_PAPEL.project_manager, "u-pm", CASA, armazem, AGORA);
     expect(r).toEqual({ ok: true, efeitosDevolvidos: 2 });
     expect(filaRestante()).toHaveLength(0);
     expect(retomadas).toEqual([{ correlationId: "c-1", efeitos: 2 }]);
@@ -163,22 +175,67 @@ describe("retomar — PM/Diretor, por correlação, idempotente", () => {
 
   it("a SEGUNDA retomada devolve zero — e zero é sucesso, com registro", async () => {
     const { armazem, retomadas } = armazemDeRetomada([]);
-    const r = await retomarProcesso("c-1", PERFIL_DO_PAPEL.diretor, "u-dir", armazem, AGORA);
+    const r = await retomarProcesso("c-1", PERFIL_DO_PAPEL.diretor, "u-dir", CASA, armazem, AGORA);
     expect(r).toEqual({ ok: true, efeitosDevolvidos: 0 });
     expect(retomadas).toHaveLength(1);
   });
 
   it("sem permissão nada acontece — nem consulta, nem registro", async () => {
-    const { armazem, retomadas, filaRestante } = armazemDeRetomada(["e1"]);
-    const r = await retomarProcesso("c-1", PERFIL_DO_PAPEL.social_staff, "u-s", armazem, AGORA);
+    const { armazem, retomadas, filaRestante, posseConsultada } = armazemDeRetomada(["e1"]);
+    const r = await retomarProcesso("c-1", PERFIL_DO_PAPEL.social_staff, "u-s", CASA, armazem, AGORA);
     expect(r.ok).toBe(false);
     expect(filaRestante()).toEqual(["e1"]);
     expect(retomadas).toHaveLength(0);
+    expect(posseConsultada).toHaveLength(0);
   });
 
   it("correlação vazia é recusada com nome", async () => {
     const { armazem } = armazemDeRetomada([]);
-    const r = await retomarProcesso("  ", PERFIL_DO_PAPEL.master, "u-m", armazem, AGORA);
+    const r = await retomarProcesso("  ", PERFIL_DO_PAPEL.master, "u-m", CASA, armazem, AGORA);
     expect(r.ok).toBe(false);
+  });
+
+  // ─── O RECORTE DE WORKSPACE, AS DUAS METADES ───────────────────────────────
+  //
+  // Metade 1 — BARRA: correlação de outra casa não devolve efeito à fila e não
+  //            deixa nem rastro de tentativa no processo alheio.
+  // Metade 2 — NÃO BARRA O LEGÍTIMO: o PM da própria casa continua retomando,
+  //            e continua sendo idempotente.
+
+  it("⛔ correlação de OUTRA casa: não devolve nada, não registra, e diz por quê", async () => {
+    const { armazem, retomadas, filaRestante, devolucoes } = armazemDeRetomada(["e1", "e2"], { daCasa: false });
+    const r = await retomarProcesso("assistido:cliente-alheio:req-9", PERFIL_DO_PAPEL.master, "u-m", CASA, armazem, AGORA);
+    expect(r.ok).toBe(false);
+    expect(r.ok === false && r.motivo).toContain("nesta casa");
+    // O efeito do outro continua exatamente onde estava.
+    expect(filaRestante()).toEqual(["e1", "e2"]);
+    expect(devolucoes).toHaveLength(0);
+    expect(retomadas).toHaveLength(0);
+  });
+
+  it("✅ a MESMA chamada, com a correlação da própria casa, continua funcionando", async () => {
+    const { armazem, retomadas, filaRestante, posseConsultada } = armazemDeRetomada(["e1", "e2"], { daCasa: true });
+    const r = await retomarProcesso("assistido:cliente-da-casa:req-1", PERFIL_DO_PAPEL.master, "u-m", CASA, armazem, AGORA);
+    expect(r).toEqual({ ok: true, efeitosDevolvidos: 2 });
+    expect(filaRestante()).toHaveLength(0);
+    expect(retomadas).toHaveLength(1);
+    // A posse foi perguntada com a casa de QUEM PEDIU, não com nada do corpo.
+    expect(posseConsultada).toEqual([{ correlationId: "assistido:cliente-da-casa:req-1", workspaceId: CASA }]);
+  });
+
+  it("workspace vazio é recusado — retomada sem casa seria retomada de qualquer casa", async () => {
+    const { armazem, filaRestante } = armazemDeRetomada(["e1"]);
+    const r = await retomarProcesso("c-1", PERFIL_DO_PAPEL.master, "u-m", "   ", armazem, AGORA);
+    expect(r.ok).toBe(false);
+    expect(filaRestante()).toEqual(["e1"]);
+  });
+
+  it("🔑 a ESCRITA repete o predicado da leitura — a correlação vai no filtro do update", async () => {
+    // Meia trava parece inteira: filtrar só o select e atualizar por `id`
+    // deixa a janela entre as duas consultas aberta. O motor entrega a
+    // correlação ao armazém justamente para que ela entre no `where`.
+    const { armazem, devolucoes } = armazemDeRetomada(["e1", "e2"]);
+    await retomarProcesso("c-42", PERFIL_DO_PAPEL.diretor, "u-dir", CASA, armazem, AGORA);
+    expect(devolucoes).toEqual([{ correlationId: "c-42", ids: ["e1", "e2"] }]);
   });
 });

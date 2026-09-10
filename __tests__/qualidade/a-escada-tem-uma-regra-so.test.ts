@@ -43,6 +43,21 @@ const db = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/db/client", () => ({ prisma: db }));
 
+// ── O PORTÃO DE MARCA (15/08/2026) — POR QUE ESTE DUBLÊ EXISTE ──────────────
+// `escadaFiltraEntregas` passou a consultar a régua de marca antes do degrau
+// (ordem do CEO: "marca sem régua, peça não sai"). Este arquivo testa a
+// IDENTIDADE decisão-do-dono ↔ escadaFiltraEntregas ↔ liberarCliente — não o
+// portão de marca. Com o prisma dublado (sem `client`/`brandBrain`),
+// `contratoDeMarca` explodiria e o fail-closed reteria TODA peça de "design"
+// (o executor `a2` deste arquivo), mascarando a variável que aqui se mede.
+// A marca entra CONSTITUÍDA de propósito. O portão de marca tem prova própria,
+// com as duas metades, em `__tests__/consertos-presos/portao-de-marca-na-entrega.test.ts`.
+const marcaDoPortao = vi.hoisted(() => ({
+  portaoDeMarca: vi.fn(async () => ({ pode: true, motivo: "" })),
+  ehPecaDeMarca: (d: string | null | undefined) => d === "design" || d === "social-media",
+}));
+vi.mock("@/lib/agency/esteira/contrato-de-marca", () => marcaDoPortao);
+
 // ── A FONTE ÚNICA, SUBSTITUÍDA ────────────────────────────────────────────────
 //
 // Este mock é o instrumento da PROVA POR IDENTIDADE. Ele não troca um valor no

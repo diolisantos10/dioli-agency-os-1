@@ -19,6 +19,13 @@ import {
   type Degrau, type EstadoDoDegrau, type ResultadoDaPeca, type AvaliacaoDeSubida,
 } from "./degraus";
 export { departamentosDaCasa } from "./degraus";
+// ── O PORTÃO DE MARCA ENTRA AQUI, E NÃO EM CADA CHAMADOR (15/08/2026) ────────
+// `escadaFiltraEntregas` é o ÚNICO ponto por onde uma entrega vira
+// "compartilhado": `marcos.ts`, `mes.ts`, `producao-de-pedido.ts` e
+// `escada/repescagem.ts` passam todos por aqui. Um portão posto em `marcos.ts`
+// seria contornado pela repescagem — que existe justamente para soltar depois o
+// que ficou retido antes. Portão fora do choke point não é portão.
+import { portaoDeMarca, ehPecaDeMarca } from "@/lib/agency/esteira/contrato-de-marca";
 
 function lerClientes(json: string | null | undefined): string[] {
   try {
@@ -262,10 +269,33 @@ export async function escadaFiltraEntregas(p: {
     return cobre;
   }
 
+  // ── O PORTÃO DE MARCA, ANTES DO DEGRAU ───────────────────────────────────
+  //
+  // Consultado UMA vez por chamada, e só quando há peça de marca no lote: o
+  // contrato lê ficha, proibições e material, e pagar isso para um lote que só
+  // tem relatório seria custo sem pergunta.
+  //
+  // Ordem do CEO (15/08/2026): "marca sem régua, peça não sai". A recusa é
+  // BLOQUEANTE — a entrega vai para `retidos`, exatamente como a retida pelo
+  // degrau, e `retidos` é o que NUNCA vira `visibility: "compartilhado"`.
+  const temPecaDeMarca = p.entregas.some((e) => ehPecaDeMarca(departamentoDoAgente(e.ownerAgentId)));
+  const marca = temPecaDeMarca
+    ? await portaoDeMarca(p.clientId).catch(() => ({
+        pode: false,
+        motivo: "não consegui consultar a régua de marca — fail-closed: a peça não é compartilhada",
+      }))
+    : { pode: true, motivo: "" };
+
   const liberados: string[] = [];
   const retidos: FiltroDaEscada["retidos"] = [];
   for (const entrega of p.entregas) {
     const dept = departamentoDoAgente(entrega.ownerAgentId);
+    // Antes do degrau, de propósito: um departamento em WIDE não compra o
+    // direito de entregar peça de uma marca sobre a qual a casa não sabe nada.
+    if (!marca.pode && ehPecaDeMarca(dept)) {
+      retidos.push({ id: entrega.id, departmentId: dept, motivo: marca.motivo });
+      continue;
+    }
     const estado = dept ? porId.get(dept) ?? null : null;
     const veredito = decidirEntrega(estado, p.clientId);
     if (veredito.chega) {

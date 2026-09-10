@@ -197,3 +197,106 @@ export async function contratoDeMarca(clientId: string | null | undefined): Prom
 export function versaoDe(texto: string): string {
   return `mv_${createHash("sha256").update(texto).digest("hex").slice(0, 10)}`;
 }
+
+// ─── O PORTÃO DE MARCA NA ENTREGA — 15/08/2026 ──────────────────────────────
+//
+// Ordem do CEO: *"o portão que RECUSA entregar peça de marca não constituída.
+// Portão, não recomendação: marca sem régua, peça não sai."*
+//
+// ── O QUE JÁ EXISTIA, E ONDE ESTAVA O BURACO ────────────────────────────────
+//
+// Desde 09/08 existe um portão de marca em `publicacao.ts:703` — mas ele guarda
+// UMA porta: a publicação no Instagram. A outra porta pela qual a peça chega ao
+// cliente é `escadaFiltraEntregas`, o ponto em que uma entrega vira
+// `visibility: "compartilhado"` e aparece no portal. Essa porta não perguntava
+// nada sobre marca. Medido em 15/08: nenhum dos quatro chamadores da escada
+// (`marcos.ts`, `mes.ts`, `producao-de-pedido.ts`, `escada/repescagem.ts`)
+// consultava `contratoDeMarca`.
+//
+// Portão numa porta só não é portão — é a "rota alternativa para entregar
+// contornando o portão" que o próprio Conselho listou como condição de tudo.
+//
+// ── POR QUE A DEFINIÇÃO MORA AQUI ───────────────────────────────────────────
+//
+// "Marca constituída" NÃO é redefinida neste arquivo. Ela já tem um dono único:
+// `lerFichaDeMarca` (`ficha-de-marca.ts:456-489`) — cinco campos exigidos
+// (promessa, público, voz, léxico, hierarquia/dono), no mínimo 3 proibições
+// vigentes e no mínimo 2 referências (uma que É a cara da marca e uma que NÃO
+// é). Uma segunda conta para a mesma pergunta é como a tela mostrou 22% com a
+// porta fechada e ninguém entendeu por quê (`ficha-de-marca.ts:459`).
+//
+// O que mora aqui é o VEREDITO e a FRASE — para que as duas portas recusem pelo
+// mesmo critério e digam a mesma coisa a quem for consertar.
+
+/**
+ * Os departamentos cuja entrega É peça de marca.
+ *
+ * ── POR QUE NÃO É "TODA ENTREGA", e isso não é afrouxamento ────────────────
+ *
+ * Peça de marca é o que sai com a identidade do cliente para o mundo ver: arte,
+ * post, criativo. São os dois departamentos que o próprio CEO nomeou como
+ * "peça" ao soltar a escada em 08/08 (`docs/pendencias.md`, "o que NÃO foi
+ * solto": relatório, plano e proposta **não são peça**).
+ *
+ * Um diagnóstico de estratégia ou um relatório de números não carrega a
+ * identidade do cliente para o público — e barrar a agência inteira porque o
+ * cliente ainda não respondeu 5 perguntas da ficha pararia a casa no dia 1, que
+ * é exatamente o defeito que a semeadura da escada existe para evitar
+ * (`escada/registro.ts:37`).
+ *
+ * ⚠️ Nada aqui afrouxa a outra porta: `publicacao.ts` continua barrando TODO
+ * post agendado de marca não constituída, de qualquer departamento.
+ */
+export const DEPARTAMENTOS_DE_PECA_DE_MARCA: ReadonlySet<string> = new Set([
+  "design",
+  "social-media",
+]);
+
+export function ehPecaDeMarca(departmentId: string | null | undefined): boolean {
+  return !!departmentId && DEPARTAMENTOS_DE_PECA_DE_MARCA.has(departmentId);
+}
+
+export interface VeredictoDoPortaoDeMarca {
+  /** `true` = a peça pode chegar ao cliente. */
+  pode: boolean;
+  /** Em português, dizendo O QUE FAZER. Vazio quando `pode`. */
+  motivo: string;
+}
+
+/** A frase única da recusa. Diz o conserto, não só o defeito — recusa que não
+ *  diz o que fazer vira ruído que ninguém age. */
+export const MOTIVO_MARCA_NAO_CONSTITUIDA =
+  "marca não constituída: este cliente não declarou régua de marca suficiente " +
+  "(faltam campos da ficha, proibições ou referências). Entregar peça em nome " +
+  "dele agora é a agência escolhendo a marca por ele. Preencha a ficha de marca " +
+  "e a peça sai sozinha na próxima passada.";
+
+/**
+ * Esta marca pode receber peça?
+ *
+ * **FAIL-CLOSED.** Não conseguir LER a régua não vira permissão — é a mesma lei
+ * do "sem gate = reprovado". Sem `clientId` também recusa: peça de marca sem
+ * cliente dono não tem marca que a autorize.
+ *
+ * Não julga a peça. Pergunta uma coisa só, e é a mais básica: **esta marca
+ * chegou a declarar alguma regra?** Julgar identidade é do agente `branding`, e
+ * ele não pode fazê-lo sem régua registrada.
+ */
+export async function portaoDeMarca(
+  clientId: string | null | undefined,
+): Promise<VeredictoDoPortaoDeMarca> {
+  if (!clientId) {
+    return { pode: false, motivo: "entrega sem cliente dono — não há marca que autorize esta peça" };
+  }
+  const contrato = await contratoDeMarca(clientId).catch(() => null);
+  if (!contrato) {
+    return {
+      pode: false,
+      motivo:
+        "não consegui ler a régua de marca deste cliente — não entrego peça sem " +
+        "saber por qual régua ela foi feita",
+    };
+  }
+  if (contrato.naoConstituida) return { pode: false, motivo: MOTIVO_MARCA_NAO_CONSTITUIDA };
+  return { pode: true, motivo: "" };
+}

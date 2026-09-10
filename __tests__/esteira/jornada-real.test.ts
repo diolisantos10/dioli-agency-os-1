@@ -96,6 +96,50 @@ beforeAll(async () => {
   });
   clientId = cliente.id;
 
+  // ── A MARCA PRECISA ESTAR CONSTITUÍDA (15/08/2026) ─────────────────────────
+  // `escadaFiltraEntregas` passou a consultar `portaoDeMarca` antes de soltar
+  // peça de "design" ou "social-media" (ordem do CEO: "marca sem régua, peça
+  // não sai" — `contrato-de-marca.ts`). Esta jornada produz peça de
+  // social-media (agente `a3`) e o passo 7 exige que ela SAIA pela decisão do
+  // dono. Sem a ficha preenchida, o portão de marca reteria a peça por um
+  // motivo que este teste não existe para medir — o portão tem prova própria,
+  // com as duas metades, em `__tests__/consertos-presos/portao-de-marca-na-entrega.test.ts`.
+  // Aqui a marca entra CONSTITUÍDA de propósito, com os cinco campos exigidos,
+  // três proibições e as duas referências (`ficha-de-marca.ts:395-401`).
+  await prisma.brandBrain.create({
+    data: {
+      clientId,
+      purposeAndPromise: "Pão de fermentação natural, feito todo dia, para quem mora perto.",
+      audienceRelation: "Fala com o vizinho do bairro, de igual para igual.",
+      voicePairsJson: JSON.stringify([
+        { dizemos: "O pão saiu do forno agora.", naoDizemos: "Adquira já o produto premium." },
+      ]),
+      lexiconJson: JSON.stringify({ sempre: ["pão de fermentação natural"], nunca: ["gourmet"] }),
+      ownerAndHierarchyJson: JSON.stringify({ dono: "João", aprova: "João" }),
+      referencesJson: JSON.stringify({
+        aprovadas: ["post do pão saindo do forno às 6h"],
+        reprovadas: ["post com jargão de padaria industrial"],
+      }),
+    },
+  });
+  await prisma.brainArtifact.create({
+    data: {
+      clientId,
+      department: "proibicoes-do-cliente",
+      canvasId: "proibicoes",
+      canvasJson: JSON.stringify({
+        itens: [
+          { frase: "nunca citar concorrente pelo nome", termos: ["concorrente"], origem: "briefing" },
+          { frase: "nunca usar a palavra 'gourmet'", termos: ["gourmet"], origem: "briefing" },
+          { frase: "nunca prometer entrega no mesmo dia", termos: ["entrega", "mesmo dia"], origem: "briefing" },
+        ],
+      }),
+      version: 1,
+      status: "approved",
+      approvedBy: "registro automático (briefing)",
+    },
+  });
+
   const req = await prisma.clientRequestDb.create({
     data: {
       workspaceId, clientId,

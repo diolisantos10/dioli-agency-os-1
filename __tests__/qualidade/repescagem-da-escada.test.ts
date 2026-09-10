@@ -21,6 +21,20 @@ const db = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/db/client", () => ({ prisma: db }));
 
+// ── O PORTÃO DE MARCA (15/08/2026) — POR QUE ESTE DUBLÊ EXISTE ──────────────
+// `escadaFiltraEntregas` passou a consultar a régua de marca antes do degrau
+// (ordem do CEO: "marca sem régua, peça não sai"). Este arquivo testa O DEGRAU,
+// não o portão de marca — com o prisma dublado, `contratoDeMarca` explodiria e o
+// fail-closed reteria tudo, mascarando o que aqui se quer medir.
+// A marca entra CONSTITUÍDA de propósito, para o degrau ser a única variável.
+// O portão de marca tem prova própria, com as duas metades, em
+// `__tests__/esteira/portao-de-marca-na-entrega.test.ts`.
+const marcaDoPortao = vi.hoisted(() => ({
+  portaoDeMarca: vi.fn(async () => ({ pode: true, motivo: "" })),
+  ehPecaDeMarca: (d: string | null | undefined) => d === "design" || d === "social-media",
+}));
+vi.mock("@/lib/agency/esteira/contrato-de-marca", () => marcaDoPortao);
+
 import { repescarEntregasRetidas } from "@/lib/agency/escada/repescagem";
 import { escadaToda } from "../_escada";
 

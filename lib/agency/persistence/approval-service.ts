@@ -6,6 +6,13 @@ import { prisma } from "@/lib/db/client";
 // repita o `"cliente"` seco que mentia dos dois lados. Prompt é aviso; código é
 // trava (guardrail 4).
 import { exigirCarimbo } from "@/lib/agency/esteira/autoria-da-aprovacao";
+// ── E A MESMA IDEIA PARA O CONTEÚDO (15/08/2026) ────────────────────────────
+// `reviewNote` com `clientVisible: true` é a tela do cliente. Em 15/08 ela
+// chegou a mostrar o custo em dólar de cada agente da casa — a margem da agência
+// na tela de quem compra. A régua está no caminho de escrita, e não num aviso:
+// quem precisa do rastro técnico grava do lado da equipe (`addApprovalComment`
+// com `isClientVisible: false`). Ver `esteira/vazamento-ao-cliente.ts`.
+import { exigirTextoLimpo } from "@/lib/agency/esteira/vazamento-ao-cliente";
 
 export type ApprovalStatus =
   | "pending"
@@ -91,6 +98,10 @@ export async function createApprovalRequest(input: CreateApprovalRequestInput) {
   if (!input.clientRequestId && !input.clientId) {
     throw new Error("createApprovalRequest: informe clientRequestId ou clientId — aprovação precisa de dono");
   }
+  // Card que o cliente abre não carrega custo da casa, id de banco nem slug de
+  // agente. LANÇA em vez de gravar: um 500 que alguém vê no mesmo minuto é
+  // melhor que a margem da agência exposta em silêncio.
+  if (input.clientVisible) exigirTextoLimpo("ApprovalRequest.reviewNote", input.reviewNote);
   const jaExiste = await cardGenericoJaPendente(input);
   if (jaExiste) return jaExiste;
   return prisma.approvalRequest.create({
@@ -198,6 +209,11 @@ export async function updateApprovalStatus(
 }
 
 export async function addApprovalComment(input: AddCommentInput) {
+  // Mesma régua do corpo do card: comentário marcado como visível ao cliente é
+  // tela do cliente. O rastro técnico entra como comentário INTERNO — que é o
+  // caminho certo para ele, e continua existindo.
+  if (input.isClientVisible) exigirTextoLimpo("ApprovalComment.body", input.body);
+
   const comment = await prisma.approvalComment.create({
     data: {
       approvalRequestId: input.approvalRequestId,
@@ -237,6 +253,21 @@ export async function addApprovalComment(input: AddCommentInput) {
 }
 
 export async function setApprovalVisibility(id: string, clientVisible: boolean) {
+  // ABRIR um card ao cliente é o mesmo ato que criá-lo visível: o texto que ele
+  // vai ler passa pela mesma régua. Sem isto, bastaria criar interno e abrir
+  // depois para contornar a trava — porta lateral é a forma que todo guardrail
+  // desta casa já foi burlado uma vez.
+  //
+  // ⚠️ Lacuna conhecida e declarada: `esteira/marcos.ts` e `esteira/mes.ts`
+  // viram `clientVisible` por `prisma.approvalRequest.update` DIRETO, sem passar
+  // por aqui. Aqueles caminhos abrem cards de pacote/calendário, cujo corpo é
+  // montado por `cards-de-aprovacao.corpoDoCard` (sem custo e sem id por
+  // construção) — por isso não são o buraco de hoje. Fechar a porta neles é
+  // item próprio, não carona nesta correção.
+  if (clientVisible) {
+    const atual = await prisma.approvalRequest.findUnique({ where: { id }, select: { reviewNote: true } });
+    exigirTextoLimpo("ApprovalRequest.reviewNote", atual?.reviewNote);
+  }
   return prisma.approvalRequest.update({
     where: { id },
     data: { clientVisible },
