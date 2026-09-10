@@ -54,6 +54,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, isAgencyRole } from "@/lib/auth/session";
 import { deveBloquearMutacaoCrossSite } from "@/lib/security/navegacao-cross-site";
+import { solicitacaoDoWorkspace, naoEncontrado } from "@/lib/auth/posse-de-workspace";
 import { concederIsencaoDeParceria } from "@/lib/agency/financeiro/conceder-isencao";
 
 const MAX_TEXTO = 500;
@@ -80,8 +81,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // uma DECISÃO, não uma ausência.
   const numero = (v: unknown) => (typeof v === "number" ? v : Number.NaN);
 
+  const clientRequestId = texto(body.clientRequestId);
+
+  // POSSE ANTES DA ESCRITA. `clientRequestId` vazio segue para a função de
+  // biblioteca, que recusa com `sem_pedido` (400) — a mesma resposta de hoje.
+  if (clientRequestId && !(await solicitacaoDoWorkspace(clientRequestId, session.workspaceId))) {
+    return naoEncontrado();
+  }
+
   const r = await concederIsencaoDeParceria({
-    clientRequestId: texto(body.clientRequestId),
+    clientRequestId,
     autorizadaPor: texto(body.autorizadaPor),
     validaAte: texto(body.validaAte),
     escopo: texto(body.escopo),
