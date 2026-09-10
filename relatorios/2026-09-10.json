@@ -1,0 +1,125 @@
+{
+  "produto": "dioli-digital",
+  "data": "2026-09-10",
+  "geradoEm": "2026-09-10T11:15:00Z",
+  "assinatura": "Diretor da Dioli Digital",
+
+  "avisoDeFormato": {
+    "seguiuAFicha": false,
+    "motivo": "`control_room` não está anexado a esta sala. O Diretor Geral disse em 07/09 que é lacuna de ferramenta dele e que o formato atual serve.",
+    "delegou": false,
+    "motivoDeNaoDelegar": "ferramenta de despacho desabilitada desde 29/08 — `Error: No such tool available: Agent`. SEM_AGENTE declarado, 12º dia.",
+    "comparacaoContra": "2026-09-09"
+  },
+
+  "saude": {
+    "arvoreMedida": "origin/claude/dioli-agency-os-architecture-kk7kp (deploy), worktree sincronizada em 10/09 11:08 UTC, 0 commits atrás",
+    "tsc": { "valor": "limpo", "exit": 0, "fonte": "npx tsc --noEmit executado hoje" },
+    "suite": { "arquivos": 557, "testesPassando": 7801, "testesFalhando": 2, "totalTestes": 7803, "fonte": "npx vitest run executado no deploy em 10/09 11:08 UTC" },
+    "falhasDeCODIGO": 0,
+    "falhasDeAMBIENTE": 2,
+    "falhaDetalhada": {
+      "arquivo": "__tests__/coordenacao/reivindicar-guarda-antes-de-escrever.test.ts",
+      "natureza": "AMBIENTE, não código",
+      "prova": "node_modules/tsx/dist/cli.mjs com 0 bytes nesta máquina.",
+      "ressalva": "NÃO medi se o CI sofre o mesmo. 12º dia com essa lacuna."
+    },
+    "comparacaoComOntem": {
+      "arquivos": { "de": 557, "para": 557 },
+      "testes": { "de": 7803, "para": 7803 },
+      "falhasDeCodigo": { "de": 0, "para": 0 },
+      "leitura": "idêntico. O deploy é o MESMO commit de 07/09 — remedi do zero em vez de reaproveitar o número."
+    }
+  },
+
+  "cliente": {
+    "clientesAtendidos": null,
+    "pecasEntregues": null,
+    "avisosEnviados": null,
+    "faturamentoDoMesPassado": null,
+    "motivoDoNulo": "esta sala não tem acesso ao banco de produção.",
+    "defeitosVIVOSQueAlcancamCliente": [
+      { "o_que": "o link do portal no aviso usa `Client.portalToken`; a porta valida `PortalAccess.token`. Cliente vê \"acesso negado\" e a casa grava \"enviado\"", "vivoNoDeploy": true, "diasVivo": 12, "conserto": "PRONTO e empurrado em claude/o-link-do-portal-que-abre — falta ABRIR o PR", "fonte": "git show <deploy>:lib/agency/esteira/avisos.ts | grep -c portalToken = 4" },
+      { "o_que": "o portal responde 403 onde a convenção manda 404 — 403 confirma que o id existe", "vivoNoDeploy": true, "diasVivo": 12, "conserto": "PRONTO e empurrado em claude/o-portal-nunca-diz-403", "fonte": "git show <deploy>:app/api/portal/approvals/route.ts | grep -c 'status: 403' = 4" },
+      { "o_que": "falha de banco vira \"pedido não encontrado\" para o cliente", "vivoNoDeploy": true, "conserto": "PRONTO no mesmo PR acima" }
+    ]
+  },
+
+  "produtividade": {
+    "ultimoCommitNoDeploy": "7774ed27 — 07/09 09:42",
+    "horasSemDeploy": 73,
+    "commitsNoDeploy": { "em_07_09": 3, "em_08_09": 0, "em_09_09": 0, "em_10_09": 0 },
+    "branchesEmpurradasEVerdes": 5,
+    "branchesMescladas": 0,
+    "prsAbertos": 0,
+    "detalhe": "as 5 conferidas uma a uma com `git merge-base --is-ancestor`. Zero mescladas, zero PRs abertos — o `0` é MEDIDO, não ausência de medição.",
+    "defeitosConsertadosENaoEntregues": 6,
+    "diasDesdeQueOTrabalhoParou": 3,
+    "decisaoMantida": "não abri frente nova. Com seis consertos prontos e zero no ar, consertar o sétimo não muda nada — só aumenta a dívida e o risco de as próprias branches conflitarem. Terceiro dia com essa decisão; se a ordem for seguir consertando mesmo assim, eu sigo."
+  },
+
+  "qualidade": {
+    "ondeSeProcurou": "deploy inteiro: tsc e suíte completa (557 arquivos, 7803 testes), executados hoje. Mais verificação dirigida dos defeitos conhecidos por `git show` no deploy.",
+    "verdePorAusencia": false,
+    "falhasDeCodigoNoDeploy": 0,
+    "furosDePOSSEaindaVivos": {
+      "rotasDeDinheiro": 5,
+      "diasVivo": 12,
+      "conserto": "PRONTO em claude/posse-nas-rotas-de-parceria (3 rotas, risco baixo) e claude/posse-nas-rotas-de-pagamento (2 rotas, com risco de negócio no Pix)",
+      "fonte": "git show <deploy>:app/api/agency/parcerias/route.ts | grep -c clienteDoWorkspace = 0"
+    }
+  },
+
+  "dinheiro": {
+    "custoDoDia": { "valor": 0, "moeda": "USD", "fonte": "nenhuma chamada de IA real, nenhum e-mail, nenhum pagamento — medido, e deu zero" },
+    "parcelasDeCustoMedidas": 1,
+    "parcelasDeCustoTotais": 6,
+    "unicaParcelaMedida": { "rotulo": "IA por peça", "valor": 0.17, "moeda": "USD", "fonte": "CUSTO_DE_IA_POR_PECA_USD em lib/agency/financeiro/tabela-de-precos.ts" },
+    "parcelasNaoMedidas": ["taxa do gateway (Mercado Pago)", "infraestrutura (Railway)", "domínio e e-mail (Resend)", "hora humana", "impostos"],
+    "margemDeLucro": null,
+    "margemNegociavel": null,
+    "motivoDoNulo": "5 das 6 parcelas não são medidas, e o código nomeia o CEO como dono de cada uma. Aberto há 11 dias."
+  },
+
+  "risco": {
+    "gargaloMudouDeLugar": {
+      "descricao": "consertar deixou de ser o problema; ABRIR PR virou. Seis defeitos prontos, testados e provados por mutação, nenhum no ar. Terceiro dia parado neste ponto.",
+      "causa": "as ferramentas do GitHub estão indisponíveis nesta sala há 12 dias.",
+      "gravidade": "alta",
+      "oQueDestrava": "devolver o acesso ao GitHub a esta sala, OU alguém abrir os 5 PRs"
+    },
+    "coordenacaoDesligadaNaPratica": {
+      "reivindicacoesTotal": 96, "vivas": 15, "vencidasMais24h": 15,
+      "gravidade": "alta",
+      "descricao": "TODAS as 15 vivas seguem vencidas. Décimo segundo dia sem progresso.",
+      "porqueNaoSeResolve": "a saída de emergência só abre METADE: `conferirRegistro` (sentinela do npm test) honra a forçada; `conferirColisao` (gancho pré-push) não consulta nada disso."
+    },
+    "identidadeDeSessaoAmbigua": { "confirmado": true, "consertado": false, "diasAberto": 12 },
+    "camadaDeDespachoIndisponivel": {
+      "diasFora": 12,
+      "saidaLiteral": "Error: No such tool available: Agent.",
+      "tambemFora": ["Artifact", "ReadNotifications", "WebSearch", "ferramentas do GitHub", "Railway", "SendMessage", "Task*"]
+    },
+    "ordemAgendadaNaoLida": { "tentativas": 48, "saidaLiteral": "Error: No such tool available: ReadNotifications." }
+  },
+
+  "bloqueioDoCeo": [
+    { "id": 1, "assunto": "publicar as 5 branches verdes — o item mais barato e o que destrava tudo", "passoExato": "abrir os PRs de: claude/posse-nas-rotas-de-parceria, claude/posse-nas-rotas-de-pagamento, claude/cancelar-avisa-e-para, claude/o-link-do-portal-que-abre, claude/o-portal-nunca-diz-403. Ou devolver o acesso ao GitHub a esta sala, que eu abro sozinho.", "custoDeNaoDecidir": "seis defeitos consertados e nenhum no ar; três deles atingem cliente há 12 dias", "diasAberto": 3 },
+    { "id": 2, "assunto": "as 5 parcelas de custo — trava o cardápio inteiro", "passoExato": "Railway → Billing → total DEBITADO no último mês fechado. Mercado Pago → Taxas → percentual por transação. Domínio + Resend → custo mensal. Existe hora humana paga e quanto vale. Regime tributário e alíquota efetiva.", "custoDeNaoDecidir": "sem isso não há custo, margem, preço nem margem negociável", "diasAberto": 11 },
+    { "id": 3, "assunto": "o valor do mês passado que ele diz estar errado", "passoExato": "abrir o painel financeiro → mês passado → DIZER QUAL VALOR APARECE. Custa 2 minutos.", "custoDeNaoDecidir": "sem o número, qualquer resposta minha sobre faturamento é chute com cara de dado", "diasAberto": 8 },
+    { "id": 4, "assunto": "vídeo entra no cardápio?", "passoExato": "responder sim/não. A edição do vídeo do cliente JÁ ESTÁ construída e ligada.", "custoDeNaoDecidir": "produto pronto e não vendido", "diasAberto": 11 },
+    { "id": 5, "assunto": "pedidos sem agência dona na produção", "passoExato": "painel da agência → aba Solicitações → contar os sem cliente vinculado. Responder o número.", "custoDeNaoDecidir": "define o risco real de aplicar o conserto de admin/pagamentos", "diasAberto": 12 },
+    { "id": 6, "assunto": "quem reavisa os clientes que já receberam link morto", "passoExato": "exige leitura da produção — o conserto impede os PRÓXIMOS, o histórico não se repara sozinho.", "custoDeNaoDecidir": "esses clientes seguem sem saber que havia coisa esperando", "diasAberto": 12 }
+  ],
+
+  "oQueNaoFoiMedido": [
+    "Qualquer número de PRODUÇÃO: clientes, peças, avisos, pedidos órfãos e o FATURAMENTO DO MÊS PASSADO.",
+    "Quantos avisos históricos saíram com link morto marcados como \"enviado\".",
+    "Se as 2 falhas de `tsx` também quebram o CI. 12º dia sem conseguir ler o CI.",
+    "POR QUE o deploy está parado há 73 horas.",
+    "Se alguém está lendo estes relatórios. O Diretor Geral confirmou em 07/09 que lê; desde então não houve nova resposta, e não tenho instrumento para distinguir 'lido e despriorizado' de 'parou de ler'.",
+    "A família `.catch(() => null)`: 100+ ocorrências, a maioria legítima. Varrer é frente, não conserto.",
+    "Se existe portão de qualidade para VÍDEO. Não procurei.",
+    "O mercado: preço de concorrente. WebSearch fora."
+  ]
+}
