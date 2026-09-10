@@ -1,7 +1,7 @@
 ---
 titulo: "Desenvolvimento — publicar o app (release): App Review, modo Ativo, requisitos"
 url: https://developers.facebook.com/documentation/development/release
-capturado_em: 2026-09-09
+capturado_em: 2026-09-10
 hash: dff0fd410f766813
 ---
 

@@ -1,7 +1,7 @@
 ---
 titulo: "Manutenção de acesso a dados (Data Access Renewal / uso continuado)"
 url: https://developers.facebook.com/documentation/development/maintaining-data-access
-capturado_em: 2026-09-09
+capturado_em: 2026-09-10
 hash: 1ecd102fba4b91fb
 ---
 

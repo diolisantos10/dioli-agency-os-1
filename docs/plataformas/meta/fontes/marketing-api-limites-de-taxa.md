@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — limites de taxa por app e por conta de anúncio"
 url: https://developers.facebook.com/documentation/ads-commerce/marketing-api/overview/rate-limiting
-capturado_em: 2026-09-09
+capturado_em: 2026-09-10
 hash: 626c8cf63db3f3cf
 ---
 

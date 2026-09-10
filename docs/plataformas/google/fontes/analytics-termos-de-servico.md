@@ -1,7 +1,7 @@
 ---
 titulo: "Google Analytics — Termos de Serviço (BR)"
 url: https://marketingplatform.google.com/about/analytics/terms/br/
-capturado_em: 2026-09-09
+capturado_em: 2026-09-10
 hash: 017f0406a0f487c2
 ---
 

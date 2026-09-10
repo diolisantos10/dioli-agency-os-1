@@ -1,8 +1,8 @@
 ---
 titulo: "Central de Ajuda — Solicitar análise de restrição de publicidade"
 url: https://www.facebook.com/business/help/530209463124901
-capturado_em: 2026-09-09
-hash: b8536746aa221ffa
+capturado_em: 2026-09-10
+hash: e5dd12e784a43acc
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -61,8 +61,6 @@ Sobre o monitoramento das Políticas de Publicidade
 ConteÚdo InaceitÁvel
 Práticas discriminatórias
 Moradia, emprego ou produtos e serviços financeiros
-ConteÚdo Enganoso
-Práticas de negócios inaceitáveis
 ConteÚdo Perigoso
 Substâncias perigosas
 ConteÚdo QuestionÁvel

@@ -1,8 +1,8 @@
 ---
 titulo: "Google Ads — política de deturpação (misrepresentation)"
 url: https://support.google.com/adspolicy/answer/6020955?hl=pt-BR
-capturado_em: 2026-09-09
-hash: a0ed8d2bf6f4d5fd
+capturado_em: 2026-09-10
+hash: d37c3d0b0696c821
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -18,7 +18,7 @@ Queremos que os usuários confiem nos anúncios da nossa plataforma. Sendo assim
 
 Veja abaixo alguns exemplos de conteúdo que deve ser evitado nos seus anúncios. Saiba o que acontece quando nossas políticas são violadas.
 
-Neste artigo:
+Nesta página
 
 Práticas comerciais inaceitáveis
 Práticas enganosas coordenadas

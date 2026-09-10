@@ -1,7 +1,7 @@
 ---
 titulo: "Google Picker API — visão geral (o seletor de arquivos do Google)"
 url: https://developers.google.com/workspace/drive/picker/guides/overview
-capturado_em: 2026-09-09
+capturado_em: 2026-09-10
 hash: b46b77ea2ed26755
 ---
 

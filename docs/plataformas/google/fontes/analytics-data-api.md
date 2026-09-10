@@ -1,8 +1,8 @@
 ---
 titulo: "Google Analytics — Data API (GA4): visão geral"
 url: https://developers.google.com/analytics/devguides/reporting/data/v1?hl=pt-br
-capturado_em: 2026-09-09
-hash: c5cdd63d40190e8f
+capturado_em: 2026-09-10
+hash: e3392b441ef48a3d
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -17,11 +17,11 @@ Primeiros passos
 Métodos disponíveis
 Dimensões e métricas aceitas
 
-Você pode usar a API Data para acessar dados de relatórios do Google Analytics (Google Analytics) de maneira programática.
+Use a API Data para acessar os dados dos relatórios do Google Analytics (Google Analytics) de maneira programática.
 
 Saiba mais sobre as propriedades do Google Analytics.
 
-Os dados retornados pela API são consistentes com os dados mostrados na interface do Google Analytics e respeitam totalmente as configurações de identidade de relatórios-- como mesclada, observada ou baseada em dispositivos--configuradas para sua propriedade do Google Analytics.
+Os dados retornados pela API são consistentes com os dados mostrados na interface do Google Analytics e respeitam totalmente as configurações de identidade de relatórios-- como mesclada, observada ou baseada em dispositivo--configuradas para sua propriedade do Google Analytics.
 
 Essa API oferece recursos nos canais Alfa e Beta. Os produtos Alfa e Beta podem ter suporte limitado, e as mudanças realizadas podem não ser compatíveis com outras versões Alfa e Beta.
 
@@ -29,22 +29,22 @@ Alfa: os recursos estão em um estágio inicial de pré-lançamento. Tentamos in
 
 Beta: não são esperadas mudanças interruptivas nesse canal.
 
-Para receber comunicados oficiais da API Google Analytics, inscreva-se no grupo de notificações da API Google Analytics.
+Para receber comunicados oficiais, inscreva-se no grupo de notificações da API Google Analytics.
 
-Confira alguns exemplos de relatórios que você pode gerar usando a API de dados do Google Analytics v1:
+Confira alguns exemplos de relatórios que você pode gerar usando a API Google Analytics Data v1:
 
 Quantos usuários ativos por dia seu app Android teve na última semana.
 Quantas visualizações de página as 10 principais páginas do seu site tiveram nos últimos 28 dias.
 Quantos usuários ativos por país seu app iOS teve nos últimos 30 minutos.
 
-Você também pode usar a API de dados do Google Analytics v1 para fazer o seguinte:
+Você também pode usar a API Google Analytics Data v1 para fazer o seguinte:
 
 criar painéis personalizados para exibir os dados do Google Analytics;
 automatizar tarefas de relatórios complexas para economizar tempo;
 integrar seus dados do Google Analytics a outros aplicativos de negócios.
 Consistência de dados e identidade do relatório
 
-A API Google Analytics Data v1 acessa os mesmos dados de relatórios que a interface do Google Analytics. Os dados retornados pela API respeitam totalmente as configurações de identidade do relatório configuradas para sua propriedade do Google Analytics. Assim, as contagens de usuários, a eliminação de duplicação e a modelagem de dados são alinhadas ao espaço de identificação escolhido, como mesclado, observado ou baseado em dispositivos, nas configurações da propriedade.
+A API Google Analytics Data v1 acessa os mesmos dados de relatório que a interface do Google Analytics. Os dados retornados pela API respeitam totalmente as configurações de identidade do relatório configuradas para sua propriedade do Google Analytics. Assim, as contagens de usuários, a eliminação de duplicação e a modelagem de dados são alinhadas ao espaço de identificação escolhido, como mesclado, observado ou baseado em dispositivo, nas configurações da propriedade.
 
 Para saber mais sobre como diferentes espaços de identificação podem afetar seus relatórios, consulte Identidade do relatório.
 
@@ -75,4 +75,4 @@ Envie comentários
 
 Exceto em caso de indicação contrária, o conteúdo desta página é licenciado de acordo com a Licença de atribuição 4.0 do Creative Commons, e as amostras de código são licenciadas de acordo com a Licença Apache 2.0. Para mais detalhes, consulte as políticas do site do Google Developers. Java é uma marca registrada da Oracle e/ou afiliadas.
 
-Última atualização 2026-08-12 UTC.
+Última atualização 2026-09-10 UTC.

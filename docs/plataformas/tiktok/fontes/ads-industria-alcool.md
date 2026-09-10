@@ -1,8 +1,8 @@
 ---
 titulo: "TikTok Advertising Policies — Alcohol"
 url: https://ads.tiktok.com/help/article/tiktok-ads-policy-alcohol?lang=en
-capturado_em: 2026-09-09
-hash: e2269c7b67ba2805
+capturado_em: 2026-09-10
+hash: 0a550fe47e9ad7e7
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -98,7 +98,6 @@ Sale and delivery services of alcoholic beverages*
 
 Note: Select alcoholic beverages are currently undergoing testing in some markets. From time to time, we may invite you to participate in alpha and beta tests in select industries that are otherwise still considered prohibited or restricted. Participants are subject to confidentiality (per section 8.4 of the Commercial Terms of Service) and may be subject to additional requirements. We may choose to revoke participation or discontinue the alpha or beta tests at any time, and will strive to keep you informed if testing results in any material changes to our advertising policies.
 
-*Was the information helpful?
 Content
 Principle
 Policy

@@ -1,7 +1,7 @@
 ---
 titulo: "Content Posting API — Media Transfer Guide (FILE_UPLOAD x PULL_FROM_URL, chunks, formatos e limites de mídia)"
 url: https://developers.tiktok.com/doc/content-posting-api-media-transfer-guide
-capturado_em: 2026-09-09
+capturado_em: 2026-09-10
 hash: 10630d7f62f4e258
 ---
 

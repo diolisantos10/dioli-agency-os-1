@@ -1,8 +1,8 @@
 ---
 titulo: "Google Ads — requisitos de destino"
 url: https://support.google.com/adspolicy/answer/6368661?hl=pt-BR
-capturado_em: 2026-09-06
-hash: ca423a00500be007
+capturado_em: 2026-09-10
+hash: b7ef2c7cf571a24e
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -20,7 +20,7 @@ Ative as legendas do YouTube no seu idioma. Clique no ícone Configurações  no
 
 O Google prioriza a experiência do usuário em todos os produtos, e uma parte fundamental disso é promover um ambiente seguro e confiável na rede de publicidade do Google. A política sobre requisitos de destino garante que, quando os usuários clicam em um anúncio e são enviados para uma página de destino, o site seja funcional, útil e fácil de navegar. Isso também cria um ecossistema de publicidade que apoia os anunciantes e as pessoas que interagem com a marca deles por meio desses anúncios.
 
-Violações dessa política não levarão à suspensão imediata da conta. Enviaremos uma notificação pelo menos 7 dias antes da suspensão. Saiba mais sobre as suspensões de contas do Google Ads.
+Violações dessa política não levam à suspensão imediata da conta. Enviaremos um alerta pelo menos sete dias antes da suspensão. Saiba mais sobre as suspensões de contas do Google Ads.
 Saiba o que acontece quando nossas políticas são violadas.
 Neste artigo
 Destino que não funciona

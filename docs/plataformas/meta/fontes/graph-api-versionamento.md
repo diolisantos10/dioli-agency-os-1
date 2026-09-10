@@ -1,7 +1,7 @@
 ---
 titulo: "Graph API — versionamento (ciclo de vida de versão, depreciação)"
 url: https://developers.facebook.com/docs/graph-api/guides/versioning
-capturado_em: 2026-09-09
+capturado_em: 2026-09-10
 hash: fb7e81182d0877f0
 ---
 

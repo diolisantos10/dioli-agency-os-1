@@ -1,8 +1,8 @@
 ---
 titulo: "TikTok Advertising Policies — Deceptive Practices"
 url: https://ads.tiktok.com/help/article/tiktok-ads-policy-deceptive-practices
-capturado_em: 2026-09-09
-hash: 1b5c183035d35e68
+capturado_em: 2026-09-10
+hash: 24f9d7944db82877
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -118,7 +118,6 @@ Informative ads about how to benefit from public benefits without the promise of
 
 Ads that do not guarantee a win
 
-*Was the information helpful?
 Content
 Principle
 Dishonest behavior

@@ -1,8 +1,8 @@
 ---
 titulo: "Google Analytics — Admin API (GA4): visão geral"
 url: https://developers.google.com/analytics/devguides/config/admin/v1?hl=pt-br
-capturado_em: 2026-09-09
-hash: 6df32476df458562
+capturado_em: 2026-09-10
+hash: 4e8ab0bca0362a65
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -16,9 +16,9 @@ Introdução
 Métodos disponíveis
 Provisionamento de conta
 Gerenciamento de contas
-Gerenciamento das configurações de compartilhamento de dados pessoais
+Gerenciamento das configurações de compartilhamento de dados
 Exibir resumos da conta
-Pesquisar eventos do histórico de mudanças
+Pesquisar eventos do histórico de alterações
 Gerenciamento de propriedades
 
 Resumo: este documento apresenta uma visão geral da versão 1.0 da API Google Analytics Admin.
@@ -33,15 +33,15 @@ Para receber anúncios oficiais da API Google Analytics, inscreva-se no grupo de
 
 Introdução
 
-A API Admin do Google Analytics permite acesso programático aos dados de configuração do Google Analytics e é compatível apenas com propriedades do Google Analytics. Saiba mais sobre as propriedades do Google Analytics.
+A API Google Analytics Admin permite acesso programático aos dados de configuração do Google Analytics e é compatível apenas com propriedades do Google Analytics. Saiba mais sobre as propriedades do Google Analytics.
 
-Você pode usar a API Admin do Google Analytics para:
+Você pode usar a API Google Analytics Admin para:
 
 Provisionar novas contas.
 Gerenciar contas.
-Gerenciar as configurações de compartilhamento de dados pessoais.
+Gerenciar as configurações de compartilhamento de dados.
 Exibir resumos da conta.
-Pesquisar eventos do histórico de mudanças.
+Pesquisar eventos do histórico de alterações.
 Gerenciar propriedades.
 Gerenciar subpropriedades.
 Confirmar a coleta de dados do usuário.
@@ -86,11 +86,11 @@ accounts.delete
 accounts.get
 accounts.list
 accounts.patch
-Gerenciamento das configurações de compartilhamento de dados pessoais
+Gerenciamento das configurações de compartilhamento de dados
 accounts.getDataSharingSettings
 Exibir resumos da conta
 accountSummaries.list
-Pesquisar eventos do histórico de mudanças
+Pesquisar eventos do histórico de alterações
 accounts.searchChangeHistoryEvents
 Gerenciamento de propriedades
 properties.get
@@ -259,4 +259,4 @@ Envie comentários
 
 Exceto em caso de indicação contrária, o conteúdo desta página é licenciado de acordo com a Licença de atribuição 4.0 do Creative Commons, e as amostras de código são licenciadas de acordo com a Licença Apache 2.0. Para mais detalhes, consulte as políticas do site do Google Developers. Java é uma marca registrada da Oracle e/ou afiliadas.
 
-Última atualização 2026-08-12 UTC.
+Última atualização 2026-09-10 UTC.

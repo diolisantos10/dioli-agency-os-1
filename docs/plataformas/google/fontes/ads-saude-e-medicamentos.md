@@ -1,8 +1,8 @@
 ---
 titulo: "Google Ads — conteúdo restrito: saúde e medicamentos"
 url: https://support.google.com/adspolicy/answer/176031?hl=pt-BR
-capturado_em: 2026-09-09
-hash: 8edffe7da9b1228f
+capturado_em: 2026-09-10
+hash: 3199915928257cf2
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -34,7 +34,6 @@ Aborto
 Métodos anticoncepcionais, fertilidade e testes
 Testes domésticos de HIV
 Planos de saúde
-Formatos de anúncios
 Quais são as diferenças dessa política de um local para outro?
 Serviços de medicamentos controlados
 
@@ -153,11 +152,6 @@ Seguros de saúde
  Nos Estados Unidos, você precisa ter uma certificação do Google para anunciar seguros de saúde e hospitalares. Somente anunciantes governamentais não precisam dessa aprovação, pois serão pré-aprovados. Os anunciantes registrados no governo dos EUA para promover e vender planos de saúde em conformidade com a Affordable Care Act (Lei de Proteção e Cuidado Acessível ao Paciente) precisam receber outro certificado para promover e dar lances em palavras-chave relacionadas a seguros de saúde cobertos por essa lei. Os anúncios exclusivamente relacionados a coberturas de seguro de saúde para viagem, oftalmológico e/ou odontológico não são restritos.
 
 Saiba mais sobre nossa política relacionada a seguros de saúde.
-Formatos de anúncios
-
-Os formatos de anúncios aceitáveis variam de acordo com fatores como a plataforma usada, o status do seu anúncio e se o publisher ou parceiro escolheu mostrar ou não esses anúncios.
-
- O Google não permite a divulgação de saúde e medicamentos nos anúncios de masthead do Google TV.
 Quais são as diferenças dessa política de um local para outro?
 
 Além das restrições com base no conteúdo mencionadas acima, pode haver outras exigências de acordo com os locais que sua campanha segmenta. Selecione abaixo um local e confira os requisitos adicionais necessários para sua campanha publicitária segmentar essa região.

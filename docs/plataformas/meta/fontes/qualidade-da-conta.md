@@ -1,8 +1,8 @@
 ---
 titulo: "Central de Ajuda — Restrições de publicidade e Qualidade da Conta"
 url: https://www.facebook.com/business/help/975570072950669
-capturado_em: 2026-09-09
-hash: 0af4632d395f2276
+capturado_em: 2026-09-10
+hash: 15400c1d01dd1dc4
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -32,7 +32,6 @@ Você pode acessar a Página Inicial do Suporte para Empresas da Meta a fim de r
 
 Assista ao vídeo abaixo para saber mais:
 
-Play Icon
 Restrições de publicidade para violações de política
 
 Se descobrirmos que um anunciante não segue os Padrões de Publicidade ou outras políticas e termos, ele poderá enfrentar restrições de publicidade. As restrições de publicidade podem ser aplicadas nestes casos:
@@ -87,8 +86,6 @@ Sobre o monitoramento das Políticas de Publicidade
 ConteÚdo InaceitÁvel
 Práticas discriminatórias
 Moradia, emprego ou produtos e serviços financeiros
-ConteÚdo Enganoso
-Práticas de negócios inaceitáveis
 ConteÚdo Perigoso
 Substâncias perigosas
 ConteÚdo QuestionÁvel

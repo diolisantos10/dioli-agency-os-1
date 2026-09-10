@@ -1,7 +1,7 @@
 ---
 titulo: "Content Posting API — Get Post Status (/v2/post/publish/status/fetch/ e códigos de erro)"
 url: https://developers.tiktok.com/doc/content-posting-api-reference-get-video-status
-capturado_em: 2026-09-09
+capturado_em: 2026-09-10
 hash: 895fb0ef7d3b47aa
 ---
 

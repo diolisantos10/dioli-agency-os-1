@@ -1,7 +1,7 @@
 ---
 titulo: "Accounts API (Organic API) — Overview: publicar e gerenciar posts orgânicos de conta de negócio pelo portal de business"
 url: https://business-api.tiktok.com/portal/docs/accounts-api-overview/v1.3
-capturado_em: 2026-09-09
+capturado_em: 2026-09-10
 hash: 487929156f414927
 ---
 
