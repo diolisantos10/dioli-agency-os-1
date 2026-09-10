@@ -459,3 +459,67 @@ na íntegra."* Hoje o PDF entrega texto e visual, e **nenhum byte de imagem**. N
 tratei como pronto: `DeclaracaoDeLeitura` declara, por formato, o que entrou e o
 que ficou de fora, e isso chega à tela. Arquivo aberto pela metade não é dado por
 lido.
+
+---
+
+## 2026-08-29 · `/agency/leads` deixa de ser só leitura (branch `claude/a-promessa-cumprida`)
+
+**Pedido:** a seção "Conversas que pararam na sala" já lia
+`GET /api/agency/conversas-sem-pedido`; o servidor já tinha os dois atos de
+escrita (`.../contatado`, `.../atribuir`) e nenhuma tela os chamava — a mesma
+"trava sem fechadura" que a própria seção existe para fechar, um nível acima.
+
+### Os dois atos, e por que são dois botões, não um
+
+- **"Marcar como contatado"** — no cartão de toda conversa sem `contatadoEm`. É
+  o caso comum: visitante anônimo, sem `Client`, "atribuir" não se aplica a ele.
+- **"Confirmar que é deste cliente"** — só quando o servidor já derivou
+  `clienteDoConvite` pelo token de convite e ninguém confirmou ainda. Nunca um
+  seletor: a ficha de despacho foi explícita que escolher o cliente errado
+  numa lista é irreversível na prática, e o botão só existe porque o servidor
+  já decidiu — o clique é confirmação, não escolha.
+
+### O que mudou na tela quando um ato termina
+
+Nada de estado otimista. As duas ações, no sucesso, chamam `aoRecarregar` — que
+é **o mesmo** `onTentarDeNovo` que a falha de leitura já usava. Os dois pedem a
+mesma coisa ao servidor ("leia esta fila de novo"); dar dois nomes à mesma
+pergunta seria a violação do §4.3 do `DESIGN.md` que este próprio arquivo cita
+em outro lugar. Reaproveitei em vez de criar uma segunda prop.
+
+Consequência em cascata, e é a parte que a ficha pedia com mais força:
+`ordemDaFila` ganhou uma checagem NOVA antes de toda a lógica de promessa —
+quem já foi contatado desce para o fim, mesmo que tivesse a promessa mais
+velha da fila. Sem isso, marcar como contatado não move o cartão e a fila
+parece travada mesmo tendo mudado de estado. E o selo do cabeçalho ("N com
+promessa de contato pendente") passou a excluir quem já tem `contatadoEm` —
+outro lugar onde a mesma decisão (dívida quitada) tinha de valer duas vezes.
+
+### O selo neutro que faltava
+
+A pílula de estado só tinha quatro tons (`danger/success/info/warning`), e
+nenhum servia para "Contatada há N dias" — não é alarme nem sucesso, é
+histórico. Acrescentei `neutro`, reaproveitando o par `--accent`/
+`--text-secondary` que os chips de "O que ele pediu" já usavam no mesmo
+arquivo, para não introduzir um quinto par de tokens sem necessidade.
+
+### Testável sem jsdom, de novo
+
+Esta casa roda `vitest` em `environment: "node"` — sem jsdom, sem clique de
+verdade. Os dois atos saíram do componente como funções puras exportadas
+(`marcarContatado`, `confirmarCliente`), testadas com um duplo de `fetch`
+anotado (senão o `tsc` do CI quebra em `mock.calls[0][0]`, o mesmo defeito que
+já bateu três PRs seguidos nesta casa). A fiação entre botão → handler →
+`aoRecarregar()` só dá para provar lendo o código-fonte — mais barato e mais
+fraco que um teste de comportamento, e documentado como tal no cabeçalho do
+teste, para não ser vendido como mais forte do que é.
+
+### Autoavaliação (0–10)
+
+Hierarquia 9 · Tipografia 9 · Espaçamento 9 · Consistência 9 — os botões
+reusam a mesma altura (36px), a mesma paleta de bordas e o mesmo
+`disabled:opacity-50` que "Tentar de novo" e "Reenviar pendentes" já usavam
+nesta casa; nenhum componente novo nasceu para isto, só um tom novo de `Selo`
+já existente. Screenshots nos três tamanhos e a validação viva (`tsc`, testes,
+build) ficam com quem roda o portão nesta rodada — não executei nenhum dos
+dois.

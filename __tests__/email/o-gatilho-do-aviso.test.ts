@@ -16,10 +16,21 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+interface AcessoFake {
+  token: string;
+  clientId: string | null;
+  clientRequestId: string | null;
+  revokedAt: Date | null;
+  expiresAt: Date | null;
+  grantedAt: Date;
+}
+
 const db = vi.hoisted(() => ({
   client: { findUnique: vi.fn() },
   metaConnection: { findFirst: vi.fn() },
   clientNotice: { create: vi.fn() },
+  clientRequestDb: { findMany: vi.fn(async (): Promise<Array<{ id: string }>> => []) },
+  portalAccess: { findMany: vi.fn(async (): Promise<AcessoFake[]> => []) },
 }));
 const correio = vi.hoisted(() => ({ enviar: vi.fn() }));
 
@@ -35,12 +46,21 @@ vi.mock("@/lib/agency/esteira/aviso-de-agendamento-manual", () => ({
 
 const { avisarCliente } = await import("@/lib/agency/esteira/avisos");
 
-const CLIENTE_SO_COM_EMAIL = { phone: null, portalToken: "tok_abc", name: "Foocci" };
+const CLIENTE_SO_COM_EMAIL = { phone: null, name: "Foocci" };
+
+// O token vem de um `PortalAccess` VIVO — não mais de `Client.portalToken`.
+// Ver `lib/agency/esteira/link-do-portal-do-cliente.ts`.
+const ACESSO_VIVO: AcessoFake = {
+  token: "tok_abc", clientId: "c1", clientRequestId: null,
+  revokedAt: null, expiresAt: null, grantedAt: new Date("2026-01-01"),
+};
 
 beforeEach(() => {
   db.client.findUnique.mockReset().mockResolvedValue(CLIENTE_SO_COM_EMAIL);
   db.metaConnection.findFirst.mockReset().mockResolvedValue(null);
   db.clientNotice.create.mockReset().mockResolvedValue({});
+  db.clientRequestDb.findMany.mockReset().mockResolvedValue([]);
+  db.portalAccess.findMany.mockReset().mockResolvedValue([ACESSO_VIVO]);
   correio.enviar.mockReset().mockResolvedValue({ ok: true, id: "re_1" });
   process.env.NEXT_PUBLIC_APP_URL = "https://www.diolidigital.com.br";
 });
@@ -107,7 +127,7 @@ describe("o atraso e o link do portal têm molde próprio", () => {
 
 describe("a escada de canais — e o motivo de cada degrau é preservado", () => {
   it("WhatsApp que FUNCIONA não dispara e-mail — a casa não fala duas vezes", async () => {
-    db.client.findUnique.mockResolvedValue({ phone: "5511999999999", portalToken: "tok_abc", name: "Foocci" });
+    db.client.findUnique.mockResolvedValue({ phone: "5511999999999", name: "Foocci" });
     db.metaConnection.findFirst.mockResolvedValue({ id: "conn1" });
     vi.doMock("@/lib/integrations/meta", () => ({ sendWhatsAppMessage: async () => ({ ok: true }) }));
     const { avisarCliente: fresco } = await import("@/lib/agency/esteira/avisos");

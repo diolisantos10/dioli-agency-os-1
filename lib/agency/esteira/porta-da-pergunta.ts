@@ -179,7 +179,11 @@ export async function responderPergunta(input: {
   }).catch(() => null);
 
   // "Não é seu" e "não existe" saem iguais: a distinção já é o vazamento.
-  if (!pedido) return { ok: false, erro: "Acesso negado", codigo: 403 };
+  // (O `where` acima já combina id + posse; este comentário dizia a regra
+  // certa e o `codigo` a quebrava — 403 confirma ao chamador que o pedidoId
+  // existe. 404 é a convenção da casa: ver `app/api/portal/materiais/route.ts`
+  // e `app/api/agency/clients/[id]/marca/route.ts`.)
+  if (!pedido) return { ok: false, erro: "Pedido não encontrado", codigo: 404 };
 
   const pergunta = lerPergunta(pedido.pendingQuestionJson);
   if (!pergunta) {

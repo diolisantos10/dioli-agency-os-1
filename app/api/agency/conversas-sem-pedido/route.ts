@@ -63,6 +63,50 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         // esta casa mais pagou.
         dono: "Atendimento",
         proximaAcao: proximaAcaoDoRastro(r),
+        // ═══ O CARIMBO DA PROMESSA (29/08/2026) ═══════════════════════════
+        //
+        // `prometidoEm`: quando uma fala do SDR prometeu contato humano pela
+        // primeira vez ("nossa equipe entra em contato" e variantes — ver
+        // `lib/agency/esteira/promessa-de-contato.ts`). `null` = nunca
+        // prometeu. É FATO OBSERVÁVEL — a tela pode dizer "prometido há N
+        // dias" com segurança.
+        //
+        // ⛔ `venceEm` é sempre `null` — e é PROPOSITAL, não uma lacuna de
+        // implementação a esconder.
+        //
+        // ⚠️ CORRIJA-SE UMA AFIRMAÇÃO FÁCIL DE FAZER E ERRADA: não é verdade
+        // que "ninguém nesta casa falou de prazo". O número existe, em dois
+        // lugares, e NENHUM DELES É UMA DECISÃO REGISTRADA:
+        //
+        //   • `components/agency/briefing/PublicBriefingRoom.tsx:835` diz, a
+        //     pessoas reais, na tela pública: *"nossa equipe revisa o escopo,
+        //     prepara uma proposta formal e entra em contato **em até 24h
+        //     úteis**"*. É texto cravado em JSX, nunca ratificado.
+        //   • `lib/agency/v2-recovery/detector-de-parados.ts:16`
+        //     (`SLA_POR_ESTADO_HORAS.intake = 24`), cujo próprio comentário se
+        //     declara "régua inicial — ajustável por decisão".
+        //
+        // Duas fontes, o mesmo número, zero decisão em `docs/decisoes.md`. Um
+        // número que a casa DIZ ao cliente mas nunca ratificou não é prazo:
+        // é dívida de decisão. Carimbar `venceEm` a partir dele seria o
+        // código escolhendo por quem tem de escolher — e "24h ÚTEIS" ainda
+        // exige calendário de expediente e feriado que esta casa não tem.
+        //
+        // Por isso a fila mostra FATO ("prometido há N"), nunca ATRASO. Quem
+        // ratifica o SLA é o CEO; `motivoDoPrazo` é a lacuna subindo com o
+        // endereço da evidência, para a decisão não voltar a se perder.
+        prometidoEm: r.prometidoEm ? r.prometidoEm.toISOString() : null,
+        venceEm: null as string | null,
+        motivoDoPrazo: "sla_nao_ratificado:PublicBriefingRoom.tsx:835 promete 24h uteis ao cliente e nao ha decisao registrada",
+        // ═══ O CARIMBO DO ATO (29/08/2026) ═════════════════════════════════
+        //
+        // `contatadoEm`: quando um humano da casa marcou esta conversa como
+        // contatada (`POST .../contatado`, `marcarConversaComoContatada`).
+        // `null` = ninguém marcou ainda. É o que tira o lead da dívida que
+        // `prometidoEm` declara — sem apagar o rastro, e sem prometer nada
+        // sobre o que a pessoa vai responder.
+        contatadoEm: r.contatadoEm ? r.contatadoEm.toISOString() : null,
+        contatadoPor: r.contatadoPor,
       })),
     });
   } catch (e) {

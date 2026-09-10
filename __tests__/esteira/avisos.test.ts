@@ -1,9 +1,20 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+interface AcessoFake {
+  token: string;
+  clientId: string | null;
+  clientRequestId: string | null;
+  revokedAt: Date | null;
+  expiresAt: Date | null;
+  grantedAt: Date;
+}
+
 const db = vi.hoisted(() => ({
   client: { findUnique: vi.fn() },
   metaConnection: { findFirst: vi.fn() },
   clientNotice: { create: vi.fn(), findMany: vi.fn(), update: vi.fn() },
+  clientRequestDb: { findMany: vi.fn(async (): Promise<Array<{ id: string }>> => []) },
+  portalAccess: { findMany: vi.fn(async (): Promise<AcessoFake[]> => []) },
 }));
 const sendWhatsAppMessage = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/db/client", () => ({ prisma: db }));
@@ -11,10 +22,20 @@ vi.mock("@/lib/integrations/meta", () => ({ sendWhatsAppMessage }));
 
 import { avisarCliente, filaDeAvisos, marcarComoEnviado, dispensar } from "@/lib/agency/esteira/avisos";
 
+// O token vem de um `PortalAccess` VIVO agora — não mais de `Client.portalToken`
+// (esse era exatamente o defeito: as duas colunas nunca coincidem). Ver
+// `lib/agency/esteira/link-do-portal-do-cliente.ts`.
+const ACESSO_VIVO: AcessoFake = {
+  token: "tok123", clientId: "c1", clientRequestId: null,
+  revokedAt: null, expiresAt: null, grantedAt: new Date("2026-01-01"),
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   process.env.NEXT_PUBLIC_APP_URL = "https://app.dioli.studio";
-  db.client.findUnique.mockResolvedValue({ phone: "+55 11 99999-8888", portalToken: "tok123" });
+  db.client.findUnique.mockResolvedValue({ phone: "+55 11 99999-8888", name: "Padaria do João" });
+  db.clientRequestDb.findMany.mockResolvedValue([]);
+  db.portalAccess.findMany.mockResolvedValue([ACESSO_VIVO]);
   db.metaConnection.findFirst.mockResolvedValue({ id: "conn1" });
   db.clientNotice.create.mockResolvedValue({ id: "n1" });
   db.clientNotice.findMany.mockResolvedValue([]);
@@ -51,9 +72,24 @@ describe("o aviso NUNCA se perde", () => {
   });
 
   it("cliente sem telefone → vira fila, com o motivo explícito", async () => {
-    db.client.findUnique.mockResolvedValue({ phone: null, portalToken: "tok123" });
+    db.client.findUnique.mockResolvedValue({ phone: null, name: "Padaria do João" });
     await avisarCliente(PEDIDO);
     expect(db.clientNotice.create.mock.calls[0][0].data.failReason).toMatch(/telefone/i);
+  });
+
+  it("SEM token de portal vivo → não tenta nenhum canal, não grava 'enviado' (fail-closed)", async () => {
+    db.portalAccess.findMany.mockResolvedValue([]);
+    const r = await avisarCliente(PEDIDO);
+
+    expect(sendWhatsAppMessage).not.toHaveBeenCalled();
+    expect(r.enviadoAutomaticamente).toBe(false);
+    expect(r.canal).toBe("nenhum");
+    const gravado = db.clientNotice.create.mock.calls[0][0].data;
+    expect(gravado.status).toBe("pendente");
+    expect(gravado.channel).toBe("nenhum");
+    expect(gravado.link).toBeNull();
+    expect(gravado.sentAt).toBeUndefined();
+    expect(gravado.failReason).toMatch(/sem token de portal vivo/i);
   });
 
   it("a Meta recusa fora da janela de 24h → vira fila com o motivo dela", async () => {

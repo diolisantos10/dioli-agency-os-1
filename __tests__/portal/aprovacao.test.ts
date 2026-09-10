@@ -133,7 +133,7 @@ describe("tenho uma dúvida — não decide, pausa o prazo", () => {
     expect(addApprovalComment).not.toHaveBeenCalled();
   });
 
-  it("posse antes de tudo: dúvida em aprovação de outro dono não passa", async () => {
+  it("posse antes de tudo: dúvida em aprovação de outro dono não passa (404, nunca 403 — oráculo de enumeração)", async () => {
     // Outro dono DE VERDADE: outra solicitação E outro cliente. (A posse agora
     // é por OR — solicitação OU clientId derivado — então o fixture precisa
     // divergir nas duas chaves para ser "de outro".)
@@ -143,7 +143,7 @@ describe("tenho uma dúvida — não decide, pausa o prazo", () => {
     });
     db.clientRequestDb.findUnique.mockResolvedValue({ clientId: "c1" });
     const res = await POST(req({ action: "question", comment: "dúvida" }));
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
     expect(addApprovalComment).not.toHaveBeenCalled();
   });
 });

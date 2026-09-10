@@ -144,7 +144,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       belongsToToken = pertenceAoToken(formaDaAprovacao, formaDoToken, solicitacao?.clientId ?? null);
     }
     if (!belongsToToken) {
-      return NextResponse.json({ error: "Approval not accessible with this token" }, { status: 403 });
+      // 404, e a MESMA mensagem do "não existe" (linha ~121 acima): o approval
+      // JÁ EXISTE (passou o !approval logo acima) mas é de outro token/cliente.
+      // 403 aqui confirmaria a existência do id a quem está sondando — oráculo
+      // de enumeração (convenção da casa: ver `app/api/agency/clients/[id]/marca/route.ts`).
+      return NextResponse.json({ error: "Approval not found" }, { status: 404 });
     }
 
     if (!approval.clientVisible) {

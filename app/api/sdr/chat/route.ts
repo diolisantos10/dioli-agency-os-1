@@ -22,6 +22,7 @@
 import {
   promessasSoltas, limparPromessaSolta, motivoDaPromessa,
 } from "@/lib/agency/comercial/promessa-que-a-maquina-nao-cumpre";
+import { prometeuContatoHumano } from "@/lib/agency/esteira/promessa-de-contato";
 import { prisma } from "@/lib/db/client";
 import { validatePortalAccess } from "@/lib/agency/persistence/portal-access-service";
 import { estimativaEntregue, textoDoOrcamento } from "@/lib/agency/esteira/orcamento-do-briefing";
@@ -191,6 +192,16 @@ async function guardarRastroDoTurno(
    * a conversa. Ausente → `null` → a promoção NÃO age.
    */
   clienteDoConvite?: string | null,
+  /**
+   * A FALA DO SDR NESTE TURNO prometeu contato humano? (29/08/2026 — ver
+   * `lib/agency/esteira/promessa-de-contato.ts`). Ausente/`false` no PRIMEIRO
+   * chamado do turno (linha ~917, ANTES de o modelo responder — a fala nem
+   * existe ainda). O SEGUNDO chamado, depois de `replyText` pronto, é quem
+   * manda `true` quando a fala prometeu — ver perto de `promessasSoltas` mais
+   * abaixo. `guardarRastroDaConversa` preserva a PRIMEIRA data gravada, então
+   * chamar de novo nunca reinicia o relógio.
+   */
+  prometeuContato?: boolean,
 ): Promise<void> {
   const escopo = body.scope as Record<string, unknown> | undefined;
   await guardarRastroDaConversa({
@@ -207,6 +218,7 @@ async function guardarRastroDoTurno(
     },
     turnos: Array.isArray(body.messages) ? body.messages.length + 1 : 1,
     clienteDoConvite: clienteDoConvite ?? null,
+    prometeuContato: prometeuContato === true,
   });
 }
 
@@ -1507,6 +1519,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const limpo = limparPromessaSolta(replyText);
       // Se limpar esvaziou a fala, a casa diz a verdade em vez de nada.
       replyText = limpo || O_QUE_DIZER_NO_LUGAR_AO_CLIENTE;
+    }
+
+    // ── O CARIMBO DA PROMESSA DE CONTATO HUMANO (29/08/2026) ─────────────────
+    //
+    // A fala do SDR só existe AQUI — a régua acima (`promessasSoltas`) barra a
+    // MÁQUINA prometendo em primeira pessoa; esta é a promessa LEGÍTIMA da
+    // EQUIPE ("nossa equipe entra em contato"), que o outro módulo recomenda
+    // dizer no lugar. Legítima não é grátis: a partir desta fala a casa deve
+    // contato, e é isso que `guardarRastroDaConversa` carimba em `prometidoEm`
+    // — para a fila de `conversas-sem-pedido` deixar de tratar "ainda não
+    // veio" e "já prometemos e não veio" como a mesma coisa.
+    //
+    // Chama o MESMO caminho de escrita do rastro (`guardarRastroDoTurno` →
+    // `guardarRastroDaConversa`), nunca uma escrita paralela — e aquele módulo
+    // já preserva a PRIMEIRA data gravada, então regravar aqui não reinicia o
+    // relógio de uma promessa anterior. Nunca lança e nunca bloqueia a
+    // resposta ao cliente: o rastro é nosso, a conversa é dele.
+    if (prometeuContatoHumano(replyText)) {
+      try {
+        await guardarRastroDoTurno(body, workspaceDaConta, conviteDoParceiro?.clientId ?? null, true);
+      } catch (e) {
+        console.warn(`[sdr/chat] carimbo de promessa de contato não gravado: ${e instanceof Error ? e.message : String(e)}`);
+      }
     }
 
     // ⛔ O PISO, SOBRE A FALA PRONTA (27/08/2026) ─────────────────────────────

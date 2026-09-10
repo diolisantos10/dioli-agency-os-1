@@ -102,16 +102,38 @@ export type RastroDaConversa = {
   atribuicao: AtribuicaoDaCasa | null;
   /** A quem a parada pertence. Necessário para o pedido nascer com dono. */
   workspaceId: string;
+  /**
+   * QUANDO A CASA PROMETEU CONTATO HUMANO — carimbo de 29/08/2026. `null` =
+   * nenhuma fala desta conversa prometeu ("nossa equipe entra em contato" e
+   * variantes — ver `lib/agency/esteira/promessa-de-contato.ts`). Uma vez
+   * gravada, esta data NÃO se move: é a origem de uma dívida, não um contador
+   * que reinicia a cada turno. Ver `guardarRastroDaConversa`.
+   */
+  prometidoEm: Date | null;
+  /**
+   * QUANDO UM HUMANO DA CASA CONTATOU ESTA PESSOA — carimbo de 29/08/2026, o
+   * ato que SAI da dívida declarada por `prometidoEm`. `null` = ninguém
+   * marcou ainda. Gravado por `marcarConversaComoContatada`
+   * (`lib/agency/comercial/marcar-conversa-contatada.ts`), nunca deduzido. A
+   * PRIMEIRA marcação vale — ver `guardarRastroDaConversa`.
+   */
+  contatadoEm: Date | null;
+  /** O `userId` de quem marcou o contato. `null` quando `contatadoEm` é
+   *  `null`. Nunca do corpo de uma requisição pública — só da sessão de
+   *  agência que fez o ato. */
+  contatadoPor: string | null;
 };
 
 /** O que sai gravado no `message`. Formato próprio e versionado: um leitor de
  *  amanhã precisa saber que forma está lendo antes de confiar nela. */
 export type CargaDoRastro = {
   /** `1` é a forma original (sem `clienteDoConvite`); `2` a acrescenta; `3`
-   *  acrescenta `atribuicao`. As TRÊS continuam sendo lidas: um rastro gravado
-   *  ontem não pode virar ilegível hoje — ele é justamente o cliente que a casa
-   *  já quase perdeu uma vez, e é um v1 que este conserto veio salvar. */
-  v: 1 | 2 | 3;
+   *  acrescenta `atribuicao`; `4` acrescenta `prometidoEm`; `5` acrescenta
+   *  `contatadoEm`/`contatadoPor`. As CINCO continuam sendo lidas: um rastro
+   *  gravado ontem não pode virar ilegível hoje — ele é justamente o cliente
+   *  que a casa já quase perdeu uma vez, e é um v1 que este conserto veio
+   *  salvar. */
+  v: 1 | 2 | 3 | 4 | 5;
   escopo: Record<string, unknown>;
   contato: ContatoDoRastro | null;
   turnos: number;
@@ -143,6 +165,39 @@ export type CargaDoRastro = {
    * Declarar não é deduzir: a diferença está por extenso em `dono-do-rastro.ts`.
    */
   atribuicao?: AtribuicaoDaCasa | null;
+  /**
+   * ═══ QUANDO A CASA PASSOU A DEVER CONTATO ═══════════════════════════════
+   *
+   * ISO de quando uma fala do SDR prometeu contato humano pela primeira vez
+   * (`prometeuContatoHumano`, em `lib/agency/esteira/promessa-de-contato.ts`).
+   * `null`/ausente = nenhuma promessa ainda.
+   *
+   * ⚠️ A PRIMEIRA VALE. `guardarRastroDaConversa` PRESERVA este campo do que
+   * já estava gravado — a mesma lei que já vale para `atribuicao` duas linhas
+   * acima. A dívida nasce na primeira fala que prometeu; um turno seguinte que
+   * repete "a equipe entra em contato" não empurra o relógio para frente.
+   */
+  prometidoEm?: string | null;
+  /**
+   * ═══ QUANDO UM HUMANO DA CASA CONTATOU ═══════════════════════════════════
+   *
+   * ISO de quando `marcarConversaComoContatada` gravou o ato pela primeira
+   * vez. Escrito EXCLUSIVAMENTE por aquele módulo, chamado de uma rota com
+   * sessão de AGÊNCIA — a mesma disciplina de `atribuicao` duas seções acima.
+   * A rota pública do SDR sequer conhece este campo.
+   *
+   * ⚠️ A PRIMEIRA MARCAÇÃO VALE. `guardarRastroDaConversa` PRESERVA este
+   * campo do que já estava gravado — a mesma lei de `atribuicao` e
+   * `prometidoEm`. Sem isso, o próximo turno do SDR (que reescreve a carga
+   * inteira a cada mensagem) apagaria em silêncio o ato de um humano que já
+   * ligou ou escreveu para a pessoa — o mesmo defeito que a lei da
+   * `atribuicao` existe para impedir.
+   */
+  contatadoEm?: string | null;
+  /** O `userId` de quem marcou o contato — sempre da SESSÃO, nunca do corpo.
+   *  Preservado junto com `contatadoEm`: a testemunha do ato original é a que
+   *  vale, mesmo que outro operador reabra a mesma tela depois. */
+  contatadoPor?: string | null;
 };
 
 /** Só os três campos que a PESSOA declara. Copiar o objeto inteiro do corpo da
@@ -171,7 +226,7 @@ export function lerCargaDoRastro(message: string): CargaDoRastro | null {
     const bruto = JSON.parse(message) as unknown;
     if (!bruto || typeof bruto !== "object") return null;
     const v = (bruto as CargaDoRastro).v;
-    if (v !== 1 && v !== 2 && v !== 3) return null;
+    if (v !== 1 && v !== 2 && v !== 3 && v !== 4 && v !== 5) return null;
     return bruto as CargaDoRastro;
   } catch {
     return null;
@@ -199,6 +254,13 @@ export async function guardarRastroDaConversa(input: {
   turnos?: number;
   /** O cliente DERIVADO do convite de parceria pelo servidor. Ver a carga. */
   clienteDoConvite?: string | null;
+  /**
+   * A FALA DESTE TURNO prometeu contato humano? (`prometeuContatoHumano`,
+   * calculado por quem chama — este módulo não lê texto de fala, só carimba).
+   * `true` grava `prometidoEm = agora` SE ainda não havia um; `false`/ausente
+   * não apaga um carimbo já existente — ver a leitura de `anterior` abaixo.
+   */
+  prometeuContato?: boolean;
 }): Promise<boolean> {
   const fio = fioDaConversa(input.sessionId);
 
@@ -245,8 +307,35 @@ export async function guardarRastroDaConversa(input: {
     const anterior = existente ? lerCargaDoRastro(existente.message) : null;
     const atribuicao = atribuicaoValida(anterior?.atribuicao);
 
+    // ═══ A PRIMEIRA PROMESSA É A QUE VALE ═══════════════════════════════════
+    //
+    // Mesma lei da `atribuicao` duas linhas acima: a dívida nasce na primeira
+    // fala que prometeu contato, e o turno seguinte não reinicia o relógio. Se
+    // já havia `prometidoEm` gravado (mesmo que malformado — aceita qualquer
+    // string não vazia, porque quem grava esta carga é sempre este mesmo
+    // módulo), preserva. Só grava um novo quando NÃO havia nenhum e a fala de
+    // agora prometeu.
+    const prometidoEmAnterior =
+      typeof anterior?.prometidoEm === "string" && anterior.prometidoEm ? anterior.prometidoEm : null;
+    const prometidoEm =
+      prometidoEmAnterior ?? (input.prometeuContato ? new Date().toISOString() : null);
+
+    // ═══ O ATO DO HUMANO SOBREVIVE AO PRÓXIMO TURNO ═══════════════════════
+    //
+    // Mesma lei de `atribuicao` e `prometidoEm`, três linhas acima: este
+    // `update` reescreve a carga inteira a cada turno do SDR. Sem preservar
+    // aqui, um cliente que reabre a aba depois de já ter sido contatado por
+    // um humano apagaria esse ato em silêncio — ninguém saberia, e a fila
+    // voltaria a cobrar um contato que já aconteceu. `contatadoEm`/
+    // `contatadoPor` NUNCA chegam por `input`: a rota pública do SDR não
+    // conhece este campo, só `marcarConversaComoContatada` o escreve.
+    const contatadoEm =
+      typeof anterior?.contatadoEm === "string" && anterior.contatadoEm ? anterior.contatadoEm : null;
+    const contatadoPor =
+      typeof anterior?.contatadoPor === "string" && anterior.contatadoPor ? anterior.contatadoPor : null;
+
     const carga: CargaDoRastro = {
-      v: 3,
+      v: 5,
       escopo,
       contato: contatoLimpo(input.contato),
       turnos: typeof input.turnos === "number" && input.turnos > 0 ? Math.floor(input.turnos) : 1,
@@ -254,6 +343,9 @@ export async function guardarRastroDaConversa(input: {
       // é o valor que a promoção automática lê como "não agir".
       clienteDoConvite: cliente || null,
       atribuicao,
+      prometidoEm,
+      contatadoEm,
+      contatadoPor,
     };
     const message = JSON.stringify(carga).slice(0, TETO_DA_CARGA);
 
@@ -381,6 +473,15 @@ export async function conversasSemPedido(
       // atribuição, e uma forma que não confere não vira dono.
       atribuicao: atribuicaoValida(carga.atribuicao),
       workspaceId: l.workspaceId,
+      // `v1`/`v2`/`v3` não têm o campo — ausência é `null`, "ainda não
+      // prometeu", nunca uma data inventada para a linha caber.
+      prometidoEm:
+        typeof carga.prometidoEm === "string" && carga.prometidoEm ? new Date(carga.prometidoEm) : null,
+      // `v1`–`v4` não têm o campo — ausência é `null`, "ninguém marcou ainda".
+      contatadoEm:
+        typeof carga.contatadoEm === "string" && carga.contatadoEm ? new Date(carga.contatadoEm) : null,
+      contatadoPor:
+        typeof carga.contatadoPor === "string" && carga.contatadoPor ? carga.contatadoPor : null,
     });
   }
   return rastros;
@@ -394,6 +495,36 @@ export async function conversasSemPedido(
  */
 export function proximaAcaoDoRastro(rastro: RastroDaConversa): string {
   const c = rastro.contato;
+
+  // ═══ A CASA JÁ CONTATOU — sai da dívida, sem prometer o que vem depois ═════
+  //
+  // Isto vem ANTES da checagem de `prometidoEm`: uma vez que um humano marcou
+  // o contato, a frase deixa de cobrar — ela não vira "retomar por e-mail" de
+  // novo, e também não finge que a promessa nunca existiu. Diz o que é FATO
+  // (a casa já agiu) e nada além disso: nenhum prazo novo, nenhuma garantia de
+  // que a pessoa vai responder.
+  if (rastro.contatadoEm) {
+    return "A casa já contatou esta pessoa — aguardando a pessoa responder.";
+  }
+
+  // ═══ A CASA PROMETEU — o tom muda de "pode" para "deve" ═══════════════════
+  //
+  // "Retomar por e-mail" é uma sugestão de oportunidade; quando o SDR disse
+  // "nossa equipe entra em contato" a mesma linha é uma DÍVIDA com data de
+  // origem, não uma ideia de quem ler a fila. Nenhum prazo é inventado aqui —
+  // SLA de resposta é LACUNA de decisão do CEO (ver a rota de leitura) — mas o
+  // fato de já ter sido prometido, isso o código sabe, e diz.
+  if (rastro.prometidoEm) {
+    if (c?.email || c?.whatsapp) {
+      const canal = c.email ? "e-mail" : "WhatsApp";
+      return `A casa PROMETEU contato e ainda não cumpriu — responder por ${canal} é dívida, não sugestão.`;
+    }
+    if (c?.nome) {
+      return "A casa PROMETEU contato, mas não há canal declarado — a dívida existe e não há como cumpri-la sozinho.";
+    }
+    return "A casa PROMETEU contato sem ter canal nem nome — a dívida existe e não há a quem cobrar.";
+  }
+
   if (c?.email || c?.whatsapp) {
     const canal = c.email ? "e-mail" : "WhatsApp";
     return `Retomar por ${canal}: a conversa parou com escopo pela metade e o canal está declarado.`;

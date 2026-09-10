@@ -20,6 +20,7 @@
 // perder o aviso é ruim, perder a entrega é pior.
 
 import { prisma } from "@/lib/db/client";
+import { linkVivoDoPortal } from "@/lib/agency/esteira/link-do-portal-do-cliente";
 
 // "recompra" entrou em 06/08/2026 com a régua de 30/60/90 dias
 // (`esteira/recompra.ts`). Ela NÃO usa `avisarCliente` — escreve o
@@ -43,12 +44,6 @@ export interface ResultadoDoAviso {
   enviadoAutomaticamente: boolean;
   canal: CanalDeAviso;
   motivo?: string;
-}
-
-/** O endereço do portal deste cliente — o link que resolve o aviso. */
-function linkDoPortal(portalToken: string): string {
-  const base = (process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? "").replace(/\/+$/, "");
-  return `${base}/portal/access/${portalToken}`;
 }
 
 /**
@@ -178,16 +173,53 @@ async function tentarEmail(
  *
  * O texto que vai para a fila já inclui o link do portal, para quem for
  * disparar à mão só precisar copiar e colar.
+ *
+ * ── FAIL-CLOSED: sem token de portal vivo, nada sai (ordem do Diretor,
+ * 29/08/2026 — ver o cabeçalho de `link-do-portal-do-cliente.ts`) ──────────
+ * Este é o ponto exato onde este módulo diverge da decisão 3 do PR #159. Sem
+ * `PortalAccess` vivo para este cliente: NÃO tenta WhatsApp, NÃO tenta
+ * e-mail — nada sai. Grava `ClientNotice` com `status: "pendente"`,
+ * `channel: "nenhum"`, `link: null` e o motivo em português. `sentAt` nunca é
+ * preenchido nesse caminho. A falta cai na fila manual (`filaDeAvisos`, lida
+ * por `app/api/avisos/route.ts` e mostrada em
+ * `components/agency/FilaDeAvisos.tsx` dentro de
+ * `app/agency/dashboard/operacao/page.tsx`) — não é silêncio, é a falta
+ * registrada onde gente olha, sem se disfarçar de "enviado".
  */
 export async function avisarCliente(pedido: PedidoDeAviso): Promise<ResultadoDoAviso> {
   try {
     const cliente = await prisma.client.findUnique({
       where: { id: pedido.clientId },
-      select: { phone: true, portalToken: true, name: true },
+      select: { phone: true, name: true },
     });
 
-    const link = cliente ? linkDoPortal(cliente.portalToken) : null;
-    const textoCompleto = link ? `${pedido.texto}\n\n${link}` : pedido.texto;
+    const portal = await linkVivoDoPortal(pedido.clientId);
+    const link = portal.link;
+
+    if (!link) {
+      const motivo = `sem token de portal vivo — o link não pôde ser montado; emitir credencial é ato explícito e não acontece aqui (${portal.motivo})`;
+      await prisma.clientNotice.create({
+        data: {
+          workspaceId: pedido.workspaceId,
+          clientId: pedido.clientId,
+          ...(pedido.projectId ? { projectId: pedido.projectId } : {}),
+          kind: pedido.tipo,
+          body: pedido.texto,
+          link: null,
+          status: "pendente",
+          channel: "nenhum",
+          failReason: motivo,
+        },
+      });
+      return {
+        registrado: true,
+        enviadoAutomaticamente: false,
+        canal: "nenhum",
+        motivo,
+      };
+    }
+
+    const textoCompleto = `${pedido.texto}\n\n${link}`;
 
     const tentativa = await tentarWhatsApp(pedido.workspaceId, cliente?.phone ?? null, textoCompleto);
 
