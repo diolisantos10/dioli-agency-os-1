@@ -86,6 +86,7 @@ import {
   vereditoDoPortao, refsDaEntradaPadrao, PASTA_QUE_PASSA_DIRETO,
 } from "../lib/coordenacao/portao-de-push.ts";
 import { soLevaAReivindicacao } from "../lib/coordenacao/so-o-commit-da-reivindicacao.ts";
+import { cloneEhRaso } from "../lib/coordenacao/historico-completo.ts";
 
 // RAIZ é sempre o repositório real onde este arquivo vive — SALVO quando um
 // teste automatizado pede explicitamente, via REIVINDICAR_RAIZ_DE_TESTE, para
@@ -1114,6 +1115,21 @@ function avisosDeVizinhanca(arquivosDaSessao: string[], quem: string, existentes
 
 function comandoConferir(argv: string[]): void {
   const branch = branchAlvo(argv);
+
+  // 🔴 CLONE RASO — AVISO, não bloqueio. A trava de verdade mora em
+  // `lib/coordenacao/historico-completo.ts` (`exigirHistoricoCompleto`, que
+  // LANÇA); aqui é só o alerta que aparece na porta de abertura de turno,
+  // ANTES de qualquer outra coisa. Não vira bloqueio porque no CI o checkout
+  // é raso DE PROPÓSITO (ver a nota em `lib/coordenacao/portao-de-push.ts`
+  // sobre `origin/<branch>` não existir localmente ali) — barrar "conferir"
+  // por causa disso quebraria o deploy da casa inteira. A história completa
+  // (28/08/2026) está no cabeçalho de `historico-completo.ts`: um clone raso
+  // fez a casa declarar 7 PRs irrecuperáveis por engano.
+  if (cloneEhRaso(RAIZ)) {
+    console.error("🔴 CLONE RASO — este worktree NÃO tem histórico completo.");
+    console.error("   Todo veredito de \"mesclável\", \"ancestral\" ou \"órfão\" medido aqui é INVÁLIDO.");
+    console.error("   Conserto (um comando, não destrutivo): git fetch --unshallow origin");
+  }
 
   // A identidade é sempre CALCULADA — nunca lida de flag, arquivo ou git
   // config (ver "Identidade da sessão", acima). Não existe mais estado

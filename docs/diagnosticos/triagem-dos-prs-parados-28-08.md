@@ -1,5 +1,49 @@
 # Triagem dos PRs parados — 28/08/2026
 
+> # 🔴 REFUTADO EM 29/08/2026 — NÃO EXECUTE A ORDEM DESTE DOCUMENTO
+>
+> **A tese central deste documento está errada, e a medição que a produziu está
+> explicada em `docs/diagnosticos/a-base-orfa-e-os-cinco-prs-29-08.md` (PR #383).**
+>
+> **O que este documento afirmou:** "história órfã", "sete dos oito PRs não têm
+> ancestral comum com a branch de deploy", "impossíveis de mesclar", "em algum
+> momento ela foi recriada" — e, a partir disso, a ordem de **fechar #169, #170 e
+> #172 declarando o que se perde**.
+>
+> **Por que estava errado:** a medição foi feita **dentro de um clone raso**
+> (`git clone --depth`). Num clone raso o ancestral comum fica *abaixo* do corte,
+> e o git responde `refusing to merge unrelated histories` para históricos que
+> **são** parentes. O worktree da sessão de 28/08 nasceu raso às 00:45 UTC e a
+> triagem foi escrita dentro dele 2h27 depois.
+>
+> **O que a medição correta diz:** a branch de deploy tem **uma raiz só, de
+> 21/03/2026**, e `git merge-base` responde com ancestral real para **todos** os
+> PRs daquela lista. Nenhum PR está órfão. O que existe é **conflito de
+> conteúdo** — outro problema, e muito menor.
+>
+> ### 🚩 A ORDEM QUE FICA REVOGADA
+> **NÃO feche #169, #170 nem #172 com base neste documento.** O **#169** carrega o
+> conserto de um furo de isolamento entre inquilinos que continua **vivo na branch
+> de deploy** — o mesmo furo que este documento descreve, com razão, logo abaixo.
+>
+> ### O que continua VÁLIDO aqui embaixo
+> O furo de inquilino do #169 (a seção seguinte, e ela é o achado mais caro deste
+> documento) e todas as comparações de **conteúdo** entre PR e base. O que caiu foi
+> só a conclusão sobre **ancestralidade** e a recomendação de fechamento que veio
+> dela.
+>
+> ### Por que este documento não foi apagado
+> Documento apagado leva a lição junto. O erro de método — concluir sobre
+> parentesco de commits dentro de um clone raso, sem nunca perguntar
+> `git rev-parse --is-shallow-repository` — é a parte que a casa precisa lembrar.
+> A trava que impede a repetição está em `lib/coordenacao/historico-completo.ts`.
+>
+> *— Refutação escrita em 29/08/2026 pelo PM, por ordem do Diretor. A análise
+> original de 28/08 segue abaixo, intacta.*
+
+---
+
+
 > **Pedido:** Diretor Geral, 28/08. Triagem dos 8 PRs abertos, com veredito de
 > quatro: MORTO · SEGURO · DEPOIS DO CLIENTE · PODRE.
 > **Regra que mandou em tudo:** um cliente real entra em poucas horas; nada pode
