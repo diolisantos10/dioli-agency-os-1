@@ -34,6 +34,7 @@
     "check:production-safety": "tsx scripts/check-production-safety.ts",
     "diagnose:railway": "tsx scripts/diagnose-railway-env.ts",
     "reivindicar": "tsx scripts/reivindicar.mts",
+    "rascunho": "tsx scripts/rascunho.mts",
     "kit:espelhar": "tsx scripts/espelhar-kit.mts espelhar",
     "kit:carimbo": "tsx scripts/espelhar-kit.mts carimbo"
   },

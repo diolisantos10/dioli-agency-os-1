@@ -99,3 +99,14 @@ scratchpad/
 .cliente-falso/
 .evidencia-story-v1/
 .tmp-story-v1-e2e-midia/
+
+# `.fichas/` — o espaço de rascunho POR FRENTE (`lib/rascunho/espaco-da-frente.ts`).
+# Guarda `.dono.json` (registro de posse) e rascunho de trabalho da frente:
+# não é entregável, e não pode entrar num `git add -A` por acidente.
+# Ignorada A PARTIR DESTA ENTRADA (rodada 4, 29/08/2026 — Achado 2 da
+# auditoria de qualidade, `.fichas/ficha-rodada-4.md`): até aqui `.fichas/`
+# NÃO tinha entrada no `.gitignore`, apesar de comentários em
+# `lib/rascunho/espaco-da-frente.ts` e em
+# `docs/diagnosticos/o-rascunho-compartilhado-29-08.md` afirmarem o
+# contrário.
+.fichas/
