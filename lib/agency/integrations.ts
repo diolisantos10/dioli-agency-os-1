@@ -695,15 +695,23 @@ export const PROVIDER_INTEGRATION_MAP: Record<ProviderOption, string | null> = {
   perplexity:  "int-perplexity",
 };
 
+// Função PURA — sem `new Date()`, sem `Date.now()`, sem nada que dependa do
+// instante em que ela é chamada. É o estado inicial da store zustand, avaliado
+// uma vez no servidor (durante o render) e de novo no navegador (durante a
+// hidratação); se o valor dependesse do relógio, os dois instantes produziriam
+// marcações diferentes e quebrariam a hidratação (ver
+// `__tests__/agency/integracoes-hidratacao.test.ts`).
+//
+// Além disso, "quando o teste rodou" para uma configuração pré-instalada é
+// informação que não existe — nenhum teste rodou de fato. Lei da casa: ausência
+// de informação não é informação. `lastTestAt` fica `undefined`.
 export function buildDefaultIntegrationConfigs(): IntegrationConfig[] {
   return MOCK_INTEGRATIONS.map((i) => ({
     integrationId: i.id,
     configured: i.status === "configured" || i.status === "active",
     assignedAgents: [...i.assignedAgents],
     lastTestStatus: (i.status === "configured" || i.status === "active") ? "pass" : "not_run",
-    lastTestAt: (i.status === "configured" || i.status === "active")
-      ? new Date().toISOString()
-      : undefined,
+    lastTestAt: undefined,
     lastTestMessage: (i.status === "configured" || i.status === "active")
       ? "Configuração pré-instalada — simulação OK."
       : undefined,

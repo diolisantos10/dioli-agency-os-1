@@ -209,7 +209,7 @@ function AppCredentialsRow({
             type="text"
             value={appId}
             onChange={(e) => setAppId(e.target.value)}
-            placeholder="App ID (ex.: 1824373765214116)"
+            placeholder="App ID (ex.: 1234567890123456)"
             className="w-full border border-[var(--border)] rounded-[7px] px-3 py-2 text-[13px] text-[var(--text-primary)] bg-white focus:outline-none focus:ring-2"
             style={{ ["--tw-ring-color" as string]: `${ACCENT}40` }}
           />

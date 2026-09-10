@@ -8,6 +8,7 @@ import MetaConnectManager from "@/components/agency/MetaConnectManager";
 import ProvedorPorCliente from "@/components/agency/ProvedorPorCliente";
 import GastoDeIa from "@/components/agency/GastoDeIa";
 import { useAgencyStore } from "@/store/agency-store";
+import { formatarDataCurta } from "@/lib/data-na-tela";
 import {
   MOCK_INTEGRATIONS,
   CATEGORY_LABELS,
@@ -58,11 +59,12 @@ function CategoryIcon({ cat }: { cat: IntegrationCategory }) {
   return <span>{icons[cat] ?? "🔌"}</span>;
 }
 
-function TestBadge({ status, at }: { status: string; at?: string }) {
+export function TestBadge({ status, at }: { status: string; at?: string }) {
   if (status === "pass") {
+    const dataFormatada = formatarDataCurta(at);
     return (
       <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-[4px] bg-[var(--success-bg)] text-[var(--success)]">
-        ✓ Teste OK{at ? ` · ${new Date(at).toLocaleDateString("pt-BR")}` : ""}
+        ✓ Teste OK{dataFormatada ? ` · ${dataFormatada}` : ""}
       </span>
     );
   }
