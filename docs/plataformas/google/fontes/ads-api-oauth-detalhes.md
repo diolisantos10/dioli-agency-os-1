@@ -1,14 +1,15 @@
 ---
 titulo: "Google Ads API — OAuth: refresh token e detalhes internos"
 url: https://developers.google.com/google-ads/api/docs/oauth/internals?hl=pt-br
-capturado_em: 2026-09-10
-hash: 2fafc03c9b06a0db
+capturado_em: 2026-09-11
+hash: 80184c29627566d3
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
 > este arquivo é a cópia de trabalho da biblioteca. Não edite à mão.
 
-O Google usa tecnologia de IA na tradução de conteúdos para seu idioma de preferência. As traduções com IA podem ter erros.
+Participe da nossa transmissão ao vivo no Discord no servidor da comunidade de publicidade e medição do Google e no YouTube em 20 de agosto, às 11h (horário de Brasília). Vamos discutir os novos recursos adicionados à versão 25.1 da API Google Ads.
+ O Google usa tecnologia de IA na tradução de conteúdos para seu idioma de preferência. As traduções com IA podem ter erros.
 Envie comentários
 Internos do OAuth 2.0 para a API Google Ads
 Observação: Nossas bibliotecas de cliente cuidam automaticamente dos detalhes abordados neste guia. Portanto, continue lendo apenas se você tiver interesse no que está acontecendo nos bastidores ou se não estiver usando uma das nossas bibliotecas de cliente.

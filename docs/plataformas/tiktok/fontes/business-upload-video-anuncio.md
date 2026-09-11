@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — /file/video/ad/upload/ (upload de vídeo de anúncio: formatos, tamanho, hash)"
 url: https://business-api.tiktok.com/portal/docs?id=1737587322856449
-capturado_em: 2026-09-10
+capturado_em: 2026-09-11
 hash: c2108afa255c013b
 ---
 

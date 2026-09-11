@@ -1,7 +1,7 @@
 ---
 titulo: "Google — Política de dados do usuário dos Serviços de API"
 url: https://developers.google.com/terms/api-services-user-data-policy?hl=pt-br
-capturado_em: 2026-09-10
+capturado_em: 2026-09-11
 hash: 11099e009f069573
 ---
 

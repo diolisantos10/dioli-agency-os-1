@@ -1,8 +1,8 @@
 ---
 titulo: "Google Identity — lista de escopos OAuth 2.0 das APIs"
 url: https://developers.google.com/identity/protocols/oauth2/scopes?hl=pt-br
-capturado_em: 2026-09-10
-hash: 0d2a4b02aa997eeb
+capturado_em: 2026-09-11
+hash: 731c8c5bf5ff2e4c
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -113,8 +113,8 @@ API Gateway API, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API do hub de APIs, v1
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API chaves de API, v2
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
@@ -134,8 +134,8 @@ https://www.googleapis.com/auth/appengine.admin	Ver e gerenciar seus aplicativos
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 https://www.googleapis.com/auth/cloud-platform.read-only	Ver seus dados nos serviços do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API App Hub, v1
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Application Integration, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
@@ -455,8 +455,8 @@ https://www.googleapis.com/auth/cloud_search.settings.query	Indexar e veicular o
 https://www.googleapis.com/auth/cloud_search.stats	Indexar e veicular os dados da sua organização com o Cloud Search
 https://www.googleapis.com/auth/cloud_search.stats.indexing	Indexar e veicular os dados da sua organização com o Cloud Search
 API Cloud Shell, v1
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Cloud Spanner, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
@@ -485,8 +485,8 @@ Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 https://www.googleapis.com/auth/jobs	Gerenciar ofertas de emprego
 API Cloud Tasks, v2
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Cloud Testing, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
@@ -509,8 +509,8 @@ Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 https://www.googleapis.com/auth/cloud-translation	Traduza textos de um idioma para outro usando o Google Tradutor
 API Video Intelligence, v1
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Cloud Vision, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
@@ -669,8 +669,8 @@ https://www.googleapis.com/auth/display-video	Criar, visualizar, editar e exclui
 https://www.googleapis.com/auth/display-video-mediaplanning	Criar, visualizar e editar entidades de campanhas do Display & Video 360 e ver as faturas
 https://www.googleapis.com/auth/doubleclickbidmanager	Visualize e gerencie seus relatórios no DoubleClick Bid Manager
 API Warehouse do Document AI, v1
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API DoubleClick Bid Manager, v2
 Escopo	Descrição
 https://www.googleapis.com/auth/doubleclickbidmanager	Visualize e gerencie seus relatórios no DoubleClick Bid Manager
@@ -707,8 +707,8 @@ API Firebase App Distribution, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Firebase App Hosting, v1
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Firebase Cloud Messaging, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
@@ -960,8 +960,8 @@ https://www.googleapis.com/auth/androidpublisher	Ver e gerenciar sua conta de de
 https://www.googleapis.com/auth/drive.appdata	Ver, criar e excluir os próprios dados de configuração no Google Drive
 https://www.googleapis.com/auth/games	Criar, editar e excluir suas atividades no Google Play Games
 API de gerenciamento de serviços do Google Play Games, v1management
-Scope	Description
-https://www.googleapis.com/auth/games	Create, edit, and delete your Google Play Games activity
+Escopo	Descrição
+https://www.googleapis.com/auth/games	Criar, editar e excluir suas atividades no Google Play Games
 API Google Play Games Services Publishing, v1configuration
 Escopo	Descrição
 https://www.googleapis.com/auth/androidpublisher	Ver e gerenciar sua conta de desenvolvedor do Google Play
@@ -1173,8 +1173,8 @@ API Pub/Sub Lite, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Public Certificate Authority, v1
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Rapid Migration Assessment, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
@@ -1205,8 +1205,8 @@ API Search Ads 360, v2
 Escopo	Descrição
 https://www.googleapis.com/auth/doubleclicksearch	Visualize e gerencie seus dados de publicidade no DoubleClick Search
 API Search Ads 360 Reporting, v0
-Scope	Description
-https://www.googleapis.com/auth/doubleclicksearch	View and manage your advertising data in DoubleClick Search
+Escopo	Descrição
+https://www.googleapis.com/auth/doubleclicksearch	Visualize e gerencie seus dados de publicidade no DoubleClick Search
 API Secret Manager, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
@@ -1233,8 +1233,8 @@ Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 https://www.googleapis.com/auth/servicecontrol	Gerenciar seus dados do Google Service Control
 API Service Directory, v1
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Service Management, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
@@ -1254,8 +1254,8 @@ API Smart Device Management, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/sdm.service	Ver e/ou controlar os dispositivos que você selecionou
 API Solar, v1
-Scope	Description
-https://www.googleapis.com/auth/cloud-platform	See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.
+Escopo	Descrição
+https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google
 API Storage Batch Operations, v1
 Escopo	Descrição
 https://www.googleapis.com/auth/cloud-platform	Ver, editar, configurar e excluir seus dados do Google Cloud e conferir o endereço de e-mail da sua Conta do Google

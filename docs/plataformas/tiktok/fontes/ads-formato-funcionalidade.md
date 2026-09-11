@@ -1,8 +1,8 @@
 ---
 titulo: "TikTok Advertising Policies — Ad Format and Functionality"
 url: https://ads.tiktok.com/help/article/tiktok-ads-policy-ad-format-and-functionality?lang=en
-capturado_em: 2026-09-10
-hash: 9508dec29e95c68f
+capturado_em: 2026-09-11
+hash: c34b15775433bd58
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -320,7 +320,6 @@ Albania, Andorra, Argentina, Armenia, Austria, Azerbaijan, Bahrain, Belarus, Bel
 
 **For the US, language requirement is not enforced but recommended.
 
-*Was the information helpful?
 Content
 Principle
 Landing page

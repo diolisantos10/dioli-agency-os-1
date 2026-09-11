@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — estrutura campanha / conjunto / anúncio / criativo"
 url: https://developers.facebook.com/documentation/ads-commerce/marketing-api/overview
-capturado_em: 2026-09-10
+capturado_em: 2026-09-11
 hash: 9afeb2c7ec8957df
 ---
 

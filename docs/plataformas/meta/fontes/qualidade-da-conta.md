@@ -1,14 +1,17 @@
 ---
 titulo: "Central de Ajuda — Restrições de publicidade e Qualidade da Conta"
 url: https://www.facebook.com/business/help/975570072950669
-capturado_em: 2026-09-10
-hash: 15400c1d01dd1dc4
+capturado_em: 2026-09-11
+hash: caa9e59bb398264c
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
 > este arquivo é a cópia de trabalho da biblioteca. Não edite à mão.
 
 Sobre as restrições de publicidade
+Chat with Meta AI business assistant for support around the clock
+Still need help? Your business assistant can help resolve account issues and unblock your business.
+Start chat
 Consulte a Central de Transparência da Meta para ver mais orientações sobre políticas.
 
 Na Meta, temos políticas e padrões que pedimos aos nossos anunciantes que sigam para veicular anúncios nas nossas plataformas. Quando os anunciantes não seguem essas políticas e padrões, ou se a Meta observar qualquer atividade incomum ou de alto risco, poderemos impor restrições às empresas, limitando a capacidade de anunciar.
@@ -34,15 +37,15 @@ Assista ao vídeo abaixo para saber mais:
 
 Restrições de publicidade para violações de política
 
-Se descobrirmos que um anunciante não segue os Padrões de Publicidade ou outras políticas e termos, ele poderá enfrentar restrições de publicidade. As restrições de publicidade podem ser aplicadas nestes casos:
+Se descobrirmos que um anunciante não segue os Padrões de Publicidade ou outras políticas e termos, ele poderá enfrentar restrições de publicidade. As restrições de publicidade podem ser aplicadas a estes recursos:
 
-Portfólio empresarial: um lugar para ativos de negócios, como contas do Facebook e do Instagram, contas de anúncios e catálogos de produtos, os quais você pode gerenciar em conjunto como uma empresa online unificada. Em caso de restrição, seu portfólio empresarial não terá permissão para anunciar.
+Portfólio empresarial: um lugar para ativos de negócios, como perfis do Facebook e do Instagram, contas de anúncios e catálogos de produtos, os quais você pode gerenciar em conjunto como uma empresa online unificada. Em caso de restrição, seu portfólio empresarial não terá permissão para anunciar.
 Conta de anúncios: conta usada para gerenciar anúncios nas plataformas da Meta. Com ela, os anunciantes podem criar anúncios e campanhas, pagar anúncios e ver insights e análises. Se restringida, sua conta de anúncios, os anúncios e alguns dos ativos de publicidade dela serão desabilitados.
 Observação: se a sua conta de anúncios for desabilitada por violação de política e permanecer não qualificada para restabelecimento por seis meses, os serviços pré-pagos não utilizados poderão ser perdidos, quando permitido por lei. Depois desse período, não será possível restabelecer a conta. Em determinadas circunstâncias, a Meta reserva-se o direito de desabilitar sua conta permanentemente antes do período de seis meses. Saiba mais nos Termos de Pagamento da Meta.
-Página: produto para que pessoas e empresas criem uma presença no Facebook e se conectem com a comunidade da plataforma. Cada anunciante precisará criar uma Página do Facebook antes de anunciar. Em caso de restrição, sua Página não terá permissão para publicitar.
-Conta de usuário: uma conta do Facebook ou do Instagram é a conta da pessoa específica que está anunciando com uma conta de anúncios. Os monitoramentos em uma conta de usuário determinam se a pessoa pode usar ativos de negócios. Se for restringido, você não tem permissão para usar os Produtos da Meta para anunciar.
+Página: produto para que pessoas e empresas criem uma presença no Facebook e se conectem com a comunidade da plataforma. Cada anunciante precisará criar uma Página do Facebook antes de anunciar. Em caso de restrição, sua Página não terá permissão para anunciar.
+Perfil pessoal: o perfil do Facebook ou do Instagram da pessoa específica que está anunciando com uma conta de anúncios. As aplicações de regra em um perfil pessoal determinam se a pessoa pode usar ativos de negócios. Se for restrito, você não tem permissão para usar os Produtos da Meta para anunciar.
 
-Observação: se uma conta de usuário for impedida de anunciar, esse usuário não poderá anunciar ou criar novos anúncios. Todas as contas de anúncios em que o usuário é o único anexado também podem ser desabilitadas. No entanto, outros membros do portfólio empresarial, conta de anúncios ou Página ainda poderão anunciar.
+Observação: se um perfil pessoal for impedido de anunciar, essa pessoa não poderá anunciar ou criar novos anúncios. Todas as contas de anúncios em que o usuário é o único anexado também podem ser desabilitadas. No entanto, outros membros do portfólio empresarial, conta de anúncios ou Página ainda poderão anunciar.
 
 Restrições de publicidade por atividade incomum
 
@@ -61,8 +64,8 @@ Saiba mais
 Como solucionar problemas de uma conta desativada ou restrita
 Como pedir uma análise para uma conta de anúncios restrita
 Exemplos comuns de violações da Política de Publicidade da Meta
-Se você acredita que sua conta do Instagram foi invadida
-Como recuperar sua conta do Facebook em caso de invasão
+Se você acredita que seu perfil do Instagram foi hackeado
+Se acreditar que seu perfil do Facebook foi hackeado
 Tópicos de suporte comuns
 Sobre as restrições de publicidade
 Central de Ajuda para Empresas

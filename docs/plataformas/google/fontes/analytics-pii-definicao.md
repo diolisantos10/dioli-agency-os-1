@@ -1,7 +1,7 @@
 ---
 titulo: "Google Analytics — o que é PII nos contratos e políticas do Google"
 url: https://support.google.com/analytics/answer/7686480?hl=pt-BR
-capturado_em: 2026-09-10
+capturado_em: 2026-09-11
 hash: db58a6ae84bf270d
 ---
 

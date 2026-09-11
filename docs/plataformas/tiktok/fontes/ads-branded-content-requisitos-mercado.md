@@ -1,8 +1,8 @@
 ---
 titulo: "Branded Content Policy — Market-specific Requirements (divulgação de parceria paga por país)"
 url: https://ads.tiktok.com/help/article/branded-content-policy-country-specific-requirements
-capturado_em: 2026-09-10
-hash: 7d48faa6ccc9c41d
+capturado_em: 2026-09-11
+hash: a4083723c1afe7b2
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -183,6 +183,7 @@ The sale of gold pieces
 
 Mimicking gambling, such as games, apps, or other media content that mimicks gambling
 
+*Was the information helpful?
 Content
 Energy drinks
 Film, TV shows, and game trailers

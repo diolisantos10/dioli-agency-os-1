@@ -1,14 +1,15 @@
 ---
 titulo: "Google Ads API — selecionar conta e hierarquia MCC"
 url: https://developers.google.com/google-ads/api/docs/get-started/select-account?hl=pt-br
-capturado_em: 2026-09-10
-hash: cf10f20671678add
+capturado_em: 2026-09-11
+hash: 87d4f3adab5ab5b6
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
 > este arquivo é a cópia de trabalho da biblioteca. Não edite à mão.
 
-O Google usa tecnologia de IA na tradução de conteúdos para seu idioma de preferência. As traduções com IA podem ter erros.
+Participe da nossa transmissão ao vivo no Discord no servidor da comunidade de publicidade e medição do Google e no YouTube em 20 de agosto, às 11h (horário de Brasília). Vamos discutir os novos recursos adicionados à versão 25.1 da API Google Ads.
+ O Google usa tecnologia de IA na tradução de conteúdos para seu idioma de preferência. As traduções com IA podem ter erros.
 Envie comentários
 Início rápido
 
@@ -134,12 +135,12 @@ A dependência do Maven é:
 <dependency>
   <groupId>com.google.api-ads</groupId>
   <artifactId>google-ads</artifactId>
-  <version>45.0.0</version>
+  <version>44.0.0</version>
 </dependency>
 
 A dependência do Gradle é:
 
-implementation 'com.google.api-ads:google-ads:45.0.0'
+implementation 'com.google.api-ads:google-ads:44.0.0'
 
 Também recomendamos o uso da lista de materiais (BOM, na sigla em inglês) da API Google Ads para gerenciar as versões de dependência. Consulte o guia da BOM para instruções.
 
@@ -204,4 +205,4 @@ Envie comentários
 
 Exceto em caso de indicação contrária, o conteúdo desta página é licenciado de acordo com a Licença de atribuição 4.0 do Creative Commons, e as amostras de código são licenciadas de acordo com a Licença Apache 2.0. Para mais detalhes, consulte as políticas do site do Google Developers. Java é uma marca registrada da Oracle e/ou afiliadas.
 
-Última atualização 2026-09-08 UTC.
+Última atualização 2026-09-11 UTC.

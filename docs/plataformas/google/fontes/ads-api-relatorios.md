@@ -1,14 +1,15 @@
 ---
 titulo: "Google Ads API — relatórios (reporting)"
 url: https://developers.google.com/google-ads/api/docs/reporting/overview?hl=pt-br
-capturado_em: 2026-09-10
-hash: 1c8409c48cfb7129
+capturado_em: 2026-09-11
+hash: eb6228be0e4a46e9
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
 > este arquivo é a cópia de trabalho da biblioteca. Não edite à mão.
 
-O Google usa tecnologia de IA na tradução de conteúdos para seu idioma de preferência. As traduções com IA podem ter erros.
+Participe da nossa transmissão ao vivo no Discord no servidor da comunidade de publicidade e medição do Google e no YouTube em 20 de agosto, às 11h (horário de Brasília). Vamos discutir os novos recursos adicionados à versão 25.1 da API Google Ads.
+ O Google usa tecnologia de IA na tradução de conteúdos para seu idioma de preferência. As traduções com IA podem ter erros.
 Envie comentários
 Relatórios
 
