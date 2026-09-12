@@ -1,7 +1,7 @@
 ---
 titulo: "Google Analytics — modo de consentimento (sites e apps)"
 url: https://support.google.com/analytics/answer/9976101?hl=pt-BR
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: fdf0a314df7d536b
 ---
 

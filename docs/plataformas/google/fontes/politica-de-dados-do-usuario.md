@@ -1,7 +1,7 @@
 ---
 titulo: "Google API Services — User Data Policy (uso limitado)"
 url: https://developers.google.com/terms/api-services-user-data-policy
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: 11099e009f069573
 ---
 

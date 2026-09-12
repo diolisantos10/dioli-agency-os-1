@@ -1,8 +1,8 @@
 ---
 titulo: "Google Ads API — erros comuns e como tratá-los"
 url: https://developers.google.com/google-ads/api/docs/best-practices/common-errors?hl=pt-br
-capturado_em: 2026-09-11
-hash: 21f4ead0742c6503
+capturado_em: 2026-09-12
+hash: 3acf78735af28c58
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -137,7 +137,7 @@ CUSTOMER_NOT_ENABLED
 Resumo	Não é possível acessar a conta do cliente porque ela não está ativada.
 Causas comuns	Isso acontece quando a conta do cliente não concluiu a inscrição ou foi desativada.
 Como proceder	Faça login na interface do Google Ads e verifique se você concluiu o processo de inscrição para essa conta. Para contas desativadas, consulte Reativar uma conta do Google Ads cancelada.
-Dicas de prevenção	Para verificar se uma conta de cliente está desativada, procure o status CANCELLED.
+Dicas de prevenção	Para verificar de forma proativa se uma conta de cliente está desativada, procure o status CANCELLED.
 
 DEVELOPER_TOKEN_NOT_APPROVED	
 Resumo	O token de desenvolvedor foi aprovado apenas para uso com contas de teste e tentou acessar uma conta que não é de teste.
@@ -159,7 +159,7 @@ Dicas de prevenção	Especifique o login-customer-id como o ID da conta de admin
 BiddingError
 
 BID_TOO_MANY_FRACTIONAL_DIGITS	
-Resumo	O valor do lance não é um múltiplo exato da unidade mínima da moeda da conta. Por exemplo, US$ 0,015 (15000 em micros) não é um lance válido.
+Resumo	O valor do lance não é um múltiplo exato da unidade mínima da moeda da conta. Por exemplo, US$ 0,015 (15000 em microunidades) não é um lance válido.
 Causas comuns	N/A
 Como proceder	N/A
 Dicas de prevenção	Verifique se os lances são múltiplos da unidade mínima da moeda da conta.
@@ -178,7 +178,7 @@ Como proceder	N/A
 Dicas de prevenção	Verifique se o valor do orçamento é maior ou igual à unidade mínima da moeda da conta.
 
 NON_MULTIPLE_OF_MINIMUM_CURRENCY_UNIT	
-Resumo	O valor do orçamento terá muitas casas decimais significativas quando for convertido de um microvalor para um valor na moeda da conta.
+Resumo	O valor do orçamento terá muitas casas decimais significativas quando convertido de um microvalor para um valor na moeda da conta.
 Causas comuns	N/A
 Como proceder	N/A
 Dicas de prevenção	Verifique se o valor do orçamento é divisível pela unidade mínima da moeda da conta.
@@ -189,12 +189,6 @@ Resumo	Uma campanha está sendo adicionada ou renomeada, mas o nome já é usado
 Causas comuns	Criar uma nova campanha com um nome já existente em uma campanha ativa ou pausada.
 Como proceder	Registre o erro e apresente uma mensagem ao usuário, sugerindo um nome de campanha exclusivo ou mostrando a lista de nomes em uso.
 Dicas de prevenção	N/A
-
-CANNOT_SET_CAMPAIGN_KEYWORD_MATCH_TYPE	
-Resumo	Tentativa de mudar a configuração de tipo de correspondência de palavra-chave no nível da campanha em uma campanha com a IA Max ativada.
-Causas comuns	Com a IA Max ativada, as configurações de correspondência ampla no nível da campanha são descontinuadas porque todas as palavras-chave são tratadas como correspondência ampla por padrão. A tentativa de definir ou modificar esse campo vai acionar o erro.
-Como proceder	Recomende que o usuário use o parâmetro `disable_search_term_matching` no nível do grupo de anúncios em vez de definir a correspondência ampla no nível da campanha.
-Dicas de prevenção	Evite definir "keyword_match_type" como "BROAD" (ou qualquer outro valor) na campanha se "ai_max_setting.enable_ai_max" estiver definido como "true". Ative ou desative a correspondência de termos de pesquisa no nível do grupo de anúncios usando "disable_search_term_matching".
 CriterionError
 
 KEYWORD_HAS_INVALID_CHARS	
@@ -212,7 +206,7 @@ Dicas de prevenção	Remova duplicatas (operações, parâmetros, elementos da l
 InternalError
 
 DEADLINE_EXCEEDED	
-Resumo	A solicitação expirou e não foi concluída rápido o suficiente para retornar uma resposta.
+Resumo	A solicitação expirou e não foi possível concluí-la rápido o suficiente para retornar uma resposta.
 Causas comuns	Uma solicitação de pesquisa gerou uma resposta muito grande, ou uma solicitação de mutação era muito grande para ser processada.
 Como proceder	Aguarde cerca de 30 segundos e reenvie a solicitação. Se o erro persistir, tente dividir a solicitação em várias outras menores que possam ser concluídas mais rapidamente.
 Dicas de prevenção	Leia Segmentação para entender como ela pode afetar o tamanho de uma resposta. Conheça as limitações da camada de transporte do gRPC.
@@ -233,7 +227,7 @@ InvalidGrantError
 invalid_grant (malformed auth code)	
 Resumo	O código de autorização trocado por tokens OAuth estava malformado.
 Causas comuns	Isso acontece ao tentar gerar um token de atualização para um usuário que já recebeu acesso ao aplicativo solicitante. Por exemplo, isso pode acontecer ao executar o Exemplo de geração de credenciais de usuário mais de uma vez para as mesmas credenciais de cliente OAuth e usuário autorizador.
-Como proceder	Para regenerar um token de atualização para uma determinada combinação de usuário autorizador e credenciais de cliente OAuth, revogue um token de atualização atual. Observação: a revogação de um token o torna inutilizável para acesso à API Google Ads e invalida todos os tokens de acesso que foram gerados com o token de atualização.
+Como proceder	Para regenerar um token de atualização para uma determinada combinação de usuário autorizador e credenciais do cliente OAuth, revogue um token de atualização atual. Observação: a revogação de um token o torna inutilizável para acesso à API Google Ads e invalida todos os tokens de acesso que foram gerados com o token de atualização.
 Dicas de prevenção	Armazene o token de atualização em um local seguro para evitar a necessidade de regeneração.
 MutateError
 
@@ -300,4 +294,4 @@ Envie comentários
 
 Exceto em caso de indicação contrária, o conteúdo desta página é licenciado de acordo com a Licença de atribuição 4.0 do Creative Commons, e as amostras de código são licenciadas de acordo com a Licença Apache 2.0. Para mais detalhes, consulte as políticas do site do Google Developers. Java é uma marca registrada da Oracle e/ou afiliadas.
 
-Última atualização 2026-08-03 UTC.
+Última atualização 2026-09-12 UTC.

@@ -1,8 +1,8 @@
 ---
 titulo: "Instagram — IG Media Insights (métricas por post/reel/story)"
 url: https://developers.facebook.com/documentation/instagram-platform/reference/instagram-media/insights
-capturado_em: 2026-09-11
-hash: 0f1a653e07eec5ea
+capturado_em: 2026-09-12
+hash: ba1b037b334d9fdd
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -11,7 +11,7 @@ hash: 0f1a653e07eec5ea
 Esta página foi traduzida do inglês para outro idioma usando IA. O conteúdo traduzido por IA pode conter erros, omissões ou divergências de sentido. Como a tradução automática pode ser imprecisa ou pouco clara, consulte o conteúdo original em inglês desta página para validar as orientações corretas.
 Isso foi útil?
 Insights de mídia do Instagram
-Updated: 18 de jun de 2026
+Updated: 11 de set de 2026
 Copiar para LLM
 Ver como Markdown
 Representa as métricas de interação social no objeto de mídia do usuário do seu app no Instagram.
@@ -24,7 +24,7 @@ Limitações
 Caso os dados de análise solicitados não existam ou estejam indisponíveis, a API retornará um conjunto vazio, em vez de 0 para as métricas individuais.
 Pode haver um atraso de até 48 horas nos dados usados para calcular as métricas.
 Os dados de métricas são armazenados por até dois anos.
-As métricas comments, likes, views e total_interactions registram apenas métricas de interação orgânica. As interações em anúncios que contêm um objeto de mídia não são contabilizadas. As métricas total_likes, total_comments e total_views retornam contagens agregadas que incluem engajamento de mídia de anúncio promovida/turbinada. Essas métricas totais estão disponíveis apenas para a API do Instagram com o Login do Facebook. A contagem de posts cruzados do Facebook pode ser incluída se esses posts forem acessados pelo usuário da sessão.
+As métricas comments, likes, views e total_interactions registram apenas métricas de interação orgânica. As interações em anúncios que contêm um objeto de mídia não são contabilizadas. As métricas total_likes, total_comments e total_views retornam contagens agregadas que incluem engajamento de mídia de anúncio promovida/turbinada. Essas métricas totais estão disponíveis apenas para a API do Instagram com o Login do Facebook. A contagem de posts cruzados do Facebook poderá ser incluída se o post estiver acessível pelo usuário da sessão.
 Métricas de álbum
 Não serão disponibilizados dados de insights sobre mídias que pertencem a um álbum de mídia do Instagram.
 Métricas de mídia de stories
@@ -64,7 +64,7 @@ instagram_business_manage_insights
 instagram_basic
 instagram_manage_insights
 pages_read_engagement
-Caso uma função tenha sido concedida ao usuário do app por meio do Gerenciador de Negócios na Página Page conectada à conta profissional do Instagram do usuário, seu app também precisará de uma destas permissões:
+Caso uma função tenha sido concedida ao usuário do app na Página conectada à respectiva conta profissional do Instagram por meio do Gerenciador de Negócios, seu app também precisará da seguinte permissão:
 ads_management
 ads_read
 Sintaxe da solicitação
@@ -88,7 +88,7 @@ O URL de hospedagem que seu app está usando para consultar o ponto de extremida
 
 <INSTAGRAM_MEDIA_ID>
 	
-Obrigatório. A identificação da mídia do Instagram .
+Obrigatório. A identificação da mídia do Instagram.
 Parâmetros da string de consulta
 
 Chave	Espaço reservado	Valor
@@ -129,22 +129,22 @@ Métrica	Tipo de produto de mídia
 comments
 Número de comentários no objeto de mídia.
 	
-FEED (publicações) REELS
+FEED (publicações), REELS
 
 crossposted_views
-O total de vezes que a mídia de vídeo do Instagram foi reproduzida, agregado no Facebook e no Instagram. É lançado se a mídia não for compartilhada no Facebook.
+O total de reproduções da mídia de vídeo do Instagram, agregado no Facebook e no Instagram. É lançado se a mídia não for compartilhada no Facebook.
 	
 REELS
 
 facebook_views
 O número total de vezes que a mídia do Instagram foi reproduzida no Facebook. É lançado se a mídia não for compartilhada no Facebook. Para o Reels, isso pode ser reproduções de post cruzado ou recomendações cruzadas do Instagram para o Facebook.
 	
-FEED (publicações) REELSSTORY
+FEED (publicações), REELS, STORY
 
 follows
 O número de usuários do Instagram que seguem a conta profissional do Instagram do usuário do seu app.
 	
-FEED (publicações) STORY
+FEED (publicações), STORY
 
 ig_reels_avg_watch_time
 O tempo médio de reprodução do reel.
@@ -159,14 +159,14 @@ REELS
 
 impressions
 Para mídias criadas após 2 de julho de 2024, essa métrica está obsoleta. Para mídias criadas antes de 2 de julho de 2024, essa métrica ainda estará disponível.
-O total de impressões do objeto de mídia do Instagram do usuário do seu app.
+O total de impressões do objeto de mídia do Instagram do usuário do app.
 	
-FEED (publicações) STORY
+FEED (publicações), STORY
 
 likes
 Número de curtidas no objeto de mídia.
 	
-FEED (publicações) REELS
+FEED (publicações), REELS
 
 link_clicks
 O número de toques em links no seu story.
@@ -175,79 +175,79 @@ STORY
 
 navigation
 Este é o número total de ações realizadas no seu story. Ele é composto por métricas como Saídas, Encaminhamentos, Voltar e Próximo story.
-Detalhamento disponível: story_navigation_action_type
+Detalhamento disponível:story_navigation_action_type
 	
 STORY
 
 profile_activity
 O número de ações que as pessoas executam quando visitam seu perfil após o engajamento com a publicação.
-Detalhamento disponível: action_type (Disponível para mídia criada após 26 de outubro de 2017.)
+Detalhamento disponível:action_type (Disponível para mídias criadas após 26 de outubro de 2017.)
 	
-FEED (publicações) STORY
+FEED (publicações), STORY
 
 profile_visits
 O número de vezes que seu perfil foi visitado.
 	
-FEED (publicações) STORY
+FEED (publicações), STORY
 
 reach
 
 O número de usuários únicos do Instagram que viram o reel pelo menos uma vez. O alcance é diferente das impressões, que podem incluir várias visualizações do reel pela mesma conta. A métrica é estimada⁠.
 	
-FEED (publicações) REELSSTORY
+FEED (publicações), REELS, STORY
 
 reels_skip_rate
 A porcentagem de visualizações de pessoas que pularam o reel nos primeiros 3 segundos. Esse número é calculado como o total de visualizações que pularam o reel nos primeiros 3 segundos dividido pelo número de visualizações iniciais. Uma visualização inicial é quando o reel começa a ser reproduzido pela primeira vez em uma sessão do reel.
-Métrica estimada e em desenvolvimento.⁠
+A métrica é estimada e está em desenvolvimento.⁠
 	
 REELS
 
 replies
-O total de respostas (comentários do Instagram ) no objeto de mídia de story do Instagram . O valor desconsiderará as respostas dos usuários de algumas regiões. Isso inclui a Europa, desde 1º de dezembro de 2020, e o Japão, desde 14 de abril de 2021. Se o story tiver sido criado em uma dessas regiões, o valor retornado será 0.
+O total de respostas (comentários) no objeto de mídia de story do Instagram. O valor desconsiderará as respostas dos usuários de algumas regiões. Isso inclui a Europa, desde 1º de dezembro de 2020, e o Japão, desde 14 de abril de 2021. Se o story tiver sido criado em uma dessas regiões, o valor retornado será 0.
 	
 STORY
 
 reposts
 O número de reposts na mídia do Instagram menos o número de reposts excluídos.
 	
-FEED (publicações) REELSSTORY
+FEED (publicações), REELS, STORY
 
 saved
 O número de vezes que a mídia do Instagram do usuário do seu app foi salva por um usuário do Instagram.
 	
-FEED (publicações) REELS
+FEED (publicações), REELS
 
 shares
 O número de compartilhamentos do reel.
 	
-FEED (publicações) REELSSTORY
+FEED (publicações), REELS, STORY
 
 total_interactions
 
 O número de curtidas, salvamentos, comentários e compartilhamentos do reel menos o número de descurtidas, remoções dos Salvos e comentários excluídos. Métrica em desenvolvimento⁠.
 	
-FEED (publicações) REELSSTORY
+FEED (publicações), REELS, STORY
 
 views
 O total de reproduções da mídia do Instagram.
 Métrica em desenvolvimento⁠.
 	
-FEED (publicações) REELSSTORY
+FEED (publicações), REELS, STORY
 
 total_comments
 O total de comentários na mídia, em todas as plataformas, incluindo comentários em mídias de anúncios promovidas/turbinadas associadas. Disponível apenas para a API do Instagram com o Login do Facebook.
 	
-FEED (publicações) REELS
+FEED (publicações), REELS
 
 total_likes
 O total de curtidas na mídia, em todas as plataformas, incluindo curtidas em mídias de anúncios promovidas/turbinadas associadas. Disponível apenas para a API do Instagram com o Login do Facebook.
 	
-FEED (publicações) REELS
+FEED (publicações), REELS
 
 total_views
-O total de vezes que a mídia foi vista, em todas as plataformas, incluindo visualizações de mídias promovidas/turbinadas/de anúncio e do Facebook. Disponível apenas para a API do Instagram com o Login do Facebook.
+O total de vezes que a mídia foi vista, em todas as plataformas, incluindo visualizações de mídias promovidas/turbinadas/anunciadas e do Facebook. Disponível apenas para a API do Instagram com o Login do Facebook.
 	
-FEED (publicações) REELSSTORY
+FEED (publicações), REELS, STORY
 Detalhamentos
 Você também pode incluir o parâmetro breakdown em métricas específicas para dividir dados em conjuntos menores com base no valor de detalhamento especificado. Os valores podem ser os seguintes:
 Valor do breakdown	Valores de resposta
@@ -364,7 +364,7 @@ id
 	
 String
 	
-Uma string que descreve os parâmetros do caminho da consulta.
+Uma string que descreve os parâmetros de caminho da consulta.
 
 total_value
 	

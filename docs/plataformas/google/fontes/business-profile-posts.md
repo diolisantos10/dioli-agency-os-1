@@ -1,7 +1,7 @@
 ---
 titulo: "Perfil de Empresa — política de conteúdo de posts"
 url: https://support.google.com/business/answer/7213077?hl=pt-BR
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: 84b93572ac025089
 ---
 

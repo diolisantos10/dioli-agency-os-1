@@ -1,7 +1,7 @@
 ---
 titulo: "TikTok Branded Content Policy (parceria paga, conteúdo de marca)"
 url: https://www.tiktok.com/legal/page/global/bc-policy/en
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: b1bd149bef2e9728
 ---
 

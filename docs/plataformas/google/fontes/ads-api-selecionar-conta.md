@@ -1,8 +1,8 @@
 ---
 titulo: "Google Ads API — selecionar conta e hierarquia MCC"
 url: https://developers.google.com/google-ads/api/docs/get-started/select-account?hl=pt-br
-capturado_em: 2026-09-11
-hash: 87d4f3adab5ab5b6
+capturado_em: 2026-09-12
+hash: 330407ccdd75475c
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -16,50 +16,34 @@ Início rápido
 Este guia de início rápido ajuda você a fazer sua primeira chamada de API para a API Google Ads.
 
 Principais conceitos
-Token de desenvolvedor: uma string alfanumérica de 22 caracteres que identifica seu app para os servidores da API Google Ads. É necessário para fazer chamadas de API.
-Nível de acesso à API: o nível de acesso à API do seu token de desenvolvedor controla o número de chamadas de API que você pode fazer por dia e os ambientes em que pode fazer chamadas de API.
-**Conta de administrador do Google Ads**:usada para gerenciar outras contas do Google Ads. Uma conta de administrador do Google Ads pode ser usada para gerenciar contas de cliente do Google Ads ou outras contas de administrador do Google Ads. Você precisa de uma conta de administrador do Google Ads para receber um token de desenvolvedor.
-Conta de cliente do Google Ads:a conta do Google Ads para a qual você está fazendo chamadas de API.
+Projeto do Google Cloud: um projeto do Google Cloud forma a base para criar, ativar e usar todos os serviços do Google, incluindo o gerenciamento de APIs e credenciais de API do OAuth 2.0. É possível criar um no console do Google Cloud.
+Nível de acesso à API: o nível de acesso à API do seu projeto do Google Cloud controla o número de chamadas de API que você pode fazer por dia e os ambientes em que é possível fazer chamadas de API. O nível de acesso à API do seu projeto está listado na página de visão geral da API Google Ads do projeto.
+**Conta de administrador do Google Ads**:usada para gerenciar outras contas do Google Ads, que podem ser uma coleção de contas de cliente do Google Ads ou outras contas de administrador do Google Ads.
+Conta de cliente do Google Ads:a conta do Google Ads usada para veicular anúncios que você quer segmentar com chamadas de API.
 ID de cliente:o número de 10 dígitos que identifica uma conta de cliente do Google Ads. Se você copiou esse ID da interface do Google Ads, remova os hifens.
 OAuth 2.0: OAuth 2.0: um protocolo padrão do setor para autorização, usado por todas as APIs do Google. Você precisa de uma conta de serviço e uma chave para gerar credenciais do OAuth 2.0 para fazer chamadas de API.
-Projeto do Google Cloud: forma a base para criar, ativar e usar todos os serviços do Google, incluindo o gerenciamento de APIs e credenciais de API do OAuth 2.0. É possível criar um no console do Google Cloud.
-**Conta de serviço**: um tipo especial de Conta do Google que pertence ao seu aplicativo, e não a um usuário individual. Ela é usada para autenticar seu aplicativo na API Google Ads. Você precisa de um projeto do Google Cloud para receber uma conta de serviço.
+**Conta de serviço**: um tipo especial de Conta do Google que pertence ao seu aplicativo, e não a um usuário individual. Ela é usada para autenticar seu aplicativo na API Google Ads. Você precisa de um projeto na nuvem do Google Cloud para receber uma conta de serviço.
 Chave da conta de serviço:um arquivo de credencial de app JSON que contém a chave privada da sua conta de serviço. Ela é usada para gerar credenciais do OAuth 2.0 para autenticar uma conta de serviço ao fazer uma chamada de API da API Google Ads. Você precisa de uma conta de serviço para receber uma chave de conta de serviço.
 Pré-requisitos
 
 Para fazer uma chamada de API Google Ads, siga estas etapas.
 
-Receber o token de desenvolvedor
-Ponto-chave: Anote o token de desenvolvedor obtido nesta etapa e o nível de acesso dele. O token de desenvolvedor é uma string alfanumérica de 22 caracteres. Você vai precisar desse detalhe ao fazer chamadas de API.
+Configurar o projeto do Console de APIs do Google para acesso à API Google Ads
 
-Se você já se inscreveu para receber um token de desenvolvedor, acesse a Central de API enquanto estiver conectado à sua conta de administrador do Google Ads.
-
-Acessar a Central de API
-
-Se você não tiver um token de desenvolvedor, inscreva-se na Central de API.
-
-Como se inscrever para receber um token de desenvolvedor
-Atenção: desde 1º de abril de 2026, OfflineUserDataJobService e UserDataService as solicitações para o Customer Match falham se o token de desenvolvedor não tiver enviado solicitações para o Customer Match anteriormente. Use a API Data Manager. Consulte as descontinuações de recursos para mais detalhes.
-Acesse a Central de API no navegador da Web. Faça login na sua conta de administrador do Google Ads, se solicitado. Crie uma conta de administrador do Google Ads, se você não tiver uma.
-Preencha o formulário de acesso à API e aceite os Termos e Condições.
-Verifique se as informações estão corretas e se o URL do site da sua empresa está funcionando. Se o site não estiver ativo, o Google talvez não consiga processar sua inscrição e a rejeite.
-Verifique se o e-mail de contato da API fornecido leva a uma caixa de entrada monitorada regularmente. A equipe de conformidade da API do Google poderá entrar em contato com esse endereço de e-mail durante o processo de revisão para esclarecimentos. Se não for possível entrar em contato com você, o Google poderá não continuar com sua inscrição.
-Você pode editar o e-mail de contato da API na Central de API. Mantenha essas informações atualizadas, mesmo após o processo de inscrição, para que o Google possa enviar anúncios de serviço importantes.
-
-Depois de concluir o processo de inscrição, o token de desenvolvedor vai aparecer na Central de API com o status Aprovação pendente. Seu token de desenvolvedor agora tem o nível de acesso Conta de teste.
-
-Configurar o projeto do Console de APIs do Google
-Importante: anote o endereço de e-mail da conta de serviço e a chave da conta de serviço gerada nesta etapa. Você vai precisar deles ao fazer as chamadas de API.
-
-O projeto do Console de APIs do Google é usado para gerenciar APIs do Google e credenciais de API do OAuth 2.0. Você pode encontrar seus projetos do Console de APIs do Google ou criar um acessando o Console de APIs do Google.
-
-Abrir o Console de APIs do Google
+O projeto do Google Cloud é usado para gerenciar as APIs do Google e as credenciais de API do OAuth 2.0. Você pode encontrar seus projetos do Google Cloud ou criar um acessando o console do Google Cloud.
 
 Comece ativando a API Google Ads no seu projeto:
 
 Ativar a API Google Ads
 
-Em seguida, você precisa de uma conta de serviço e uma chave de conta de serviço para fazer chamadas de API. Se você já estiver usando outra API do Google e tiver criado uma conta de serviço e uma chave do OAuth 2.0, pule esta etapa e reutilize as credenciais atuais.
+Em seguida, acesse a página de visão geral da API Google Ads. A página mostra seu nível de acesso à API atual. Se o nível de acesso à API atual for Teste Nível de acesso da conta, expanda a seção Solicitar o próximo nível de acesso. Siga as instruções para solicitar o Nível de acesso de explorador.
+
+Depois de concluir a inscrição, o Google vai analisar automaticamente a sua inscrição e fazer upgrade para o nível de acesso de Explorador na maioria dos casos. Se você não recebeu o acesso de explorador, não se preocupe. Este guia vai fornecer as instruções adequadas ao configurar sua conta de cliente do Google Ads.
+
+Criar uma conta de serviço
+Importante: anote o endereço de e-mail e a chave da conta de serviço gerados nesta etapa. Você vai precisar deles ao fazer as chamadas de API.
+
+Você precisa de uma conta de serviço e uma chave de conta de serviço para fazer chamadas de API. Se você já estiver usando outra API do Google e tiver criado uma conta de serviço e uma chave do OAuth 2.0, pule esta etapa e reutilize as credenciais atuais.
 
 Como criar uma conta de serviço e uma chave
 No console do Google Cloud, acesse Menu > IAM e administrador > Contas de serviço.
@@ -74,29 +58,29 @@ Seu novo par de chave pública/privada é gerado e transferido por download para
 
 Clique em Fechar.
 Configurar sua conta de cliente do Google Ads
-Importante: anote o ID de cliente do Google Ads de 10 dígitos, sem os hifens. Você vai precisar desse ID para especificar a conta para a qual está fazendo chamadas de API.
+Importante: anote o ID de cliente do Google Ads de 10 dígitos, sem os hifens. Você vai precisar desse ID para especificar a conta em que está fazendo chamadas de API.
 
-Comece identificando a conta do Google Ads para a qual você está fazendo chamadas de API. O tipo de conta para a qual você pode fazer chamadas de API depende do nível de acesso à API do seu token de desenvolvedor. Consulte a Central de API para descobrir seu nível de acesso à API.
+Comece identificando a conta do Google Ads em que você está fazendo chamadas de API. O tipo de conta em que você pode fazer chamadas de API depende do nível de acesso à API do seu projeto na nuvem do Google Cloud. Consulte a página de visão geral da API Google Ads para descobrir seu nível de acesso à API.
 
-Níveis de acesso "Explorer", "Básico" e "Padrão"
-Nível de acesso "Conta de teste"
+Níveis de acesso de explorador, básico e padrão
+Nível de acesso da conta de teste
 
-Você pode fazer chamadas para sua conta de produção do Google Ads. No entanto, você pode criar uma conta de teste do Google Ads seguindo as instruções na guia Acesso à conta de teste , se necessário.
+Você pode fazer chamadas para sua conta de produção do Google Ads. No entanto, é possível criar uma conta de teste do Google Ads seguindo as instruções na guia Acesso à conta de teste , se necessário.
 
-Para fazer uma chamada de API para um cliente do Google Ads, você precisa conceder acesso e permissões adequadas à sua conta de serviço na conta de cliente do Google Ads. Para fazer isso, você precisa de acesso de administrador à conta de cliente.
+Para fazer uma chamada de API para um cliente do Google Ads, conceda acesso e permissões adequadas à sua conta de serviço na conta de cliente do Google Ads. Para fazer isso, você precisa de acesso de administrador à conta de cliente.
 
-Como conceder acesso à conta de serviço à sua conta do Google Ads
+Como conceder acesso à conta de serviço na sua conta do Google Ads
 Comece fazendo login na sua conta do Google Ads como administrador.
-Acesse Administrador > Acesso e segurança.
+Acesse Admin > Acesso e segurança.
 Clique no botão na guia Usuários.
 
-Digite o endereço de e-mail da conta de serviço na caixa de entrada E-mail. Selecione o nível de acesso à conta apropriado e clique no Adicionar conta botão. O nível de acesso por e-mail não é compatível com contas de serviço.
+Digite o endereço de e-mail da conta de serviço na caixa de entrada E-mail. Selecione o nível de acesso à conta adequado e clique no Adicionar conta botão. O nível de acesso por e-mail não é compatível com contas de serviço.
 
 A conta de serviço recebe acesso.
 
-[Opcional] Por padrão, não é possível conceder acesso de administrador a uma conta de serviço. Se as chamadas de API exigirem acesso de administrador, você poderá fazer upgrade do acesso da seguinte maneira.
+[Opcional] Por padrão, não é possível conceder acesso de administrador a uma conta de serviço. Se as chamadas de API exigirem acesso de administrador, você pode fazer upgrade do acesso da seguinte maneira.
 Clique na seta suspensa ao lado do nível de acesso da conta de serviço na coluna Nível de acesso.
-Selecione Administrador na lista suspensa.
+Selecione Admin na lista suspensa.
 Fazer o download de ferramentas e bibliotecas de cliente
 
 Você pode fazer o download de uma biblioteca de cliente ou de um cliente HTTP, dependendo de como você quer fazer chamadas de API.
@@ -109,16 +93,16 @@ Faça o download e instale uma biblioteca de cliente de sua escolha.
 Fazer uma chamada de API
 Importante: as instruções se referem a um CUSTOMER_ID (no caminho do URL da solicitação) e a uma configuração login_customer_id (nas configurações da biblioteca de cliente ou nos cabeçalhos HTTP headers). A forma como você define esses valores depende da hierarquia da sua conta:
 CUSTOMER_ID: o ID de cliente de 10 dígitos da conta de cliente de destino que você quer consultar ou modificar.
-login_customer_id (ou loginCustomerId / login-customer-id): se o acesso à conta de cliente for por uma conta de administrador, esse cabeçalho será necessário e precisará ser definido como o ID de cliente de 10 dígitos dessa conta de administrador. Se você se autenticar diretamente com as credenciais da própria conta de cliente, poderá omitir essa configuração ou defini-la como o ID da conta de cliente.
+login_customer_id (ou loginCustomerId / login-customer-id): se o acesso à conta de cliente for por uma conta de administrador, esse cabeçalho será obrigatório e precisará ser definido como o ID de cliente de 10 dígitos dessa conta de administrador. Se você se autenticar diretamente com as credenciais da conta de cliente, poderá omitir essa configuração ou defini-la como o ID da conta de cliente.
 
-Requisito de formato importante:os IDs de cliente (para a conta de cliente de destino e a conta de administrador) não podem conter hifens (traços) nas solicitações, URLs e configurações da API. Se você copiar um ID da interface do Google Ads e incluir os traços (por exemplo, usando 123-456-7890 em vez de 1234567890), a chamada de API vai falhar com um INVALID_CUSTOMER_ID erro.
+Requisito de formato importante:os IDs de cliente (para a conta de cliente de destino e a conta de administrador) não podem conter hifens (traços) nas solicitações, URLs e configurações da API. Se você copiar um ID da interface do Google Ads e incluir os traços (por exemplo, usando 123-456-7890 em vez de 1234567890), a chamada de API vai falhar com um erro INVALID_CUSTOMER_ID.
 
 Para mais detalhes, consulte o modelo de acesso do Google Ads e a estrutura de chamada de API.
 
-Observação: as instruções da biblioteca de cliente podem se referir a uma versão específica da biblioteca. Isso é apenas para fins ilustrativos. Você pode usar a versão mais recente da biblioteca de cliente, a menos que seja expressamente declarado.
-Dica:quer executar mais consultas de relatórios? Consulte nosso criador de consultas GAQL. Saiba mais sobre a geração de relatórios.
+Observação: as instruções da biblioteca de cliente podem se referir a uma versão específica da biblioteca. Ela é apenas para fins ilustrativos. Você pode usar a versão mais recente da biblioteca de cliente, a menos que seja expressamente declarado.
+Dica:quer executar mais consultas de relatórios? Consulte nosso criador de consultas GAQL. Saiba mais sobre relatórios.
 
-Selecione o cliente de sua escolha para instruções sobre como fazer uma chamada de API:
+Selecione o cliente de sua preferência para instruções sobre como fazer uma chamada de API:
 
 Java
 C#
@@ -135,22 +119,21 @@ A dependência do Maven é:
 <dependency>
   <groupId>com.google.api-ads</groupId>
   <artifactId>google-ads</artifactId>
-  <version>44.0.0</version>
+  <version>45.0.0</version>
 </dependency>
 
 A dependência do Gradle é:
 
-implementation 'com.google.api-ads:google-ads:44.0.0'
+implementation 'com.google.api-ads:google-ads:45.0.0'
 
-Também recomendamos o uso da lista de materiais (BOM, na sigla em inglês) da API Google Ads para gerenciar as versões de dependência. Consulte o guia da BOM para instruções.
+Também recomendamos usar a lista de materiais (BOM, na sigla em inglês) da API Google Ads para gerenciar as versões de dependência. Consulte o guia da BOM para instruções.
 
 Crie um arquivo ~/ads.properties com o seguinte conteúdo:
 
 api.googleads.serviceAccountSecretsPath=JSON_KEY_FILE_PATH
-api.googleads.developerToken=INSERT_DEVELOPER_TOKEN_HERE
 api.googleads.loginCustomerId=INSERT_LOGIN_CUSTOMER_ID_HERE
 
-Crie um objeto GoogleAdsClient da seguinte maneira:
+Crie um objeto GoogleAdsClient da seguinte forma:
 
 GoogleAdsClient googleAdsClient = null;
 try {
@@ -194,10 +177,10 @@ private void runExample(GoogleAdsClient googleAdsClient, long customerId) {
 }
 GetCampaigns.java
 
-Se você encontrar erros ao fazer sua primeira chamada, consulte Resolver erros da API para orientações sobre como solucionar problemas.
+Se você encontrar erros ao fazer sua primeira chamada, consulte Resolver erros de API para orientações sobre como solucionar problemas.
 
 Anterior
-Guia de integração
+Introdução
 Avançar
 Tratar erros
 Isso foi útil?
@@ -205,4 +188,4 @@ Envie comentários
 
 Exceto em caso de indicação contrária, o conteúdo desta página é licenciado de acordo com a Licença de atribuição 4.0 do Creative Commons, e as amostras de código são licenciadas de acordo com a Licença Apache 2.0. Para mais detalhes, consulte as políticas do site do Google Developers. Java é uma marca registrada da Oracle e/ou afiliadas.
 
-Última atualização 2026-09-11 UTC.
+Última atualização 2026-09-12 UTC.

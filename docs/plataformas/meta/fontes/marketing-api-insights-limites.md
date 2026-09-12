@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — Insights: limites e boas práticas"
 url: https://developers.facebook.com/documentation/ads-commerce/marketing-api/insights/best-practices
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: a88d79fb1c20fa87
 ---
 

@@ -1,8 +1,8 @@
 ---
 titulo: "TikTok Advertising Policies — Politics, Governments, and Elections"
 url: https://ads.tiktok.com/help/article/tiktok-ads-policy-politics-government-and-elections
-capturado_em: 2026-09-11
-hash: bd2613c524b25df1
+capturado_em: 2026-09-12
+hash: 23c90a71108882a4
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -162,6 +162,7 @@ The landing pages of official entities responsible for overseeing elections may 
 
 Additional prohibitions or restrictions may apply. Learn more about our landing page policies by visiting our Ad Format and Functionality article.
 
+*Was the information helpful?
 Content
 Principle
 Paid political advertising

@@ -1,7 +1,7 @@
 ---
 titulo: "App Review — processo e requisitos (Iniciativas de Plataforma Responsável)"
 url: https://developers.facebook.com/documentation/resp-plat-initiatives/individual-processes/app-review
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: 11a94005a45f2eaf
 ---
 

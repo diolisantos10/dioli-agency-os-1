@@ -1,7 +1,7 @@
 ---
 titulo: "Google Identity — verificação de escopos restritos"
 url: https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification?hl=pt-br
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: 23b240d16a0ac53c
 ---
 

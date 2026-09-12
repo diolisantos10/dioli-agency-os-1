@@ -1,8 +1,8 @@
 ---
 titulo: "About API for Business (o que a Marketing API cobre — Business Help Center)"
 url: https://ads.tiktok.com/help/article/marketing-api?lang=en
-capturado_em: 2026-09-11
-hash: 8c825181460720ed
+capturado_em: 2026-09-12
+hash: 01bb85dd58ffcb7a
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -104,6 +104,7 @@ Learn how to get started.
 
 Learn more about the available endpoints from API for Business.
 
+*Was the information helpful?
 Related Articles
  About TikTok App Center
  About TikTok App Events SDK

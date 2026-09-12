@@ -1,7 +1,7 @@
 ---
 titulo: "Developer Guidelines (TikTok for Developers)"
 url: https://developers.tiktok.com/doc/our-guidelines-developer-guidelines
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: cc0a3840dcbb643e
 ---
 

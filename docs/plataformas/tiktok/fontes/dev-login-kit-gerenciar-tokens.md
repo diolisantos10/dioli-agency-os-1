@@ -1,7 +1,7 @@
 ---
 titulo: "Manage User Access Tokens with OAuth v2 (troca de code, refresh, revogação)"
 url: https://developers.tiktok.com/doc/login-kit-manage-user-access-tokens
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: 1fbfc2ab9c8b87e2
 ---
 

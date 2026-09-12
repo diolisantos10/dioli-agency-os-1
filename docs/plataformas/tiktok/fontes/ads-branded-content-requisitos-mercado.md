@@ -1,7 +1,7 @@
 ---
 titulo: "Branded Content Policy — Market-specific Requirements (divulgação de parceria paga por país)"
 url: https://ads.tiktok.com/help/article/branded-content-policy-country-specific-requirements
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: a4083723c1afe7b2
 ---
 

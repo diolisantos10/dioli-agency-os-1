@@ -1,7 +1,7 @@
 ---
 titulo: "Marketing API — referência de Ad Account (campos, limite de gasto, status)"
 url: https://developers.facebook.com/docs/graph-api/reference/adaccount/
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: 52bb50bf0bbd15ec
 ---
 

@@ -1,8 +1,8 @@
 ---
 titulo: "Google Analytics — Data API (GA4): fundamentos de relatório"
 url: https://developers.google.com/analytics/devguides/reporting/data/v1/basics?hl=pt-br
-capturado_em: 2026-09-11
-hash: 77250c18a129044d
+capturado_em: 2026-09-12
+hash: 5dbf7fed68072db3
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -18,11 +18,11 @@ Gerar um relatório
 Consultar métricas
 Leia a resposta
 
-Este guia explica como criar um relatório básico para seus dados do Google Analytics usando a API de dados do Google Analytics v1. Os relatórios da API Data v1 são semelhantes aos que você pode gerar na seção Relatórios da interface do Google Analytics.
+Este guia explica como criar um relatório básico para seus dados do Google Analytics usando a API Google Analytics Data v1. Os relatórios da API Data v1 são semelhantes aos que você pode gerar na seção Relatórios da interface do Google Analytics.
 
 Este guia aborda os relatórios principais, o recurso geral de relatórios da API Data. A API Data v1 também tem relatórios em tempo real e relatórios de funil especializados.
 
-runReport é o método recomendado para consultas e é usado em todos os exemplos deste guia. Consulte Recursos avançados para uma visão geral de outros métodos principais de geração de relatórios. Teste suas consultas com o Query Explorer.
+runReport é o método recomendado para consultas e é usado em todos os exemplos deste guia. Consulte recursos avançados para uma visão geral de outros métodos principais de geração de relatórios. Teste suas consultas com o Query Explorer.
 
 Visão geral de relatórios
 
@@ -43,7 +43,7 @@ Toda solicitação runReport exige que você especifique um ID da propriedade do
 
 POST https://analyticsdata.googleapis.com/v1beta/properties/GA_PROPERTY_ID:runReport
 
-A resposta dessa solicitação inclui apenas dados da propriedade do Analytics especificada como GA_PROPERTY_ID.
+A resposta dessa solicitação inclui apenas dados da propriedade do Google Analytics especificada como GA_PROPERTY_ID.
 
 Se você usar as bibliotecas de cliente da API Data, especifique a fonte de dados no parâmetro property, no formato properties/GA_PROPERTY_ID. Consulte o guia de início rápido para exemplos de como usar as bibliotecas de cliente.
 
@@ -176,7 +176,7 @@ Confira um exemplo de resposta para a solicitação de exemplo anterior:
 
 Agrupar e filtrar dados
 
-As dimensões são atributos qualitativos que podem ser usados para agrupar e filtrar seus dados. Por exemplo, a dimensão city indica a cidade, como Paris ou New York, em que cada evento foi originado. As dimensões são opcionais para solicitações runReport, e é possível usar até nove dimensões por solicitação.
+As dimensões são atributos qualitativos que podem ser usados para agrupar e filtrar seus dados. Por exemplo, a dimensão city indica a cidade, como Paris ou New York, em que cada evento foi originado. As dimensões são opcionais para solicitações runReport, e você pode usar até nove dimensões por solicitação.
 
 Consulte as dimensões da API para ver uma lista completa das dimensões que você pode usar para agrupar e filtrar seus dados.
 
@@ -236,7 +236,7 @@ Filtro
 
 Você gera relatórios com dados apenas para valores específicos de dimensões. Para filtrar dimensões, especifique um FilterExpression no campo dimensionFilter.
 
-Confira um exemplo que retorna um relatório de série temporal de eventCount quando eventName é first_open para cada date :
+Confira um exemplo que retorna um relatório de série temporal de eventCount, quando eventName é first_open para cada date :
 
 HTTP
 Java
@@ -312,7 +312,7 @@ Node.js
 },
 ...
 
-Um inListFilter corresponde a dados de qualquer um dos valores na lista. Confira uma dimensionFilter que retorna dados de eventos em que eventName é qualquer um dos seguintes: purchase, in_app_purchase e app_store_subscription_renew:
+Um inListFilter corresponde a dados de qualquer um dos valores na lista. Confira uma dimensionFilter que retorna dados de eventos em que eventName é qualquer um dos purchase, in_app_purchase e app_store_subscription_renew:
 
 HTTP
 Java
@@ -460,4 +460,4 @@ Envie comentários
 
 Exceto em caso de indicação contrária, o conteúdo desta página é licenciado de acordo com a Licença de atribuição 4.0 do Creative Commons, e as amostras de código são licenciadas de acordo com a Licença Apache 2.0. Para mais detalhes, consulte as políticas do site do Google Developers. Java é uma marca registrada da Oracle e/ou afiliadas.
 
-Última atualização 2026-09-07 UTC.
+Última atualização 2026-09-12 UTC.

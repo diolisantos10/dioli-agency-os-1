@@ -1,7 +1,7 @@
 ---
 titulo: "Google Ads — política editorial"
 url: https://support.google.com/adspolicy/answer/6021546?hl=pt-BR
-capturado_em: 2026-09-11
+capturado_em: 2026-09-12
 hash: e47b743351f73f32
 ---
 

@@ -1,8 +1,8 @@
 ---
 titulo: "TikTok Advertising Policies — Intellectual Property Infringement"
 url: https://ads.tiktok.com/help/article/tiktok-ads-policy-intellectual-property-infringement?lang=en
-capturado_em: 2026-09-11
-hash: 7051eaa90021cd06
+capturado_em: 2026-09-12
+hash: 90a9798cbab9a830
 ---
 
 > Documento oficial capturado da plataforma. A fonte é a URL acima;
@@ -223,6 +223,7 @@ As a TikTok user or advertiser, you are responsible for the content you post. If
 
 Please note that TikTok is not in a position to adjudicate disputes between third parties. In accordance with our legal obligations, we maintain processes to address IP rights infringement reports and related disputes. Users or rightholders may have other ways to seek resolution, such as out-of-court dispute settlement processes or in-court proceedings under laws in their countries.
 
+*Was the information helpful?
 Content
 Principle
 Copyright and Trademark
